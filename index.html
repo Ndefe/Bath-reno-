@@ -69,6 +69,24 @@ body.client main{max-width:none;padding:0}
 body.client .planner{display:block}
 body.client .pl-stage{height:100vh;border-radius:0}
 
+
+.products{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.products h3{font-size:13px;margin:0;color:var(--mute);font-weight:600}
+.product{display:flex;gap:10px;align-items:center;min-width:0}
+.product img{width:56px;height:56px;object-fit:cover;border-radius:8px;background:#eef2f5;flex:none}
+.product .pname{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.product .pmeta{font-size:12px;color:var(--mute)}
+.extra-opt{display:flex;gap:8px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.extra-opt label{display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0;cursor:pointer;margin:0}
+.extra-opt label input{width:auto;margin-top:3px;flex:none}
+.extra-opt .ename{display:block;font-size:14px;line-height:1.35;overflow-wrap:anywhere;color:var(--ink)}
+.extra-opt .price{font-weight:700;white-space:nowrap;flex:none;padding-top:2px}
+.extra-opt input.qty{width:64px;flex:none;padding:6px 8px}
+.extras-label{font-size:13px;color:var(--mute);margin:14px 0 4px}
+.pl-palette .btn{white-space:normal;line-height:1.25;text-align:left}
+.grid>div,.planner>div,.card{min-width:0}
+select{max-width:100%}
+
 /* Mobile tweaks */
 header.app{position:sticky;top:0;z-index:20}
 @media(max-width:520px){
@@ -77,14 +95,19 @@ header.app{position:sticky;top:0;z-index:20}
   .row3{grid-template-columns:1fr 1fr 1fr}
   main{padding:10px}
   .pl-stage{height:52vh;min-height:300px}
+  .product img{width:48px;height:48px}
+  .extra{grid-template-columns:1fr 88px auto}
+  .extra-opt{padding:12px 0}
   input,select,textarea{font-size:16px}
   #m-total{display:flex}
-  #view-quote{padding-bottom:56px}
+  #view-quote{padding-bottom:84px}
+  #summary{scroll-margin-top:88px}
 }
-#m-total{display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:#fff;padding:10px 14px;justify-content:space-between;align-items:center;font-weight:700}
+#m-total{display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:#fff;padding:10px 14px;justify-content:space-between;align-items:center;font-weight:700;gap:8px}
+@media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
-@media print{#m-total{display:none!important}}
+@media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}}
 </style>
 </head>
 <body class="on-quote">
@@ -112,17 +135,19 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div id="dim-m2" style="display:none"><label>Area (m²)</label><input id="q-area" type="number" step="0.01" min="0"></div>
           <label>Package</label><select id="q-pkg"></select>
           <div class="hint" id="q-pkg-desc"></div>
+          <div id="pkg-products"></div>
         </div>
         <div class="card"><h2>Extras</h2>
           <div id="extras"></div>
-          <button class="btn sec sm" id="add-extra">+ Add extra</button>
-          <div class="hint" style="margin-top:6px">e.g. unusual plumbing relocation, waterproofing repairs, niche shelving</div>
+          <div class="extras-label">Custom extras</div>
+          <div id="custom-extras"></div>
+          <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
         <div class="card"><h2>Notes</h2><textarea id="q-notes" placeholder="Shown on the quote"></textarea></div>
       </div>
       <div>
         <div class="card" style="position:sticky;top:10px"><h2>Quote summary</h2>
-          <div id="summary"></div>
+          <div id="summary"><p class="hint">Loading catalogue…</p></div>
           <div class="actions">
             <button class="btn" id="btn-save">Save quote</button>
             <button class="btn sec" id="btn-print">Print / Save as PDF</button>
@@ -162,7 +187,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <span></span><button class="btn sec sm" data-mv="0,1">▼</button><span></span>
         </div>
         <div class="actions"><button class="btn del sm" id="pl-del">Delete item</button><button class="btn del sm" id="pl-clear">Clear all</button></div>
-        <div class="hint" style="margin-top:8px">The design is saved with the quote when you press "Save quote".</div>
+        <div class="hint" style="margin-top:8px">Fixture sizes follow the package. The design is saved with the quote when you press "Save quote".</div>
       </div>
     </div>
   </section>
@@ -175,9 +200,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div class="card"><h2>Business</h2>
       <div class="row"><div><label>Business name</label><input id="s-biz"></div><div><label>Contact line (phone / email / ABN)</label><input id="s-contact"></div></div>
       <div class="row"><div><label>Quote valid (days)</label><input id="s-valid" type="number" min="1"></div>
-      <div><label>GST</label><div class="seg"><label><input type="checkbox" id="s-gst"> Add GST (10%, AUD)</label></div></div></div>
+      <div><label>GST</label><p class="hint">Catalogue rates already include GST. The quote shows the GST included in the total.</p></div></div>
     </div>
     <div class="card"><h2>Packages</h2>
+      <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
       <div id="pkg-list"></div>
       <button class="btn sec sm" id="add-pkg">+ Add package</button>
     </div>
@@ -188,35 +214,111 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 <div id="printArea"></div>
 
 <script>
-/* ==== Modules: Store, Calc, Settings UI, Quote UI, Render. 
-   Future: a Planner3D module can write {length,width,fixtures} into the quote's `room` object. ==== */
-const TZ='Australia/Brisbane', GST_RATE=0.10;
-const K={settings:'bq.settings.v1',quotes:'bq.quotes.v1',counter:'bq.counter.v1'};
-
-const DEFAULTS={
-  bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email · ABN', validDays:30, gst:true,
-  packages:[
-    {id:'grey-modern',name:'Grey Modern',rate:1800,example:true,look:'grey-modern',desc:'Walk-in frameless shower, wall-hung vanity with basin, wall-faced toilet, matte black tapware, grey large-format porcelain floor tiles, white subway wall tiles, waterproofing, LED mirror.'},
-    {id:'beige-copper',name:'Beige Copper',rate:2400,example:true,look:'beige-copper',desc:'Bath plus shower with glass screen, timber-look vanity with stone top and basin, close-coupled toilet, brushed copper tapware & towel rail, beige stone floor tiles, terrazzo-style wall tiles, waterproofing.'}
-  ]
+/* Quote builder. Prices, packages and extras come from catalogue.json.
+   Sell price (inc GST) = base fee + rate per m² × floor area. Bath and extras are separate. */
+const TZ='Australia/Brisbane', GST_RATE=0.10, MARGIN=0.27;
+const K={settings:'bq.settings.v2',quotes:'bq.quotes.v1',counter:'bq.counter.v1'};
+const ROLE={
+  floor:'Floor tile',wall:'Wall tile',feature:'Feature tile',
+  vanity:'Vanity',basin_mixer:'Basin mixer',shower_mixer:'Shower mixer',shower_rail:'Shower rail',
+  toilet_suite:'Toilet suite',bath:'Bath',shower_screen:'Shower screen',mirror_cabinet:'Mirror cabinet',
+  mirror:'Mirror',towel_rail:'Towel rail',toilet_roll_holder:'Toilet roll holder',floor_waste:'Floor waste'
 };
+
+let catalogue=null, settings, quote, defaults, shownPkg=null;
+
+function buildDefaults(cat){
+  return {
+    bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email · ABN', validDays:30,
+    packages:cat.packages.map(p=>({
+      id:p.id,
+      name:p.name.replace(/\s*\(suggested premium\)\s*/i,'').trim(),
+      baseFee:+p.pricing.base_fee,
+      rate:+p.pricing.rate_per_m2,
+      look:p.id,
+      desc:p.description
+    }))
+  };
+}
 
 const Store={
   get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
   set(k,v){localStorage.setItem(k,JSON.stringify(v))}
 };
 
+function tileSides(size){
+  const m=String(size||'').match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
+  return m?[+m[1],+m[2]]:[0,0];
+}
+function isLargeFormat(tile){
+  const [a,b]=tileSides(tile&&tile.size_mm);
+  return a>=600&&b>=600;
+}
+function catPkg(id){return catalogue?.packages.find(p=>p.id===id)||null}
+function extraApplies(ex,pkgId){
+  const m=String(ex.id).match(/_(grey-modern|beige-copper|marble-luxe)$/);
+  return !m||m[1]===pkgId;
+}
+function allowsQty(ex){return /^each\b/i.test(ex.unit||'')}
+
 const Calc={
   round:n=>Math.round((+n||0)*100)/100,
   area(room){return room.mode==='m2'?this.round(room.area):this.round((+room.length||0)*(+room.width||0))},
-  totals(q,settings){
-    const pkg=settings.packages.find(p=>p.id===q.packageId)||null;
-    const area=this.area(q.room), rate=pkg?+pkg.rate:0;
-    const base=this.round(area*rate);
-    const extras=this.round(q.extras.reduce((s,e)=>s+(+e.amount||0),0));
-    const subtotal=this.round(base+extras);
-    const gst=settings.gst?this.round(subtotal*GST_RATE):0;
-    return {pkg,area,rate,base,extras,subtotal,gst,total:this.round(subtotal+gst)};
+  wallM2(area){return area>0?Math.max(0,Math.round((4*Math.sqrt(area)*2.1-1.8)*100)/100):0},
+  /* Matches catalogue breakdown tile_labour (supply labour + adhesive/grout), rounded to the dollar. */
+  tilingLabourCost(area,pkgId){
+    const pkg=catPkg(pkgId), a=catalogue&&catalogue.cost_assumptions;
+    if(!pkg||!a||!(area>0)) return 0;
+    const floor=pkg.tiles.find(t=>t.role==='floor');
+    const wall=pkg.tiles.find(t=>t.role==='wall');
+    const feat=pkg.tiles.find(t=>t.role==='feature');
+    const walls=this.wallM2(area);
+    const featM2=Math.min(2.5,walls);
+    const wallStd=Math.max(0,walls-featM2);
+    const rateFor=(tile,role)=>role==='feature'?a.tile_labour_feature:(tile&&isLargeFormat(tile)?a.tile_labour_large:a.tile_labour);
+    const cost=(m2,tile,role)=>m2*(rateFor(tile,role)+a.adhesive_grout);
+    return Math.round(cost(area,floor,'floor')+cost(wallStd,wall,'wall')+cost(featM2,feat,'feature'));
+  },
+  priceExtra(ex,area,pkgId,qty){
+    const q=Math.max(1,+qty||1);
+    if(String(ex.id).startsWith('fttc_')) return area>0?this.round(ex.price*Math.sqrt(area/6)):0;
+    if(/%/.test(ex.unit||'')) return this.round(this.tilingLabourCost(area,pkgId)*(+ex.price/100)/(1-MARGIN));
+    if(/m2|m²/i.test(ex.unit||'')){
+      if(!(area>0)) return 0;
+      const fixed=(String(ex.unit).match(/\$(\d+(?:\.\d+)?)/)||[])[1];
+      return this.round((+ex.price)*area+(fixed?+fixed:0));
+    }
+    return this.round((+ex.price)*q);
+  },
+  lineDesc(ex,area,qty){
+    if(String(ex.id).startsWith('fttc_')) return `${ex.name} (${(+area||0).toFixed(2)} m² room)`;
+    if(/m2|m²/i.test(ex.unit||'')) return `${ex.name} — ${(+area||0).toFixed(2)} m²`;
+    if(allowsQty(ex)&&qty>1) return `${ex.name} × ${qty}`;
+    return ex.name;
+  },
+  extraLines(q){
+    const area=this.area(q.room), lines=[];
+    for(const pick of q.picks||[]){
+      const ex=(catalogue?.extras||[]).find(e=>e.id===pick.id);
+      if(!ex||!extraApplies(ex,q.packageId)) continue;
+      const qty=allowsQty(ex)?Math.max(1,+pick.qty||1):1;
+      lines.push({id:ex.id,desc:this.lineDesc(ex,area,qty),amount:this.priceExtra(ex,area,q.packageId,qty),qty});
+    }
+    for(const e of q.extras||[]){
+      if(e.desc||+e.amount) lines.push({desc:e.desc||'Extra',amount:this.round(+e.amount||0)});
+    }
+    return lines;
+  },
+  totals(q,st){
+    const pkg=(st.packages||[]).find(p=>p.id===q.packageId)||null;
+    const area=this.area(q.room);
+    const rate=pkg?+pkg.rate||0:0, baseFee=pkg?+pkg.baseFee||0:0;
+    const base=area>0?this.round(baseFee+area*rate):0;
+    const lines=this.extraLines(q);
+    const extras=this.round(lines.reduce((s,l)=>s+(+l.amount||0),0));
+    const total=this.round(base+extras);
+    const gst=this.round(total/11);
+    return {pkg,area,rate,baseFee,base,extras,lines,gst,total};
   }
 };
 
@@ -227,24 +329,54 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const $=id=>document.getElementById(id);
 const uid=()=>Math.random().toString(36).slice(2,9);
 
-let settings=Store.get(K.settings,null)||structuredClone(DEFAULTS);
-let quote;
-if(settings.packages.some(p=>p.id==='classic'&&p.example)&&settings.packages.some(p=>p.id==='modern'&&p.example)){settings.packages=structuredClone(DEFAULTS.packages);Store.set(K.settings,settings);}
-
 function nextQuoteNumber(){const c=(Store.get(K.counter,0)||0)+1;Store.set(K.counter,c);return 'Q-'+ymd(new Date())+'-'+String(c).padStart(3,'0')}
 function newQuote(){
   return {id:uid(),number:null,createdAt:new Date().toISOString(),customer:{name:'',phone:'',email:'',address:''},
-    room:{mode:'lw',length:'',width:'',area:''},design:null,packageId:settings.packages[0]?.id||'',extras:[],notes:''};
+    room:{mode:'lw',length:'',width:'',area:''},design:null,packageId:settings.packages[0]?.id||'',picks:[],extras:[],notes:''};
 }
 
-/* ---------- Quote UI ---------- */
+function productSrc(p){
+  const base=String(p.image_file||'').split('/').pop();
+  return base?`assets/products/${base}`:'';
+}
+function includedProducts(pkgId){
+  const pkg=catPkg(pkgId);
+  if(!pkg) return [];
+  return [
+    ...pkg.tiles.map(t=>({...t,kind:t.role})),
+    ...pkg.items.filter(i=>!i.optional).map(i=>({...i,kind:i.category}))
+  ];
+}
+function productsHtml(pkgId){
+  const list=includedProducts(pkgId);
+  if(!list.length) return '';
+  return `<div class="products"><h3>Included products</h3>${list.map(p=>{
+    const src=productSrc(p), role=ROLE[p.kind]||p.kind||'';
+    const img=src?`<img src="${esc(src)}" alt="" width="56" height="56" onerror="this.hidden=true">`:'';
+    return `<div class="product">${img}<div><div class="pname">${esc(p.name)}</div><div class="pmeta">${esc(role)} · ${esc(p.code)}</div></div></div>`;
+  }).join('')}</div>`;
+}
+function extraHint(ex){
+  if(String(ex.id).startsWith('fttc_')) return 'Scales with floor area from the 6 m² catalogue price';
+  if(/%/.test(ex.unit||'')) return `${ex.price}% of tiling labour`;
+  if(/m2|m²/i.test(ex.unit||'')) return ex.unit;
+  if(ex.unit==='from') return 'Starting price';
+  if(ex.unit==='each') return 'Each';
+  if(ex.unit==='job') return 'Per job';
+  return ex.unit||'';
+}
+
 function loadQuoteToForm(q){
   quote=q;
+  quote.picks=quote.picks||[];
+  quote.extras=quote.extras||[];
   $('q-name').value=q.customer.name;$('q-phone').value=q.customer.phone;$('q-email').value=q.customer.email;$('q-address').value=q.customer.address;
   document.querySelector(`input[name=dimMode][value=${q.room.mode}]`).checked=true;
   $('q-len').value=q.room.length;$('q-wid').value=q.room.width;$('q-area').value=q.room.area;$('q-notes').value=q.notes;
-  fillPkgSelect();renderExtras();update();
-  if(window.Planner)Planner.loadFromQuote(q);
+  shownPkg=null;
+  fillPkgSelect();
+  update();
+  if(window.Planner) Planner.loadFromQuote(q);
 }
 function readForm(){
   quote.customer={name:$('q-name').value,phone:$('q-phone').value,email:$('q-email').value,address:$('q-address').value};
@@ -252,95 +384,156 @@ function readForm(){
   quote.packageId=$('q-pkg').value;quote.notes=$('q-notes').value;
 }
 function fillPkgSelect(){
-  $('q-pkg').innerHTML=settings.packages.map(p=>`<option value="${p.id}">${esc(p.name)} — ${fmt(p.rate)}/m²${p.example?' (example)':''}</option>`).join('');
-  if(!settings.packages.some(p=>p.id===quote.packageId))quote.packageId=settings.packages[0]?.id||'';
+  $('q-pkg').innerHTML=settings.packages.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${fmt(p.baseFee)} + ${fmt(p.rate)}/m²</option>`).join('');
+  if(!settings.packages.some(p=>p.id===quote.packageId)) quote.packageId=settings.packages[0]?.id||'';
   $('q-pkg').value=quote.packageId;
 }
+function renderCustom(){
+  $('custom-extras').innerHTML=(quote.extras||[]).map((e,i)=>`<div class="extra"><input data-i="${i}" data-f="desc" placeholder="Description" value="${esc(e.desc)}"><input data-i="${i}" data-f="amount" type="number" step="0.01" inputmode="decimal" placeholder="$" value="${esc(e.amount)}"><button class="btn del sm" type="button" data-rm="${i}">✕</button></div>`).join('');
+}
 function renderExtras(){
-  $('extras').innerHTML=quote.extras.map((e,i)=>`<div class="extra"><input data-i="${i}" data-f="desc" placeholder="Description" value="${esc(e.desc)}"><input data-i="${i}" data-f="amount" type="number" step="0.01" placeholder="$" value="${esc(e.amount)}"><button class="btn del sm" data-rm="${i}">✕</button></div>`).join('');
+  const area=Calc.area(quote.room);
+  const picks=quote.picks||[];
+  $('extras').innerHTML=(catalogue.extras||[]).filter(ex=>extraApplies(ex,quote.packageId)).map(ex=>{
+    const pick=picks.find(p=>p.id===ex.id);
+    const on=!!pick, qty=pick?Math.max(1,+pick.qty||1):1;
+    const amount=Calc.priceExtra(ex,area,quote.packageId,on?qty:1);
+    const qtyBox=allowsQty(ex)?`<input class="qty" data-qty="${esc(ex.id)}" type="number" min="1" step="1" inputmode="numeric" value="${qty}" ${on?'':'hidden'} aria-label="Quantity for ${esc(ex.name)}">`:'';
+    return `<div class="extra-opt"><label><input type="checkbox" data-xid="${esc(ex.id)}" ${on?'checked':''}><span class="grow"><span class="ename">${esc(ex.name)}</span><span class="hint">${esc(extraHint(ex))}</span></span></label>${qtyBox}<span class="price" data-xprice="${esc(ex.id)}">${fmt(amount)}</span></div>`;
+  }).join('');
+  renderCustom();
+}
+function syncExtraPrices(){
+  const area=Calc.area(quote.room);
+  document.querySelectorAll('[data-xprice]').forEach(el=>{
+    const ex=catalogue.extras.find(x=>x.id===el.dataset.xprice);
+    if(!ex) return;
+    const pick=(quote.picks||[]).find(p=>p.id===ex.id);
+    el.textContent=fmt(Calc.priceExtra(ex,area,quote.packageId,pick?pick.qty:1));
+  });
+}
+function renderProducts(){
+  $('pkg-products').innerHTML=productsHtml(quote.packageId);
 }
 function update(){
+  if(!catalogue||!quote) return;
   readForm();
-  const lw=quote.room.mode==='lw';$('dim-lw').style.display=lw?'':'none';$('dim-m2').style.display=lw?'none':'';
+  const lw=quote.room.mode==='lw';
+  $('dim-lw').style.display=lw?'':'none';
+  $('dim-m2').style.display=lw?'none':'';
+  if(shownPkg!==quote.packageId){
+    quote.picks=(quote.picks||[]).filter(p=>{
+      const ex=catalogue.extras.find(e=>e.id===p.id);
+      return ex&&extraApplies(ex,quote.packageId);
+    });
+    renderExtras();
+    renderProducts();
+    shownPkg=quote.packageId;
+  }else syncExtraPrices();
   const t=Calc.totals(quote,settings);
   $('q-area-calc').value=t.area?t.area.toFixed(2):'';
-  $('q-pkg-desc').textContent=t.pkg?t.pkg.desc:'';
+  const example=t.pkg?` 6 m² is ${fmt((+t.pkg.baseFee)+(+t.pkg.rate)*6)} inc GST.`:'';
+  $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Price includes GST. Bath and extras are on top.${t.area>0?'':example}`:'';
   $('summary').innerHTML=summaryTable(t)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days</div>`;
-  $('brand').textContent=(settings.bizName||'')+' · Quote Builder';$('m-total-v').textContent=fmt(t.total);
+  $('brand').textContent=(settings.bizName||'')+' · Quote Builder';
+  $('m-total-v').textContent=fmt(t.total);
 }
 function summaryTable(t){
-  const ex=quote.extras.filter(e=>e.desc||+e.amount).map(e=>`<tr><td>${esc(e.desc||'Extra')}</td><td class="n">${fmt(e.amount)}</td></tr>`).join('');
+  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${fmt(e.amount)}</td></tr>`).join('');
+  const formula=t.area>0&&t.pkg?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Enter the floor size to price this package';
   return `<table>
-  <tr><td>${esc(t.pkg?.name||'No package')} package<br><span class="hint">${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²</span></td><td class="n" id="sum-base">${fmt(t.base)}</td></tr>
-  ${ex}
-  <tr><td>Subtotal${settings.gst?' (ex GST)':''}</td><td class="n" id="sum-sub">${fmt(t.subtotal)}</td></tr>
-  ${settings.gst?`<tr><td>GST 10%</td><td class="n" id="sum-gst">${fmt(t.gst)}</td></tr>`:''}
-  <tr class="total"><td>Total (AUD${settings.gst?' inc GST':''})</td><td class="n" id="sum-total">${fmt(t.total)}</td></tr></table>`;
+  <tr><td>${esc(t.pkg?.name||'No package')}<br><span class="hint">${formula}</span></td><td class="n" id="sum-base">${fmt(t.base)}</td></tr>
+  ${lines}
+  <tr class="total"><td>Total (AUD inc GST)</td><td class="n" id="sum-total">${fmt(t.total)}</td></tr>
+  <tr><td class="hint">Includes GST</td><td class="n hint" id="sum-gst">${fmt(t.gst)}</td></tr>
+  </table>`;
 }
 function ensureNumber(){if(!quote.number)quote.number=nextQuoteNumber()}
 function saveQuote(){
   readForm();ensureNumber();
   const list=Store.get(K.quotes,[]);const t=Calc.totals(quote,settings);
-  if(window.Planner)quote.design=Planner.getDesign();
-  const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null,gst:settings.gst};
+  if(window.Planner) quote.design=Planner.getDesign();
+  const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
   const i=list.findIndex(x=>x.id===quote.id);if(i>=0)list[i]=rec;else list.unshift(rec);
   Store.set(K.quotes,list);update();$('save-msg').textContent='Saved '+quote.number;
 }
 
-/* ---------- Printable quote ---------- */
 function renderPrint(){
   readForm();ensureNumber();update();
-  const t=Calc.totals(quote,settings),c=quote.customer,created=new Date(quote.createdAt);
+  const t=Calc.totals(quote,settings), c=quote.customer, created=new Date(quote.createdAt);
   const valid=new Date(created.getTime()+settings.validDays*864e5);
-  const ex=quote.extras.filter(e=>e.desc||+e.amount).map(e=>`<tr><td>${esc(e.desc||'Extra')}</td><td class="n">${fmt(e.amount)}</td></tr>`).join('');
+  const cat=catPkg(quote.packageId);
+  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${fmt(e.amount)}</td></tr>`).join('');
+  const formula=t.area>0?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Floor size not set';
   $('printArea').innerHTML=`<div class="quote-doc">
    <div class="qd-head"><div><h2>${esc(settings.bizName)}</h2><div class="hint">${esc(settings.contact)}</div></div>
    <div class="qd-meta"><strong style="font-size:18px">QUOTE</strong><br>No. ${esc(quote.number)}<br>Date: ${fmtDate(created)}<br>Valid until: ${fmtDate(valid)}</div></div>
    <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name)}<br>${esc(c.address)}<br>${esc(c.phone)}<br>${esc(c.email)}</div>
-   <div><strong>Bathroom</strong><br>${quote.room.mode==='lw'?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:''}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'-')}</div></div>
+   <div><strong>Bathroom</strong><br>${quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:''}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'-')}</div></div>
+   ${productsHtml(quote.packageId)}
    <table><tr><th>Description</th><th class="n">Amount</th></tr>
-   <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${esc(t.pkg?.desc||'')}</span><br><span class="hint">${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²</span></td><td class="n">${fmt(t.base)}</td></tr>
-   ${ex}
-   <tr><td class="n">Subtotal${settings.gst?' (ex GST)':''}</td><td class="n">${fmt(t.subtotal)}</td></tr>
-   ${settings.gst?`<tr><td class="n">GST (10%)</td><td class="n">${fmt(t.gst)}</td></tr>`:''}
-   <tr class="total"><td class="n">Total AUD${settings.gst?' (inc GST)':''}</td><td class="n">${fmt(t.total)}</td></tr></table>
+   <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${esc(t.pkg?.desc||'')}</span><br><span class="hint">${esc(cat?.pricing?.includes||'')}</span><br><span class="hint">${formula}</span></td><td class="n">${fmt(t.base)}</td></tr>
+   ${lines}
+   <tr class="total"><td class="n">Total AUD (inc GST)</td><td class="n">${fmt(t.total)}</td></tr>
+   <tr><td class="n hint">Includes GST</td><td class="n hint">${fmt(t.gst)}</td></tr></table>
    ${quote.notes?`<p><strong>Notes</strong><br>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
-   <p class="qd-small">This quote is valid for ${settings.validDays} days from the date of issue. Prices in Australian dollars. Final price subject to site inspection.</p></div>`;
+   <p class="qd-small">This quote is valid for ${settings.validDays} days from the date of issue. Prices are in Australian dollars and include GST. Bath and listed extras are separate from the package. Final price subject to site inspection. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
 }
 
-/* ---------- Saved list ---------- */
 function renderSaved(){
   const list=Store.get(K.quotes,[]);
   $('saved-list').innerHTML=list.length?list.map(q=>`<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(q.customer.name||'(no name)')}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${fmt(q.total)}</span></div>
-  <div><button class="btn sm" data-open="${q.id}">Open</button> <button class="btn del sm" data-delq="${q.id}">Delete</button></div></div>`).join(''):'<p class="hint">No saved quotes yet.</p>';
+  <div><button class="btn sm" type="button" data-open="${q.id}">Open</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`).join(''):'<p class="hint">No saved quotes yet.</p>';
 }
 
-/* ---------- Settings UI ---------- */
 function renderSettings(){
-  $('s-biz').value=settings.bizName;$('s-contact').value=settings.contact;$('s-valid').value=settings.validDays;$('s-gst').checked=settings.gst;
+  $('s-biz').value=settings.bizName;$('s-contact').value=settings.contact;$('s-valid').value=settings.validDays;
+  const looks=Object.entries(window.LOOKS||{});
   $('pkg-list').innerHTML=settings.packages.map((p,i)=>`<div class="pkg">
    <div class="row"><div><label>Name</label><input data-p="${i}" data-f="name" value="${esc(p.name)}"></div>
-   <div><label>Price per m² (AUD) ${p.example?'<span class="badge">EXAMPLE placeholder</span>':''}</label><input data-p="${i}" data-f="rate" type="number" step="1" value="${esc(p.rate)}"></div></div>
-   <label>Planner look</label><select data-p="${i}" data-f="look">${Object.entries(window.LOOKS||{}).map(([k,v])=>`<option value="${k}" ${p.look===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select>
-   <label>Included items</label><textarea data-p="${i}" data-f="desc">${esc(p.desc)}</textarea>
-   <div class="actions"><button class="btn del sm" data-delp="${i}">Remove package</button></div></div>`).join('');
+   <div><label>Base fee (AUD, inc GST)</label><input data-p="${i}" data-f="baseFee" type="number" step="1" min="0" inputmode="numeric" value="${esc(p.baseFee)}"></div></div>
+   <div class="row"><div><label>Rate per m² (AUD, inc GST)</label><input data-p="${i}" data-f="rate" type="number" step="1" min="0" inputmode="numeric" value="${esc(p.rate)}"></div>
+   <div><label>Planner look</label><select data-p="${i}" data-f="look">${looks.map(([k,v])=>`<option value="${esc(k)}" ${p.look===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select></div></div>
+   <label>Description</label><textarea data-p="${i}" data-f="desc">${esc(p.desc)}</textarea>
+   <div class="actions"><button class="btn del sm" type="button" data-delp="${i}">Remove package</button></div></div>`).join('');
 }
 function readSettings(){
-  settings.bizName=$('s-biz').value;settings.contact=$('s-contact').value;settings.validDays=Math.max(1,+$('s-valid').value||30);settings.gst=$('s-gst').checked;
+  settings.bizName=$('s-biz').value;settings.contact=$('s-contact').value;settings.validDays=Math.max(1,+$('s-valid').value||30);
 }
 
-/* ---------- Events ---------- */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
-  document.body.classList.toggle('on-quote',b.dataset.view==='quote');if(b.dataset.view==='saved')renderSaved();if(b.dataset.view==='planner')Planner.show();if(b.dataset.view==='settings')renderSettings();
+  document.body.classList.toggle('on-quote',b.dataset.view==='quote');
+  if(b.dataset.view==='quote') update();
+  if(b.dataset.view==='saved') renderSaved();
+  if(b.dataset.view==='planner') Planner.show();
+  if(b.dataset.view==='settings') renderSettings();
 });
 $('view-quote').addEventListener('input',e=>{
-  const i=e.target.dataset.i;if(i!==undefined)quote.extras[i][e.target.dataset.f]=e.target.value;update();
+  if(!quote) return;
+  if(e.target.dataset.qty){
+    const pick=(quote.picks||[]).find(p=>p.id===e.target.dataset.qty);
+    if(pick) pick.qty=Math.max(1,+e.target.value||1);
+  }
+  const i=e.target.dataset.i;
+  if(i!==undefined&&e.target.dataset.f) quote.extras[i][e.target.dataset.f]=e.target.value;
+  update();
 });
-$('view-quote').addEventListener('change',e=>{update();if(e.target.id==='q-pkg'&&window.Planner)Planner.applyPackageLook();});
-$('add-extra').onclick=()=>{quote.extras.push({desc:'',amount:''});renderExtras();update()};
-$('extras').onclick=e=>{const r=e.target.dataset.rm;if(r!==undefined){quote.extras.splice(r,1);renderExtras();update()}};
+$('view-quote').addEventListener('change',e=>{
+  if(!quote) return;
+  if(e.target.dataset.xid){
+    const id=e.target.dataset.xid;
+    quote.picks=quote.picks||[];
+    if(e.target.checked){ if(!quote.picks.some(p=>p.id===id)) quote.picks.push({id,qty:1}); }
+    else quote.picks=quote.picks.filter(p=>p.id!==id);
+    renderExtras();
+  }
+  update();
+  if(e.target.id==='q-pkg'&&window.Planner) Planner.applyPackageLook();
+});
+$('add-extra').onclick=()=>{quote.extras.push({desc:'',amount:''});renderCustom();update()};
+$('custom-extras').onclick=e=>{const r=e.target.dataset.rm;if(r!==undefined){quote.extras.splice(+r,1);renderCustom();update()}};
 $('btn-save').onclick=saveQuote;
 $('btn-print').onclick=()=>{renderPrint();window.print()};
 $('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
@@ -349,16 +542,35 @@ $('saved-list').onclick=e=>{
   if(o){const q=list.find(x=>x.id===o);loadQuoteToForm(structuredClone(q));document.querySelector('nav button[data-view=quote]').click()}
   if(d&&confirm('Delete this quote?')){Store.set(K.quotes,list.filter(x=>x.id!==d));renderSaved()}
 };
-$('pkg-list').addEventListener('change',e=>{const i=e.target.dataset.p;if(i!==undefined&&e.target.dataset.f==='look')settings.packages[i].look=e.target.value;});
-$('pkg-list').addEventListener('input',e=>{const i=e.target.dataset.p;if(i===undefined)return;const p=settings.packages[i],f=e.target.dataset.f;p[f]=f==='rate'?+e.target.value:e.target.value;});
-$('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(i,1);renderSettings()}};
-$('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',rate:0,desc:'',example:false,look:'grey-modern'});renderSettings()};
-$('s-save').onclick=()=>{readSettings();Store.set(K.settings,settings);fillPkgSelect();update();$('s-msg').textContent='Settings saved.'};
-$('s-reset').onclick=()=>{if(confirm('Reset settings to defaults?')){settings=structuredClone(DEFAULTS);Store.set(K.settings,settings);renderSettings();fillPkgSelect();update()}};
-window.addEventListener('beforeprint',renderPrint);
+$('pkg-list').addEventListener('change',e=>{const i=e.target.dataset.p;if(i!==undefined&&e.target.dataset.f==='look') settings.packages[i].look=e.target.value});
+$('pkg-list').addEventListener('input',e=>{
+  const i=e.target.dataset.p;if(i===undefined) return;
+  const p=settings.packages[i], f=e.target.dataset.f;
+  p[f]=(f==='rate'||f==='baseFee')?+e.target.value:e.target.value;
+});
+$('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
+$('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
+$('s-save').onclick=()=>{readSettings();Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
+$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){settings=structuredClone(defaults);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
+window.addEventListener('beforeprint',()=>{if(catalogue&&quote) renderPrint()});
 
-loadQuoteToForm(newQuote());
-window.BQ={Calc,Store,get settings(){return settings},get quote(){return quote}}; // hook for tests / future 3D planner
+async function boot(){
+  try{
+    const res=await fetch('catalogue.json');
+    if(!res.ok) throw new Error('catalogue.json '+res.status);
+    catalogue=await res.json();
+  }catch(err){
+    $('summary').innerHTML='<p class="hint">Could not load catalogue.json. Reload the page.</p>';
+    return;
+  }
+  defaults=buildDefaults(catalogue);
+  const saved=Store.get(K.settings,null);
+  const ratesOk=saved&&Array.isArray(saved.packages)&&saved.packages.length&&saved.packages.every(p=>typeof p.baseFee==='number'&&typeof p.rate==='number');
+  settings=ratesOk?saved:structuredClone(defaults);
+  loadQuoteToForm(newQuote());
+  if($('view-planner').classList.contains('active')) Planner.show();
+}
+window.BQ={Calc,Store,boot,get settings(){return settings},get quote(){return quote},get catalogue(){return catalogue}};
 </script>
 <!-- three.js r147 (MIT) + OrbitControls, inlined for offline file:// use -->
 <script>/**
@@ -1470,10 +1682,12 @@ window.BQ={Calc,Store,get settings(){return settings},get quote(){return quote}}
 
 } )();
 </script>
-<script>/* ===================== Planner (simple 3D) ===================== */
+<script>
+/* ===================== Planner (simple 3D) ===================== */
 window.LOOKS={
-  'grey-modern':{name:'Grey Modern',floor:'grey-large',wall:'white-subway',metal:'black',wood:0x3b3f45},
-  'beige-copper':{name:'Beige Copper',floor:'beige-stone',wall:'terrazzo',metal:'copper',wood:0xb08a62}
+  'grey-modern':{name:'Grey Modern',floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef},
+  'beige-copper':{name:'Beige Copper',floor:'sand-600',wall:'cream-gloss',metal:'brass',wood:0xf7f4ef},
+  'marble-luxe':{name:'Marble Luxe',floor:'statuario',wall:'statuario',metal:'bronze',wood:0x5c4038}
 };
 const Planner=(()=>{
   const TILES={
@@ -1482,28 +1696,94 @@ const Planner=(()=>{
     'terrazzo':{name:'Terrazzo',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#eae4da';g.fillRect(0,0,S,S);const cols=['#b9a58c','#8c8f93','#d3b6a2','#5f6366','#c48d6a'];let r=seed(7);for(let i=0;i<260;i++){g.fillStyle=cols[i%5];g.beginPath();g.ellipse(r()*S,r()*S,2+r()*7,2+r()*5,r()*3,0,7);g.fill();}g.strokeStyle='#cfc7ba';g.lineWidth=2;g.strokeRect(0,0,S,S)}},
     'black-hex':{name:'Black hex',size:[0.3,0.3],draw:null},
     'beige-stone':{name:'Beige stone',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#d8c6a8';g.fillRect(0,0,S,S);noise(g,S,14);g.strokeStyle='#bba887';g.lineWidth=3;g.strokeRect(0,0,S,S)}},
-    'white-matte':{name:'White matte (plain)',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#f2f2ef';g.fillRect(0,0,S,S);g.strokeStyle='#dcdcd8';g.lineWidth=2;g.strokeRect(0,0,S,S)}}
+    'white-matte':{name:'White matte (plain)',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#f2f2ef';g.fillRect(0,0,S,S);g.strokeStyle='#dcdcd8';g.lineWidth=2;g.strokeRect(0,0,S,S)}},
+    'regina-grey':{name:'Regina grey 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{g.fillStyle='#8e9398';g.fillRect(0,0,W,H);specks(g,W,H,16,500);g.strokeStyle='#6a6f74';g.lineWidth=Math.max(3,W*0.025);g.strokeRect(1.5,1.5,W-3,H-3)}},
+    'regina-white':{name:'Regina white 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f4f3f0';g.fillRect(0,0,W,H);specks(g,W,H,8,280);g.strokeStyle='#d4d4cf';g.lineWidth=Math.max(3,W*0.025);g.strokeRect(1.5,1.5,W-3,H-3)}},
+    'sand-600':{name:'Concrete sand 600×600',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#d9c7aa';g.fillRect(0,0,S,S);noise(g,S,16);g.strokeStyle='#c3ad8c';g.lineWidth=4;g.strokeRect(2,2,S-4,S-4)}},
+    'cream-gloss':{name:'Light cream gloss 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{const grd=g.createLinearGradient(0,0,W,H);grd.addColorStop(0,'#f7f1e4');grd.addColorStop(0.5,'#efe4d0');grd.addColorStop(1,'#f8f3e8');g.fillStyle=grd;g.fillRect(0,0,W,H);g.strokeStyle='#e0d3bc';g.lineWidth=Math.max(3,W*0.02);g.strokeRect(1.5,1.5,W-3,H-3)}},
+    'statuario':{name:'Statuario 600×1200',size:[1.2,0.6],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f7f5f2';g.fillRect(0,0,W,H);g.lineCap='round';for(let i=0;i<6;i++){g.strokeStyle=i%2?'rgba(170,172,176,0.55)':'rgba(186,186,190,0.4)';g.lineWidth=i%3?1.4:2.4;g.beginPath();g.moveTo(-10,H*(0.08+i*0.15));g.bezierCurveTo(W*0.28,H*(0.02+i*0.16),W*0.62,H*(0.22+i*0.1),W+10,H*(0.06+i*0.14));g.stroke();}g.strokeStyle='#e6e2dc';g.lineWidth=3;g.strokeRect(1.5,1.5,W-3,H-3)}}
   };
-  // simpler, correct hex pattern
   TILES['black-hex'].draw=(g,S)=>{g.fillStyle='#d9d9d9';g.fillRect(0,0,S,S);g.fillStyle='#1e1f22';const w=S/2,rh=S/2,R=Math.min(w/Math.sqrt(3),rh/1.5)-2;
-    for(let row=-1;row<=2;row++)for(let col=-1;col<=2;col++)hex(g,col*w+(row%2?w/2:0),row*rh,R)}; // 2x2 cells => seamless repeat
-  const METALS={black:{name:'Matte black',c:0x1b1b1d,m:0.3,r:0.6},chrome:{name:'Chrome',c:0xd8dde2,m:0.45,r:0.2},copper:{name:'Brushed copper',c:0xc27a4e,m:0.45,r:0.3}};
+    for(let row=-1;row<=2;row++)for(let col=-1;col<=2;col++)hex(g,col*w+(row%2?w/2:0),row*rh,R)};
+  const METALS={black:{name:'Matte black',c:0x1b1b1d,m:0.3,r:0.6},chrome:{name:'Chrome',c:0xd8dde2,m:0.45,r:0.2},copper:{name:'Brushed copper',c:0xc27a4e,m:0.45,r:0.3},brass:{name:'Brushed brass',c:0xb08d57,m:0.55,r:0.32},bronze:{name:'Brushed bronze',c:0x8d5a3a,m:0.5,r:0.35}};
+  /* Defaults are Grey Modern. sizeFromPackage() replaces these from the catalogue. */
   const ITEMS={
-    bath:{name:'Bath',w:1.7,d:0.75,y:0},shower:{name:'Shower',w:0.9,d:0.9,y:0},vanity:{name:'Vanity + basin',w:0.9,d:0.48,y:0},
-    toilet:{name:'Toilet',w:0.4,d:0.7,y:0},tap:{name:'Tap / mixer',w:0.15,d:0.12,y:1.0},mirror:{name:'Mirror',w:0.8,d:0.04,y:1.2},rail:{name:'Towel rail',w:0.6,d:0.1,y:0.9}
+    bath:{name:'Bath',w:1.56,d:0.75,h:0.56,y:0},
+    shower:{name:'Shower',w:0.9,d:0.9,h:1.95,y:0},
+    vanity:{name:'Vanity + basin',w:0.75,d:0.46,h:0.543,y:0},
+    toilet:{name:'Toilet',w:0.36,d:0.655,h:0.862,y:0},
+    tap:{name:'Tap / mixer',w:0.15,d:0.12,h:0.2,y:1.0},
+    mirror:{name:'Mirror',w:0.75,d:0.15,h:0.7,y:1.12},
+    rail:{name:'Towel rail',w:0.799,d:0.133,h:0.6,y:1.0,ring:false}
   };
   function seed(s){return()=>(s=(s*16807)%2147483647)/2147483647}
   function noise(g,S,a){const r=seed(3);for(let i=0;i<4000;i++){const v=(r()-.5)*a;g.fillStyle=`rgba(${v>0?255:0},${v>0?255:0},${v>0?255:0},${Math.abs(v)/255*3})`;g.fillRect(r()*S,r()*S,3,3)}}
+  function specks(g,W,H,a,n){const r=seed(5);for(let i=0;i<n;i++){const v=(r()-.5)*a;g.fillStyle=`rgba(${v>0?255:0},${v>0?255:0},${v>0?255:0},${Math.abs(v)/90})`;g.fillRect(r()*W,r()*H,2,2)}}
   function hex(g,x,y,R){g.beginPath();for(let i=0;i<6;i++){const a=Math.PI/3*i+Math.PI/6;g.lineTo(x+R*Math.cos(a),y+R*Math.sin(a))}g.closePath();g.fill()}
+  function sizeText(v){const a=Math.round(v.w*1000), b=Math.round((v.y>0?v.h:v.d)*1000);return `${a}×${b}`}
 
   let renderer,scene,camera,controls,roomMesh,itemsGroup,selHelper,ray=new THREE.Raycaster(),inited=false;
   let design=null,selected=null,drag=null;
   const texCache={};
-  const defaultDesign=()=>({room:{l:2.5,w:2.0,h:2.4},floor:'grey-large',wall:'white-subway',metal:'black',wood:0x3b3f45,items:[]});
+  const defaultDesign=()=>({room:{l:2.5,w:2.0,h:2.4},floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef,items:[]});
 
-  function tileCanvas(key){if(texCache[key])return texCache[key];const S=512,c=document.createElement('canvas');c.width=c.height=S;TILES[key].draw(c.getContext('2d'),S);return texCache[key]=c}
-  function tileMat(key,wm,hm){const t=new THREE.CanvasTexture(tileCanvas(key));t.wrapS=t.wrapT=THREE.RepeatWrapping;const [sx,sy]=TILES[key].size;t.repeat.set(wm/sx,hm/sy);t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
-    return new THREE.MeshStandardMaterial({map:t,side:THREE.BackSide,roughness:0.45,metalness:0})}
+  function tileCanvas(key){
+    if(texCache[key]) return texCache[key];
+    const [sx,sy]=TILES[key].size, long=512, c=document.createElement('canvas');
+    if(TILES[key].aspect){
+      c.width=sx>=sy?long:Math.max(2,Math.round(long*sx/sy));
+      c.height=sy>=sx?long:Math.max(2,Math.round(long*sy/sx));
+    }else c.width=c.height=long;
+    TILES[key].draw(c.getContext('2d'),c.width,c.height);
+    return texCache[key]=c;
+  }
+  function tileMat(key,wm,hm){
+    const spec=TILES[key]||TILES['white-matte'];
+    const t=new THREE.CanvasTexture(tileCanvas(spec===TILES[key]?key:'white-matte'));
+    t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    const [sx,sy]=spec.size;t.repeat.set(wm/sx,hm/sy);t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
+    return new THREE.MeshStandardMaterial({map:t,side:THREE.BackSide,roughness:0.45,metalness:0});
+  }
+  function paintPalette(){
+    $('pl-palette').innerHTML=Object.entries(ITEMS).map(([k,v])=>`<button class="btn sec sm" type="button" data-add="${k}">+ ${esc(v.name)} ${sizeText(v)}</button>`).join('');
+  }
+  function mm(obj,key,fallback){const v=obj&&+obj[key];return v>0?v/1000:fallback}
+
+  /* Fit the planner blocks to the selected package's real product dimensions. */
+  function sizeFromPackage(pkgId){
+    const pkg=(window.BQ&&BQ.catalogue)?BQ.catalogue.packages.find(p=>p.id===pkgId):null;
+    if(!pkg) return;
+    const find=c=>pkg.items.find(i=>i.category===c);
+    const van=find('vanity');
+    if(van){const d=van.dimensions_mm||{};ITEMS.vanity.w=mm(d,'width_mm',ITEMS.vanity.w);ITEMS.vanity.d=mm(d,'depth_mm',ITEMS.vanity.d);ITEMS.vanity.h=mm(d,'height_mm',ITEMS.vanity.h)}
+    const bath=find('bath');
+    if(bath){const d=bath.dimensions_mm||{};ITEMS.bath.w=mm(d,'length_mm',ITEMS.bath.w);ITEMS.bath.d=mm(d,'width_mm',ITEMS.bath.d);ITEMS.bath.h=mm(d,'height_mm',ITEMS.bath.h)}
+    const wc=find('toilet_suite');
+    if(wc){const d=wc.dimensions_mm||{};ITEMS.toilet.w=mm(d,'pan_width_mm',mm(d,'width_mm',ITEMS.toilet.w));ITEMS.toilet.d=mm(d,'pan_projection_mm',ITEMS.toilet.d);ITEMS.toilet.h=mm(d,'height_mm',ITEMS.toilet.h)}
+    const sh=find('shower_screen');
+    if(sh){const d=sh.dimensions_mm||{};ITEMS.shower.w=mm(d,'width_mm',ITEMS.shower.w);ITEMS.shower.d=mm(d,'depth_mm',0.9)}
+    const mir=find('mirror_cabinet')||find('mirror');
+    if(mir){
+      const d=mir.dimensions_mm||{};
+      ITEMS.mirror.w=mm(d,'width_mm',ITEMS.mirror.w);
+      ITEMS.mirror.h=mm(d,'height_mm',0.7);
+      ITEMS.mirror.d=mm(d,'depth_mm', mir.category==='mirror'?0.03:0.15);
+      const ceiling=design?.room?.h||2.4;
+      ITEMS.mirror.y=Math.max(0.85, Math.min(1.12, ceiling-ITEMS.mirror.h-0.08));
+    }
+    const rail=find('towel_rail');
+    if(rail){
+      const d=rail.dimensions_mm||{};
+      const w=mm(d,'width_mm',ITEMS.rail.w);
+      ITEMS.rail.w=w;
+      ITEMS.rail.d=mm(d,'projection_mm',0.12);
+      ITEMS.rail.ring=w<0.35;
+      ITEMS.rail.h=ITEMS.rail.ring?mm(d,'height_mm',0.15):0.6;
+      ITEMS.rail.y=ITEMS.rail.ring?1.25:1.0;
+      ITEMS.rail.name=ITEMS.rail.ring?'Towel ring':'Towel rail';
+    }else ITEMS.rail.name='Towel rail';
+    if(inited) paintPalette();
+  }
 
   function init(){
     const host=$('pl-canvas');
@@ -1519,12 +1799,12 @@ const Planner=(()=>{
     const ceilLight=new THREE.PointLight(0xfff1dd,0.5,8);ceilLight.position.set(0,2.2,0);ceilLight.name='ceil';scene.add(ceilLight);
     itemsGroup=new THREE.Group();scene.add(itemsGroup);
     selHelper=new THREE.BoxHelper(undefined,0x0e7c86);selHelper.visible=false;scene.add(selHelper);
-    // UI
-    $('pl-look').innerHTML=Object.entries(LOOKS).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('')+'<option value="">Custom</option>';
-    const opts=Object.entries(TILES).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');$('pl-floor').innerHTML=opts;$('pl-wall').innerHTML=opts;
-    $('pl-metal').innerHTML=Object.entries(METALS).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
-    $('pl-palette').innerHTML=Object.entries(ITEMS).map(([k,v])=>`<button class="btn sec sm" data-add="${k}">+ ${v.name}</button>`).join('');
-    $('pl-palette').onclick=e=>{const k=e.target.dataset.add;if(k)addItem(k)};
+    $('pl-look').innerHTML=Object.entries(LOOKS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('')+'<option value="">Custom</option>';
+    const opts=Object.entries(TILES).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('');
+    $('pl-floor').innerHTML=opts;$('pl-wall').innerHTML=opts;
+    $('pl-metal').innerHTML=Object.entries(METALS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('');
+    paintPalette();
+    $('pl-palette').onclick=e=>{const k=e.target.closest('[data-add]');if(k)addItem(k.dataset.add)};
     ['pl-l','pl-w','pl-h'].forEach(id=>$(id).addEventListener('input',()=>{const l=+$('pl-l').value,w=+$('pl-w').value,h=+$('pl-h').value;
       if(l>=1&&w>=1&&h>=2){design.room={l:Calc.round(l),w:Calc.round(w),h:Calc.round(h)};design.items.forEach(clampItem);buildRoom();buildItems();syncToQuote()}}));
     $('pl-look').onchange=e=>{if(e.target.value)applyLook(e.target.value)};
@@ -1545,36 +1825,82 @@ const Planner=(()=>{
   }
   function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht)return;renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix()}
 
-  /* ---------- room ---------- */
   function buildRoom(){
     if(roomMesh){scene.remove(roomMesh);roomMesh.geometry.dispose()}
     const {l,w,h}=design.room;
     const invisible=new THREE.MeshBasicMaterial({visible:false});
-    // BoxGeometry face order: +x,-x,+y,-y,+z,-z. BackSide => camera outside sees only far walls (dollhouse view).
     const mats=[tileMat(design.wall,w,h),tileMat(design.wall,w,h),invisible,tileMat(design.floor,l,w),tileMat(design.wall,l,h),tileMat(design.wall,l,h)];
     roomMesh=new THREE.Mesh(new THREE.BoxGeometry(l,h,w),mats);roomMesh.position.y=h/2;roomMesh.receiveShadow=true;scene.add(roomMesh);
     scene.getObjectByName('ceil').position.y=h-0.2;
     $('pl-l').value=l;$('pl-w').value=w;$('pl-h').value=design.room.h;$('pl-area').textContent=`Floor area ${(l*w).toFixed(2)} m² (synced to quote)`;
-    $('pl-floor').value=design.floor;$('pl-wall').value=design.wall;$('pl-metal').value=design.metal;
+    if(TILES[design.floor]) $('pl-floor').value=design.floor;
+    if(TILES[design.wall]) $('pl-wall').value=design.wall;
+    if(METALS[design.metal]) $('pl-metal').value=design.metal;
   }
 
-  /* ---------- items (built from primitives; origin at floor centre, back faces -z) ---------- */
   const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:0.35,metalness:0,...o});
-  function box(g,mat,w,h,d,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m}
-  function cyl(g,mat,rt,rb,h,x,y,z,seg=20){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
-  function mixer(g,metal,x,y,z){cyl(g,metal,0.022,0.025,0.16,x,y+0.08,z);const s=box(g,metal,0.02,0.02,0.12,x,y+0.15,z+0.06);const h=box(g,metal,0.015,0.05,0.015,x,y+0.19,z-0.01)}
+  function box(g,mat,w,h,d,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(Math.max(w,0.01),Math.max(h,0.01),Math.max(d,0.01)),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m}
+  function cyl(g,mat,rt,rb,h,x,y,z,seg=20){const m=new THREE.Mesh(new THREE.CylinderGeometry(Math.max(rt,0.005),Math.max(rb,0.005),Math.max(h,0.005),seg),mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
+  function mixer(g,metal,x,y,z){cyl(g,metal,0.022,0.025,0.16,x,y+0.08,z);box(g,metal,0.02,0.02,0.12,x,y+0.15,z+0.06);box(g,metal,0.015,0.05,0.015,x,y+0.19,z-0.01)}
   function makeItem(type){
-    const g=new THREE.Group(),mt=METALS[design.metal],metal=M(mt.c,{metalness:mt.m,roughness:mt.r}),white=M(0xfafafa,{roughness:0.2}),wood=M(design.wood||0x3b3f45,{roughness:0.6});
-    const {w,d}=ITEMS[type];
-    if(type==='bath'){box(g,white,w,0.55,d,0,0.275,0);box(g,M(0xdfe9ee,{roughness:0.1}),w-0.12,0.02,d-0.12,0,0.53,0);cyl(g,metal,0.02,0.02,0.2,-w/2+0.12,0.65,-d/2+0.06);box(g,metal,0.02,0.02,0.12,-w/2+0.12,0.74,-d/2+0.12)}
-    if(type==='shower'){box(g,M(0xeeeeec),w,0.05,d,0,0.025,0);const glass=new THREE.MeshPhysicalMaterial({color:0xcfe8ee,transparent:true,opacity:0.25,roughness:0.05,metalness:0,side:THREE.DoubleSide});
-      box(g,glass,w,1.95,0.01,0,1.0,d/2-0.005).castShadow=false;box(g,glass,0.01,1.95,d*0.6,w/2-0.005,1.0,d/2-d*0.3).castShadow=false;box(g,metal,w,0.02,0.02,0,1.98,d/2);box(g,metal,0.02,1.95,0.02,w/2,1.0,d/2);
-      box(g,metal,0.02,0.02,0.3,0,2.0,-d/2+0.15);cyl(g,metal,0.1,0.1,0.015,0,1.98,-d/2+0.3,24);mixer(g,metal,0,1.0,-d/2+0.01)}
-    if(type==='vanity'){box(g,wood,w,0.5,d,0,0.6,0);box(g,M(0xe9e6df,{roughness:0.25}),w+0.02,0.03,d+0.02,0,0.865,0);const b=cyl(g,white,0.2,0.16,0.13,0,0.945,0.02,28);b.scale.z=0.8;cyl(g,M(0xc9d3d8,{roughness:.3}),0.17,0.17,0.005,0,1.012,0.02);mixer(g,metal,0,0.88,-d/2+0.06);box(g,metal,0.25,0.015,0.015,0,0.7,d/2+0.01)}
-    if(type==='toilet'){box(g,white,0.38,0.38,0.18,0,0.62,-d/2+0.09);const p=cyl(g,white,0.17,0.12,0.4,0,0.2,0.07,24);p.scale.z=1.3;const s=cyl(g,white,0.19,0.19,0.03,0,0.415,0.07,24);s.scale.z=1.3;box(g,metal,0.08,0.01,0.03,0,0.815,-d/2+0.09)}
+    const g=new THREE.Group(), spec=ITEMS[type];
+    const mt=METALS[design.metal]||METALS.black, metal=M(mt.c,{metalness:mt.m,roughness:mt.r}), white=M(0xfafafa,{roughness:0.2}), wood=M(design.wood||0xf2f2ef,{roughness:0.55});
+    const w=spec.w, d=spec.d, h=spec.h||0.5;
+    if(type==='bath'){
+      box(g,white,w,h,d,0,h/2,0);
+      box(g,M(0xdfe9ee,{roughness:0.1}),Math.max(0.2,w-0.1),0.02,Math.max(0.2,d-0.1),0,h-0.03,0);
+      const tx=-w/2+Math.min(0.18,w*0.12);
+      cyl(g,metal,0.018,0.018,0.16,tx,h+0.08,-d/2+0.08);
+      box(g,metal,0.018,0.018,0.1,tx,h+0.16,-d/2+0.12);
+    }
+    if(type==='shower'){
+      const gh=Math.min(h,(design.room.h||2.4)-0.12);
+      box(g,M(0xeeeeec),w,0.05,d,0,0.025,0);
+      const glass=new THREE.MeshPhysicalMaterial({color:0xcfe8ee,transparent:true,opacity:0.25,roughness:0.05,metalness:0,side:THREE.DoubleSide});
+      box(g,glass,w,gh,0.012,0,gh/2,d/2-0.006).castShadow=false;
+      const ret=Math.min(d*0.7,0.9);
+      box(g,glass,0.012,gh,ret,w/2-0.006,gh/2,d/2-ret/2).castShadow=false;
+      box(g,metal,w,0.02,0.02,0,gh,d/2);
+      box(g,metal,0.02,gh,0.02,w/2,gh/2,d/2);
+      cyl(g,metal,0.09,0.09,0.02,0,gh-0.02,-d/2+Math.min(0.34,d*0.45),24);
+      mixer(g,metal,-w/2+0.08,1.05,-d/2+0.02);
+    }
+    if(type==='vanity'){
+      const top=0.85, base=Math.max(0.12, top-h);
+      box(g,wood,w,h,d,0,base+h/2,0);
+      box(g,M(0xe9e6df,{roughness:0.25}),w+0.02,0.025,d+0.02,0,base+h+0.012,0);
+      const br=Math.min(0.22,w*0.22,d*0.42);
+      const b=cyl(g,white,br,br*0.8,0.12,0,base+h+0.08,d*0.04,28);b.scale.z=0.75;
+      cyl(g,M(0xc9d3d8,{roughness:.3}),br*0.82,br*0.82,0.008,0,base+h+0.145,d*0.04);
+      mixer(g,metal,0,base+h+0.03,-d/2+0.06);
+    }
+    if(type==='toilet'){
+      const cisH=Math.min(0.42,h*0.42), cisD=Math.min(0.22,d*0.3);
+      box(g,white,Math.min(w+0.02,0.42),cisH,cisD,0,h-cisH/2,-d/2+cisD/2);
+      const panH=Math.min(0.44,h*0.5), pr=Math.min(0.2,w*0.48);
+      const p=cyl(g,white,pr,pr*0.72,panH,0,panH/2,d*0.05,24);
+      p.scale.z=Math.min(1.8,Math.max(1,(d*0.5)/pr));
+      const s=cyl(g,white,pr*1.05,pr*1.05,0.028,0,panH+0.02,d*0.05,24);s.scale.z=p.scale.z;
+      box(g,metal,0.08,0.012,0.028,0,h-0.015,-d/2+cisD*0.5);
+    }
     if(type==='tap'){cyl(g,metal,0.03,0.03,0.02,0,0,-d/2+0.01).rotation.x=Math.PI/2;box(g,metal,0.025,0.025,0.1,0,0,-d/2+0.06);box(g,metal,0.015,0.06,0.015,0,0.05,-d/2+0.03)}
-    if(type==='mirror'){box(g,metal,w,0.9,0.025,0,0.45,-d/2+0.0125);box(g,M(0xcfdde6,{metalness:0.2,roughness:0.05}),w-0.04,0.86,0.01,0,0.45,-d/2+0.03)}
-    if(type==='rail'){[-w/2+0.02,w/2-0.02].forEach(x=>{box(g,metal,0.02,0.7,0.02,x,0.35,0);box(g,metal,0.02,0.02,0.08,x,0.6,-0.02);box(g,metal,0.02,0.02,0.08,x,0.1,-0.02)});[0.05,0.25,0.45,0.65].forEach(y=>box(g,metal,w,0.015,0.015,0,y,0))}
+    if(type==='mirror'){
+      const depth=Math.max(d||0.03,0.02);
+      box(g,metal,w,h,depth,0,h/2,0);
+      box(g,M(0xcfdde6,{metalness:0.15,roughness:0.05}),Math.max(0.08,w-0.04),Math.max(0.08,h-0.04),0.008,0,h/2,depth/2+0.004);
+    }
+    if(type==='rail'){
+      if(spec.ring){
+        const r=Math.max(0.04,Math.min(w,h)/2);
+        const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.012,10,22),metal);
+        ring.castShadow=true;g.add(ring);
+        box(g,metal,0.02,0.02,Math.max(d,0.04),0,0,-Math.max(d,0.04)/2);
+      }else{
+        const span=h||0.6;
+        [-w/2+0.03,w/2-0.03].forEach(x=>box(g,metal,0.02,span,0.02,x,span/2,0));
+        [span*0.28,span*0.72].forEach(y=>box(g,metal,w,0.016,0.016,0,y,Math.min(d,0.08)));
+      }
+    }
     return g;
   }
   function footprint(it){const t=ITEMS[it.type];return it.rot%2?[t.d,t.w]:[t.w,t.d]}
@@ -1582,7 +1908,7 @@ const Planner=(()=>{
     const [fw,fd]=footprint(it),{l,w}=design.room,snap=v=>Math.round(v/0.05)*0.05;
     const minX=-l/2+fw/2,maxX=l/2-fw/2,minZ=-w/2+fd/2,maxZ=w/2-fd/2,S=0.15;
     it.x=Math.min(maxX,Math.max(minX,snap(it.x)));it.z=Math.min(maxZ,Math.max(minZ,snap(it.z)));
-    if(it.x-minX<S)it.x=minX;if(maxX-it.x<S)it.x=maxX;if(it.z-minZ<S)it.z=minZ;if(maxZ-it.z<S)it.z=maxZ; // snap flush to walls
+    if(it.x-minX<S)it.x=minX;if(maxX-it.x<S)it.x=maxX;if(it.z-minZ<S)it.z=minZ;if(maxZ-it.z<S)it.z=maxZ;
     if(fw>l)it.x=0;if(fd>w)it.z=0;
   }
   function buildItems(){
@@ -1591,13 +1917,16 @@ const Planner=(()=>{
     refreshSel();
   }
   function addItem(type){
-    // place against the back wall (-z) by default, at a free-ish x position
     const it={type,x:(design.items.length%3-1)*0.6,z:-99,rot:0};clampItem(it);design.items.push(it);buildItems();select(it);return it;
   }
   function select(it){selected=it;refreshSel()}
-  function refreshSel(){const g=itemsGroup.children.find(c=>c.userData.item===selected);selHelper.visible=!!g&&!document.body.classList.contains('client');if(g)selHelper.setFromObject(g);$('pl-sel').textContent=selected?ITEMS[selected.type].name:'none'}
+  function refreshSel(){
+    const g=itemsGroup.children.find(c=>c.userData.item===selected);
+    selHelper.visible=!!g&&!document.body.classList.contains('client');
+    if(g) selHelper.setFromObject(g);
+    $('pl-sel').textContent=selected?`${ITEMS[selected.type].name} ${sizeText(ITEMS[selected.type])}`:'none';
+  }
 
-  /* ---------- pointer: select & drag on floor ---------- */
   const floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),tmp=new THREE.Vector3();
   function ndc(e){const r=renderer.domElement.getBoundingClientRect();return new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1)}
   function onDown(e){
@@ -1605,12 +1934,21 @@ const Planner=(()=>{
     if(hit){let o=hit.object;while(o&&!o.userData.item)o=o.parent;select(o.userData.item);ray.ray.intersectPlane(floorPlane,tmp);drag={dx:selected.x-tmp.x,dz:selected.z-tmp.z};controls.enabled=false;}
     else select(null);
   }
-  function onMove(e){if(!drag||!selected)return;ray.setFromCamera(ndc(e),camera);if(ray.ray.intersectPlane(floorPlane,tmp)){selected.x=tmp.x+drag.dx;selected.z=tmp.z+drag.dz;clampItem(selected);const g=itemsGroup.children.find(c=>c.userData.item===selected);g.position.x=selected.x;g.position.z=selected.z;}}
+  function onMove(e){if(!drag||!selected)return;ray.setFromCamera(ndc(e),camera);if(ray.ray.intersectPlane(floorPlane,tmp)){selected.x=tmp.x+drag.dx;selected.z=tmp.z+drag.dz;clampItem(selected);const g=itemsGroup.children.find(c=>c.userData.item===selected);if(g){g.position.x=selected.x;g.position.z=selected.z}}}
   function onUp(){if(drag){drag=null;controls.enabled=true}}
 
-  /* ---------- looks / client view / image ---------- */
-  function applyLook(key){const L=LOOKS[key];if(!L||!design)return;Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:key});if(inited){$('pl-look').value=key;buildRoom();buildItems()}}
-  function applyPackageLook(){const p=settings.packages.find(p=>p.id===BQ.quote.packageId);if(p&&p.look){ensureDesign();applyLook(p.look)}}
+  function applyLook(key){
+    const L=LOOKS[key];if(!L||!design) return;
+    Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:key});
+    sizeFromPackage(key);
+    design.items.forEach(clampItem);
+    if(inited){$('pl-look').value=key;buildRoom();buildItems()}
+  }
+  function applyPackageLook(){
+    if(!window.BQ||!BQ.quote) return;
+    const p=settings.packages.find(p=>p.id===BQ.quote.packageId);
+    if(p&&p.look){ensureDesign();applyLook(p.look)}
+  }
   function toggleClient(){
     const on=document.body.classList.toggle('client');$('pl-client').textContent=on?'Exit client view':'Client view';
     scene.background=new THREE.Color(on?0xf3efe8:0xdfe5ea);renderer.toneMapping=on?THREE.ACESFilmicToneMapping:THREE.NoToneMapping;renderer.toneMappingExposure=on?1.15:1;
@@ -1623,29 +1961,34 @@ const Planner=(()=>{
     const url=renderer.domElement.toDataURL('image/png');selHelper.visible=was;
     const a=document.createElement('a');a.href=url;a.download=`${(BQ.quote.number||'design')}-${(BQ.quote.customer.name||'bathroom').replace(/\W+/g,'-')}.png`;document.body.appendChild(a);a.click();a.remove();return url;
   }
-
-  /* ---------- quote sync ---------- */
   function ensureDesign(){
     const q=BQ.quote;if(q.design){design=q.design;return}
     design=defaultDesign();const r=q.room;
     if(r.mode==='lw'&&+r.length>0&&+r.width>0){design.room.l=+r.length;design.room.w=+r.width}
     else if(r.mode==='m2'&&+r.area>0){const w=Math.sqrt(+r.area/1.25);design.room.w=Calc.round(w);design.room.l=Calc.round(+r.area/w)}
-    const p=settings.packages.find(p=>p.id===q.packageId),L=LOOKS[p?.look];if(L)Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:p.look});
+    const p=settings.packages.find(p=>p.id===q.packageId), L=LOOKS[p?.look];
+    if(L) Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:p.look});
     q.design=design;
   }
   function syncFromQuote(){const r=BQ.quote.room;if(r.mode==='lw'&&+r.length>0&&+r.width>0&&(+r.length!==design.room.l||+r.width!==design.room.w)){design.room.l=+r.length;design.room.w=+r.width;design.items.forEach(clampItem)}}
   function syncToQuote(){document.querySelector('input[name=dimMode][value=lw]').checked=true;$('q-len').value=design.room.l;$('q-wid').value=design.room.w;update();$('pl-area').textContent=`Floor area ${(design.room.l*design.room.w).toFixed(2)} m² (synced to quote)`}
   function show(){
-    if(!inited)init();ensureDesign();syncFromQuote();$('pl-look').value=design.look||'';buildRoom();buildItems();
-    // first visit with no dims: push planner defaults to quote
-    if(!(+BQ.quote.room.length>0&&+BQ.quote.room.width>0)&&BQ.quote.room.mode==='lw')syncToQuote();
+    if(!window.BQ||!BQ.quote) return;
+    if(!inited) init();
+    ensureDesign();syncFromQuote();
+    sizeFromPackage(BQ.quote.packageId||design.look);
+    design.items.forEach(clampItem);
+    $('pl-look').value=design.look||'';
+    buildRoom();buildItems();
+    if(!(+BQ.quote.room.length>0&&+BQ.quote.room.width>0)&&BQ.quote.room.mode==='lw') syncToQuote();
     setTimeout(resize,0);
   }
-  function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active'))show()}
+  function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
   function getDesign(){return BQ.quote.design||design}
-  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,_:{get design(){return design},TILES,ITEMS,get renderer(){return renderer}}};
+  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,_:{get design(){return design},TILES,ITEMS,get renderer(){return renderer}}};
 })();
 window.Planner=Planner;
+boot();
 </script>
 </body>
 </html>
