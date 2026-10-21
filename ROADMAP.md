@@ -8,7 +8,7 @@
 - Pricing is a GST-inclusive base fee plus a rate per m² of floor. Rates stay editable in Settings
 - Catalogue extras are selectable on the quote, including area-based and package-specific items
 - Each package's included products are shown on the quote with name, code, and a local thumbnail
-- Planner looks for all three packages. Fixture sizes come from the products' real dimensions
+- Planner looks for each package. Fixture sizes come from the products' real dimensions
 - Free AI photo-style renders from the planner (Pollinations). The picture can be saved or added to the printed quote. An optional API key is stored only in this browser for a future paid provider
 - First-person walk-through in the planner, at eye height from the doorway. A phone uses a joystick and drag-to-look. A desktop uses WASD or arrows and mouse look. Walls and fixtures block movement
 
@@ -22,10 +22,10 @@
 - Every customer price is shown as "from $X incl. GST", and the quote says the estimate is subject to a free site measure.
 - Budget Compact package for a small bathroom, under $20,000 at about 3–4 m². It uses National Tiles Stone Code and Whoosh, and cheaper Reece fixtures already in the catalogue. Workings are in `docs/pricing-notes.md`.
 - Business name and logo in Settings, the header and the quote. ABN and QBCC licence number stay blank until they are typed, and the quote marks the empty spots. Deposit defaults are 10% under $20,000 and 5% from $20,000, labelled verify with QBCC. Warranty, progress payments, the waterproofing note, and a Book a free measure & quote button are on the quote.
+- Branded PDF quote with an itemised scope, inclusions, exclusions, a validity period, the deposit and progress payments, and the compliance and warranty notes.
 
 ## Next
 
-- Professional branded PDF quote: itemised scope, inclusions and exclusions, validity, deposit and progress payments
 - Modeller upgrades: doors, windows and L-shaped rooms
 - Instant estimator with photo upload and measure booking
 - Client project tracker

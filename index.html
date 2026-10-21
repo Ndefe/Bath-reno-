@@ -58,6 +58,12 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .qd-meta{text-align:right;font-size:13px}
 .qd-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px;margin-bottom:12px}
 .qd-small{font-size:12px;color:var(--mute);margin-top:14px}
+.quote-doc h3{font-size:13px;margin:16px 0 6px;color:var(--acc);letter-spacing:.04em;text-transform:uppercase}
+.quote-doc ul{margin:0 0 8px;padding-left:18px}
+.quote-doc li{margin:3px 0}
+.qd-banner{border:2px solid var(--ink);border-radius:8px;padding:10px 12px;margin:14px 0}
+.qd-banner strong{display:block}
+.qd-banner span{display:block;margin-top:4px}
 #printArea{display:none}
 @media print{
   @page{size:A4;margin:16mm}
@@ -741,30 +747,76 @@ function renderFigure(q){
   if(!src||!String(src).startsWith('data:image/')) return '';
   return `<figure class="qd-render"><img src="${src}" alt="AI illustration of the bathroom"><figcaption class="qd-small">AI illustration. It may not match the exact layout.</figcaption></figure>`;
 }
+function scopeLines(pkgId){
+  const compact=pkgId==='budget-compact';
+  return [
+    compact?'Lighter strip-out of the existing bathroom.':'Strip-out of the existing bathroom.',
+    'One 4 m³ skip for the bathroom waste.',
+    'Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021).',
+    'Screed to falls in the shower.',
+    compact?'Floor tiles and gloss subway walls to 2.1 m. The 2.5 m² feature area uses the same subway.':'Floor tiles and wall tiles to 2.1 m, including about 2.5 m² of feature tile.',
+    'Plumbing rough-in and fit-off, keeping the existing layout.',
+    compact?'A smaller electrical allowance for the existing layout.':'Electrical allowance for a fan, lights, a power point and the certificate.',
+    'Wall sheeting repairs, and a ceiling patch and paint.',
+    'Supply and installation of the fixtures listed under inclusions.',
+    'Selected extras, each priced on its own line.'
+  ];
+}
+function exclusionLines(pkgId, picks){
+  const hasBath=(picks||[]).some(p=>String(p.id).startsWith('bath_'));
+  const lines=[
+    'Asbestos removal, unless that extra is selected.',
+    'Moving the toilet, shower, floor waste or vanity, unless that extra is selected.',
+    hasBath?'Any bath other than the one selected.':'A bath. Add the bath extra if one is wanted.',
+    'Repair of hidden structural, plumbing or electrical defects found after strip-out.',
+    'Council fees, work outside the bathroom, and painting beyond the ceiling patch.',
+    'Anything not named in the scope or selected as an extra.'
+  ];
+  if(pkgId==='budget-compact') lines.splice(3,0,'A hand shower or slide rail. Budget Compact includes a fixed shower screen and a mixer only.');
+  return lines;
+}
 function renderPrint(){
   readForm();ensureNumber();update();
   const t=Calc.totals(quote,settings), c=quote.customer, created=new Date(quote.createdAt);
   const valid=new Date(created.getTime()+settings.validDays*864e5);
   const cat=catPkg(quote.packageId);
   const legal=legalBits();
+  const dep=t.total?depositFor(t.total):null;
   const logo=settings.logo?`<img class="qd-logo" src="${settings.logo}" alt="">`:'';
   const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
   const formula=t.area>0?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Floor size not set';
+  const scope=scopeLines(quote.packageId).map(s=>`<li>${esc(s)}</li>`).join('');
+  const excluded=exclusionLines(quote.packageId, quote.picks).map(s=>`<li>${esc(s)}</li>`).join('');
+  const size=quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:'';
   $('printArea').innerHTML=`<div class="quote-doc">
    <div class="qd-head"><div>${logo}<h2>${esc(settings.bizName)}</h2><div class="hint">${esc(settings.contact)}</div><div class="hint">ABN ${esc(legal.abn)} · QBCC licence ${esc(legal.qbcc)}</div></div>
    <div class="qd-meta"><strong style="font-size:18px">QUOTE</strong><br>No. ${esc(quote.number)}<br>Date: ${fmtDate(created)}<br>Valid until: ${fmtDate(valid)}</div></div>
-   <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name)}<br>${esc(c.address)}<br>${esc(c.phone)}<br>${esc(c.email)}</div>
-   <div><strong>Bathroom</strong><br>${quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:''}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'-')}</div></div>
+   <div class="qd-banner"><strong>${t.total?fromPrice(t.total):'Enter the floor size'}</strong><span>Estimate, subject to a free site measure. Valid for ${settings.validDays} days, until ${fmtDate(valid)}.</span></div>
+   <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name||'—')}<br>${esc(c.suburb||c.address||'')}<br>${esc(c.phone||'')}<br>${esc(c.email||'')}</div>
+   <div><strong>Bathroom</strong><br>${size}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'—')}</div></div>
+   <h3>Scope</h3>
+   <ul>${scope}</ul>
+   <h3>Inclusions</h3>
+   <p>${esc(cat?.pricing?.includes||t.pkg?.desc||'')}</p>
    ${productsHtml(quote.packageId)}
    ${renderFigure(quote)}
+   <h3>Price</h3>
    <table><tr><th>Description</th><th class="n">Amount</th></tr>
-   <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${esc(t.pkg?.desc||'')}</span><br><span class="hint">${esc(cat?.pricing?.includes||'')}</span><br><span class="hint">${formula}</span></td><td class="n">${t.base?fromPrice(t.base):'—'}</td></tr>
+   <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${formula}</span></td><td class="n">${t.base?fromPrice(t.base):'—'}</td></tr>
    ${lines}
-   <tr class="total"><td class="n">Total</td><td class="n">${t.total?fromPrice(t.total):'—'}</td></tr>
-   <tr><td class="n hint">Includes GST</td><td class="n hint">${t.gst?fmt(t.gst):'—'}</td></tr></table>
-   ${quote.notes?`<p><strong>Notes</strong><br>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
-   ${complianceHtml(t)}
-   <p class="qd-small">Estimate, subject to a free site measure. This quote is valid for ${settings.validDays} days from the date of issue. Prices are in Australian dollars and include GST. Bath and listed extras are separate from the package. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
+   <tr class="total"><td>Total</td><td class="n">${t.total?fromPrice(t.total):'—'}</td></tr>
+   <tr><td class="hint">Includes GST</td><td class="n hint">${t.gst?fmt(t.gst):'—'}</td></tr>
+   <tr><td>Deposit before work starts${dep?` (${dep.pct}%)`:''} — verify with QBCC</td><td class="n">${dep?fromPrice(dep.amount):'—'}</td></tr></table>
+   <h3>Exclusions</h3>
+   <ul>${excluded}</ul>
+   <h3>Progress payments</h3>
+   <p>${esc(settings.progressPayments||DEFAULT_PROGRESS)}</p>
+   <h3>Compliance and warranty</h3>
+   <p>${esc(WATERPROOF)}</p>
+   <p>${esc(settings.warranty||DEFAULT_WARRANTY)}</p>
+   ${quote.notes?`<h3>Notes</h3><p>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
+   <div class="qd-banner"><strong>Book a free measure &amp; quote</strong><span>The price above is an estimate. A free site measure confirms it before any work is booked.</span></div>
+   <p class="qd-small">Quote ${esc(quote.number)} is valid for ${settings.validDays} days from ${fmtDate(created)}, until ${fmtDate(valid)}. Prices are in Australian dollars and include GST. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
 }
 
 function renderSaved(){
