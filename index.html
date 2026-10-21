@@ -31,6 +31,9 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .bubble.wait{opacity:.7}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font:inherit;cursor:pointer;min-height:40px}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pipe{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.pipe .score{font-weight:700;margin:6px 0}
 .chat-bar{display:flex;gap:8px;align-items:center}
 .chat-bar input{flex:1;min-width:0;font-size:16px;min-height:44px}
 .chat-bar .btn{min-height:44px}
@@ -203,6 +206,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <button data-view="quote">Quote</button>
     <button data-view="planner">Planner</button>
     <button data-view="saved">Projects</button>
+    <button data-view="pipeline">Pipeline</button>
     <button data-view="settings">Settings</button>
   </nav>
 </header>
@@ -373,6 +377,26 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div id="saved-list"></div>
   </div></section>
 
+  <section class="view" id="view-pipeline" aria-label="Owner pipeline">
+    <div class="card" id="pipe-lock">
+      <h2>Owner pipeline</h2>
+      <p class="hint" id="pipe-lock-msg">Enter the owner PIN from Settings.</p>
+      <label for="pipe-pin">PIN</label>
+      <input id="pipe-pin" type="password" inputmode="numeric" autocomplete="off">
+      <div class="actions"><button class="btn" id="pipe-unlock" type="button">Unlock</button></div>
+      <p class="hint" id="pipe-err" role="alert"></p>
+    </div>
+    <div id="pipe-board" hidden>
+      <div class="card">
+        <h2>Pipeline</h2>
+        <p class="hint">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final.</p>
+        <div id="pipe-chips" class="chips"></div>
+        <div id="pipe-list"></div>
+        <button class="btn sec" id="pipe-lock-btn" type="button">Lock</button>
+      </div>
+    </div>
+  </section>
+
   <!-- SETTINGS VIEW -->
   <section class="view" id="view-settings">
     <div class="card"><h2>Business</h2>
@@ -396,6 +420,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <label for="s-render-key">AI render API key (optional)</label>
       <input id="s-render-key" type="password" autocomplete="off" spellcheck="false">
       <p class="hint">Stored only in this browser. Pollinations does not use a key. A future paid provider would.</p>
+      <label for="s-pin">Owner PIN</label>
+      <input id="s-pin" type="password" inputmode="numeric" autocomplete="off" spellcheck="false">
+      <p class="hint">Unlocks the pipeline on this phone. It is not a password for the leads, and it is stored only in this browser.</p>
       <label for="s-nico">Send to Nico (email)</label>
       <input id="s-nico" type="email" autocomplete="off" placeholder="name@example.com">
       <label for="s-lead-url">Lead form endpoint (optional)</label>
@@ -1003,6 +1030,7 @@ function renderSettings(){
   if(settings.logo){preview.src=settings.logo;preview.hidden=false;preview.alt='Logo preview'}
   else{preview.removeAttribute('src');preview.hidden=true;preview.alt=''}
   $('s-render-key').value=settings.renderApiKey||'';
+  $('s-pin').value=settings.ownerPin||'';
   $('s-nico').value=settings.nicoEmail||'';
   $('s-lead-url').value=settings.leadEndpoint||'';
   $('s-lead-key').value=settings.leadAccessKey||'';
@@ -1023,12 +1051,80 @@ function readSettings(){
   settings.progressPayments=$('s-progress').value||DEFAULT_PROGRESS;
   settings.warranty=$('s-warranty').value||DEFAULT_WARRANTY;
   settings.renderApiKey=($('s-render-key').value||'').trim();
+  settings.ownerPin=($('s-pin').value||'').trim();
   settings.nicoEmail=($('s-nico').value||'').trim();
   settings.leadEndpoint=($('s-lead-url').value||'').trim();
   settings.leadAccessKey=($('s-lead-key').value||'').trim();
   if(!settings.renderProvider) settings.renderProvider='pollinations';
 }
 
+const STAGES=['New','Contacted','Measure booked','Quoted','Won','Lost'];
+let ownerOpen=false, pipeFilter='All';
+function leadScore(q){
+  const c=q.customer||{};
+  const bits=[
+    !!String(c.name||'').trim(),
+    String(c.phone||'').replace(/\D/g,'').length>=8,
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email||'').trim()),
+    !!String(c.suburb||c.address||'').trim(),
+    Calc.area(q.room||{})>0
+  ];
+  const complete=bits.filter(Boolean).length*10;
+  const fields=q.intake&&q.intake.fields||{};
+  const budget=String(fields.budget||'').toLowerCase();
+  const total=q.estimate&&q.estimate.total!=null?+q.estimate.total:+Calc.totals(q,settings).total;
+  let fit=15;
+  if(!budget.trim()) fit=10;
+  else if(/not sure|or more/.test(budget)) fit=20;
+  else if(/under/.test(budget)&&/20/.test(budget)) fit=total>0&&total<=20000?30:total<=22000?15:0;
+  else if(/20/.test(budget)&&/30/.test(budget)) fit=total>0&&total<=30000?30:total<=33000?15:0;
+  else fit=20;
+  const timing=String(fields.timeline||'').toLowerCase();
+  const time=/as soon/.test(timing)?20:/few months/.test(timing)?12:/just looking/.test(timing)?6:0;
+  return {score:complete+fit+time, complete, fit, time};
+}
+function nextAction(q, score){
+  const name=(q.customer&&String(q.customer.name||'').trim())||'the client';
+  const stage=STAGES.includes(q.stage)?q.stage:'New';
+  if(stage==='Lost') return 'No action. Keep the lead for your records.';
+  if(stage==='Won') return `Confirm the start date with ${name}.`;
+  if(stage==='Quoted') return `Follow up the quote with ${name}. The price is not final until you confirm it.`;
+  if(stage==='Measure booked') return 'Measure the bathroom and confirm the size.';
+  if(stage==='Contacted') return `Book the free site measure with ${name}.`;
+  if(score.fit===0) return `Call ${name} about the budget. This package may be above the range they gave.`;
+  if(!(q.customer&&String(q.customer.phone||'').replace(/\D/g,'').length>=8)) return `Ask ${name} for a phone number.`;
+  return `Call ${name} and book a free site measure.`;
+}
+function renderPipeline(){
+  const pin=String(settings.ownerPin||'').trim();
+  const lock=$('pipe-lock'), board=$('pipe-board');
+  if(!pin){
+    ownerOpen=false;
+    lock.hidden=false; board.hidden=true;
+    $('pipe-lock-msg').textContent='Set an owner PIN in Settings. The pipeline stays locked until then.';
+    $('pipe-pin').disabled=true; $('pipe-unlock').disabled=true;
+    $('pipe-err').textContent='';
+    return;
+  }
+  $('pipe-pin').disabled=false; $('pipe-unlock').disabled=false;
+  if(!ownerOpen){
+    lock.hidden=false; board.hidden=true;
+    $('pipe-lock-msg').textContent='Enter the owner PIN. This only unlocks the pipeline on this phone.';
+    return;
+  }
+  lock.hidden=true; board.hidden=false;
+  const list=Store.get(K.quotes,[]);
+  $('pipe-chips').innerHTML=['All',...STAGES].map(s=>`<button type="button" class="chip${pipeFilter===s?' on':''}" data-stage="${esc(s)}">${esc(s)}</button>`).join('');
+  const rows=list.filter(q=>pipeFilter==='All'||(STAGES.includes(q.stage)?q.stage:'New')===pipeFilter);
+  $('pipe-list').innerHTML=rows.length?rows.map(q=>{
+    const sc=leadScore(q);
+    const c=q.customer||{};
+    const stage=STAGES.includes(q.stage)?q.stage:'New';
+    const price=q.estimate&&q.estimate.priceText?q.estimate.priceText:(+q.total?`from ${fmt(q.total)} incl. GST, subject to site measure`:'Size not priced');
+    const opts=STAGES.map(s=>`<option${s===stage?' selected':''}>${esc(s)}</option>`).join('');
+    return `<article class="pipe"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div><label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select></article>`;
+  }).join(''):'<p class="hint">No leads in this stage.</p>';
+}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
@@ -1037,6 +1133,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='quote') update();
   if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
+  if(b.dataset.view==='pipeline') renderPipeline();
   if(b.dataset.view==='planner') Planner.show();
   if(b.dataset.view==='settings') renderSettings();
 });
@@ -1078,6 +1175,34 @@ $('fu-copy-email').onclick=()=>{if(quote&&quote.followup&&quote.followup.approve
 $('btn-nico').onclick=async()=>{if(await saveQuote()) nicoMailto(quote)};
 $('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
 $('btn-csv').onclick=exportLeadsCsv;
+$('pipe-unlock').onclick=()=>{
+  const typed=$('pipe-pin').value.trim();
+  $('pipe-err').textContent='';
+  if(typed && typed===String(settings.ownerPin||'').trim()){
+    ownerOpen=true;
+    $('pipe-pin').value='';
+    renderPipeline();
+  }else $('pipe-err').textContent='That PIN does not match.';
+};
+$('pipe-pin').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('pipe-unlock').click()}});
+$('pipe-lock-btn').onclick=()=>{ownerOpen=false;$('pipe-pin').value='';$('pipe-err').textContent='';renderPipeline()};
+$('pipe-chips').addEventListener('click',e=>{
+  const b=e.target.closest('[data-stage]');
+  if(!b||!ownerOpen) return;
+  pipeFilter=b.dataset.stage;
+  renderPipeline();
+});
+$('pipe-list').addEventListener('change',async e=>{
+  const id=e.target.dataset.pipe;
+  if(!id||!ownerOpen) return;
+  const list=Store.get(K.quotes,[]);
+  const rec=list.find(x=>x.id===id);
+  if(!rec) return;
+  rec.stage=e.target.value;
+  if(quote&&quote.id===id) quote.stage=rec.stage;
+  try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that stage on this phone.'}
+  renderPipeline();
+});
 $('btn-book').onclick=()=>document.querySelector('nav button[data-view=assist]').click();
 $('saved-list').onclick=e=>{
   const o=e.target.dataset.open,d=e.target.dataset.delq,n=e.target.dataset.nico,list=Store.get(K.quotes,[]);
@@ -1093,9 +1218,9 @@ $('pkg-list').addEventListener('input',e=>{
 });
 $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
-$('s-save').onclick=()=>{readSettings();Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
+$('s-save').onclick=()=>{const prev=settings.ownerPin||'';readSettings();if((settings.ownerPin||'')!==prev) ownerOpen=false;Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){

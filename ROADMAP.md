@@ -28,14 +28,9 @@
 - AI estimate: the look maps to a package, and the figure is that package's base fee plus its rate per m². It is shown as "from $X incl. GST, subject to site measure". The text model writes the explanation only and cannot set the number. Nico confirms it before it is final.
 - AI design: the chosen package preloads the planner and the walk-through with that package's real products. Opening the planner starts a Pollinations render of that room. The picture is marked as an AI illustration.
 - Quote and follow-up: the branded PDF is printed from the project. SMS and email stay as drafts until the wording is approved, then they can be copied or opened in an email draft. Nothing is sent automatically. Nico's lead summary still goes out by mailto or CSV.
+- Owner pipeline behind a PIN set in Settings. Stages are New, Contacted, Measure booked, Quoted, Won and Lost. Each lead has a score from budget fit, timeline and how complete the details are, plus a next action. Changing a stage does not send anything.
 
 ## Next
-
-The client flow is now an AI workflow, in this order:
-
-1. Owner dashboard behind a PIN in Settings: pipeline (New, Contacted, Measure booked, Quoted, Won, Lost), a lead score, and a next action.
-
-After that:
 
 - Modeller upgrades: doors, windows and L-shaped rooms
 - Before/after gallery with a Google review prompt
