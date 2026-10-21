@@ -37,7 +37,12 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 #chat-err:empty{display:none}
 #chat-err{color:var(--danger)}
 .photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:46dvh;overflow:auto;flex:none}
-.chat-bar,.chips,.photo-list{flex:none}
+.chat-bar,.chips,.photo-list,.estimate{flex:none}
+.estimate{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+.estimate h3{margin:0 0 4px;font-size:15px}
+.estimate-price{font-size:18px;font-weight:700;margin:0 0 6px}
+#quote-estimate:empty{display:none}
+#quote-estimate{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
 .photo-check h3{margin:0 0 6px;font-size:15px}
 .checks label{display:flex;gap:8px;align-items:center;color:var(--ink);margin:6px 0}
 .checks input{width:auto}
@@ -222,6 +227,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         </div>
         <p class="hint" id="an-status"></p>
       </div>
+      <div id="estimate-box" class="estimate" hidden>
+        <h3>Estimate</h3>
+        <p id="estimate-price" class="estimate-price"></p>
+        <p id="estimate-why"></p>
+        <p class="hint">Not a final price. Nico confirms it after a free site measure. Nothing is sent.</p>
+      </div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
         <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
@@ -261,6 +272,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div>
         <div class="card" style="position:sticky;top:10px"><h2>Quote summary</h2>
           <div id="summary"><p class="hint">Loading catalogue…</p></div>
+          <div id="quote-estimate"></div>
           <div class="actions">
             <button class="btn" id="btn-save">Save project</button>
             <button class="btn sec" id="btn-print">Print / Save as PDF</button>
@@ -767,6 +779,7 @@ function update(){
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
   updateBrand();
   $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
+  if(window.Estimate) Estimate.refreshFigures();
 }
 function legalBits(){
   const abn=String(settings.abn||'').trim();
@@ -1334,9 +1347,12 @@ Fill a field only when the client has stated it, using their words. Set done to 
     applyFieldsToQuote();
     if(kept) quote.room=kept;
     pushQuoteToInputs();
+    if(window.Estimate) await Estimate.write();
     const ok=await saveQuote();
     quote.intake.finishing=false;
     if(!ok){quote.intake.complete=false; push('assistant','I could not save this on the phone. Check the details and try again.'); render(); return}
+    const why=quote.estimate&&quote.estimate.explanation;
+    if(why) push('assistant', why);
     push('assistant', `Saved ${quote.number} on this phone for ${quote.customer.name}. Nico reviews it before any price is final and before anything is sent.`);
     render();
   }
@@ -1347,6 +1363,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     quote.notes='';
     quote.photos=[];
     quote.room={mode:'lw',length:'',width:'',area:''};
+    quote.estimate=null;
     quote.stage='New';
     pushQuoteToInputs();
     if(window.PhotoCheck) PhotoCheck.clearBound();
@@ -1375,6 +1392,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     renderPhotos();
     renderAnalysisSummary();
     if(window.PhotoCheck) PhotoCheck.sync();
+    if(window.Estimate) Estimate.show();
   }
   function sync(){
     if(!quote) return;
@@ -1593,6 +1611,98 @@ const PhotoCheck=(()=>{
   return {sync, confirm, capture, clearBound, ensureAnalysis};
 })();
 window.PhotoCheck=PhotoCheck;
+
+/* The figure always comes from the package base fee and rate per m². The text model may only explain it. */
+const Estimate={
+  priceLine(total){
+    return total>0?`from ${fmt(total)} incl. GST, subject to site measure`:'Enter the floor size to price this package';
+  },
+  ceiling(text){
+    const s=String(text||'').toLowerCase();
+    if(/not sure|or more/.test(s)) return 0;
+    if(/under/.test(s)&&/20/.test(s)) return 20000;
+    if(/20/.test(s)&&/30/.test(s)) return 30000;
+    return 0;
+  },
+  scripted(t){
+    const name=t.pkg?t.pkg.name:'This package';
+    const flags=quote.analysis&&quote.analysis.flags||{};
+    const noted=[];
+    if(flags.retile) noted.push('retiling');
+    if(flags.relocate) noted.push('moving fixtures');
+    if(flags.waterproof) noted.push('waterproofing');
+    const size=t.area>0?`The figure uses that package's base fee plus its rate per square metre, on ${t.area.toFixed(2)} m² of floor.`:'The floor size is still needed before a figure can be shown.';
+    const cap=this.ceiling(quote.intake&&quote.intake.fields&&quote.intake.fields.budget);
+    const over=cap&&t.total>cap?' The package you chose may sit above the budget range you gave. Nico can talk that through.':'';
+    const note=noted.length?` You noted ${noted.join(', ')}.`:'';
+    return `${name} matches the look you described. ${size} It is an estimate, subject to a site measure, and it is not final until Nico confirms it.${over}${note}`;
+  },
+  facts(t){
+    const f=quote.intake&&quote.intake.fields||{};
+    const flags=quote.analysis&&quote.analysis.flags||{};
+    const noted=['retile','relocate','waterproof'].filter(k=>flags[k]).join(', ')||'none';
+    return `Package: ${t.pkg?t.pkg.name:'none'}. Style words: ${f.style||'none'}. Budget words: ${f.budget||'none'}. Timeline: ${f.timeline||'none'}. Suburb: ${f.suburb||'none'}. Floor area m2: ${t.area||0}. Condition flags: ${noted}.`;
+  },
+  applyFigures(t, explanation, explanationSource){
+    quote.estimate={
+      packageId:quote.packageId||'',
+      area:t.area,
+      total:t.total,
+      baseFee:t.baseFee,
+      rate:t.rate,
+      priceText:this.priceLine(t.total),
+      explanation:explanation||this.scripted(t),
+      source:'calc',
+      explanationSource:explanationSource||'script',
+      final:false
+    };
+    return quote.estimate;
+  },
+  refreshFigures(){
+    if(!quote||!quote.estimate) return;
+    const t=Calc.totals(quote,settings);
+    const keep=quote.estimate.explanation;
+    const src=quote.estimate.explanationSource;
+    this.applyFigures(t, src==='script'?this.scripted(t):keep, src);
+    quote.estimate.final=false;
+    this.show();
+  },
+  async write(){
+    const t=Calc.totals(quote,settings);
+    let explanation=this.scripted(t), source='script';
+    try{
+      const reply=await TextLLM.complete([
+        {role:'system',content:'You explain a bathroom package in two or three short sentences for a Brisbane homeowner. Never state a price, a dollar amount, a percentage, a deposit, an ABN, or a QBCC number. You cannot change the figure. Do not say the price is final. Say that Nico confirms it after a free site measure. Use only the facts given. Do not add licences, warranties, or building-code claims.'},
+        {role:'user',content:this.facts(t)}
+      ]);
+      const clean=Intake.sanitizeAssistant(reply).replace(/FIELDS:[\s\S]*$/,'').trim();
+      if(clean && !/\$/.test(clean) && !/%/.test(clean) && !/\bdollars?\b/i.test(clean) && !/\bABN\b/i.test(clean) && !/\bQBCC\b/i.test(clean) && !/"total"\s*:/.test(clean)){
+        explanation=clean;
+        source='llm';
+      }
+    }catch{/* scripted explanation */ }
+    return this.applyFigures(t, explanation, source);
+  },
+  show(){
+    const box=$('estimate-box');
+    const est=quote&&quote.estimate;
+    if(box){
+      box.hidden=!est;
+      if(est){
+        $('estimate-price').textContent=est.priceText;
+        $('estimate-why').textContent=est.explanation||'';
+      }
+    }
+    const check=$('photo-check');
+    if(check) check.style.maxHeight=est?'22dvh':'';
+    const host=$('quote-estimate');
+    if(host){
+      if(!est) host.textContent='';
+      else host.textContent=`${est.priceText}. ${est.explanation} Not final until Nico confirms it.`;
+    }
+  }
+};
+window.Estimate=Estimate;
 
 async function boot(){
   try{
