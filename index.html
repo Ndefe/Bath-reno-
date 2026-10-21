@@ -10,6 +10,12 @@
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
 header.app{background:var(--ink);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 header.app h1{font-size:18px;margin:0}
+.brand-lockup{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-lockup img{height:36px;width:auto;max-width:96px;object-fit:contain;background:#fff;border-radius:6px}
+#brand-legal{margin:2px 0 0;color:#d5dde4;font-size:12px;line-height:1.3}
+.book{width:100%;margin:0 0 12px}
+#s-logo-preview{display:block;margin-top:8px;max-height:64px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
+.qd-logo{height:42px;width:auto;max-width:140px;object-fit:contain}
 nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin-left:4px;cursor:pointer;font-size:14px}
 nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 main{max-width:1150px;margin:0 auto;padding:16px}
@@ -147,7 +153,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 </head>
 <body class="on-quote">
 <header class="app">
-  <h1 id="brand">Quote Builder</h1>
+  <div class="brand-lockup">
+    <img id="brand-logo" alt="" hidden>
+    <div>
+      <h1 id="brand">Quote Builder</h1>
+      <p class="hint" id="brand-legal"></p>
+    </div>
+  </div>
   <nav>
     <button data-view="quote" class="active">Quote</button>
     <button data-view="planner">Planner</button>
@@ -174,6 +186,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div id="custom-extras"></div>
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
+        <button class="btn book" id="btn-book" type="button">Book a free measure &amp; quote</button>
         <div class="card" id="lead-card"><h2>Your details</h2>
           <p class="hint">Name, phone, email and suburb are required to save this project. Notes and photos are optional. Saved on this device.</p>
           <div class="row"><div><label for="q-name">Name</label><input id="q-name" name="customer_name" autocomplete="name"></div><div><label for="q-phone">Phone</label><input id="q-phone" name="phone" type="tel" autocomplete="tel"></div></div>
@@ -265,7 +278,21 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <!-- SETTINGS VIEW -->
   <section class="view" id="view-settings">
     <div class="card"><h2>Business</h2>
-      <div class="row"><div><label>Business name</label><input id="s-biz"></div><div><label>Contact line (phone / email / ABN)</label><input id="s-contact"></div></div>
+      <div class="row"><div><label for="s-biz">Business name</label><input id="s-biz"></div><div><label for="s-contact">Contact line (phone / email)</label><input id="s-contact"></div></div>
+      <label for="s-logo">Logo</label>
+      <input id="s-logo" type="file" accept="image/*">
+      <img id="s-logo-preview" alt="" hidden>
+      <button class="btn sec sm" id="s-logo-clear" type="button">Remove logo</button>
+      <div class="row"><div><label for="s-abn">ABN</label><input id="s-abn" inputmode="numeric" autocomplete="off" placeholder="Add your ABN"></div><div><label for="s-qbcc">QBCC licence number</label><input id="s-qbcc" autocomplete="off" placeholder="Add your QBCC licence number"></div></div>
+      <p class="hint">ABN and the QBCC licence stay blank until you type them. The quote shows “(add your ABN)” and “(add your licence number)” in the meantime.</p>
+      <div class="row"><div><label for="s-dep-under">Deposit under $20,000 (%)</label><input id="s-dep-under" type="number" min="0" max="10" step="0.1"></div><div><label for="s-dep-over">Deposit at $20,000 or more (%)</label><input id="s-dep-over" type="number" min="0" max="5" step="0.1"></div></div>
+      <p class="hint">Capped at 10% under $20,000 and 5% from $20,000. Verify with QBCC.</p>
+      <label for="s-progress">Progress payments</label>
+      <textarea id="s-progress"></textarea>
+      <label for="s-warranty">Warranty</label>
+      <textarea id="s-warranty"></textarea>
+      <p class="hint">Confirm the warranty wording with QBCC. Do not add review scores or claims.</p>
+      <p class="hint" id="s-waterproof">Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)</p>
       <div class="row"><div><label>Quote valid (days)</label><input id="s-valid" type="number" min="1"></div>
       <div><label>GST</label><p class="hint">Catalogue rates already include GST. The quote shows the GST included in the total.</p></div></div>
       <label for="s-render-key">AI render API key (optional)</label>
@@ -294,6 +321,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 /* Quote builder. Prices, packages and extras come from catalogue.json.
    Sell price (inc GST) = base fee + rate per m² × floor area. Bath and extras are separate. */
 const TZ='Australia/Brisbane', GST_RATE=0.10, MARGIN=0.27;
+const WATERPROOF='Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)';
+const DEFAULT_WARRANTY='Workmanship is covered by the Queensland statutory warranty where it applies (6 years for structural work, 1 year for other work). Manufacturer warranties apply to the products. QBCC home warranty insurance is arranged when the contract requires it. Confirm the warranty that applies to this job with QBCC.';
+const DEFAULT_PROGRESS='Deposit before work starts, 40% at waterproofing sign-off, and the balance on completion.';
 const K={settings:'bq.settings.v2',quotes:'bq.quotes.v1',counter:'bq.counter.v1'};
 const ROLE={
   floor:'Floor tile',wall:'Wall tile',feature:'Feature tile',
@@ -306,7 +336,10 @@ let catalogue=null, settings, quote, defaults, shownPkg=null;
 
 function buildDefaults(cat){
   return {
-    bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email · ABN', validDays:30,
+    bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email', validDays:30,
+    abn:'', qbcc:'', logo:'',
+    depositUnderPct:10, depositOverPct:5,
+    progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
     packages:cat.packages.map(p=>({
       id:p.id,
       name:p.name.replace(/\s*\(suggested premium\)\s*/i,'').trim(),
@@ -640,9 +673,33 @@ function update(){
   $('q-area-calc').value=t.area?t.area.toFixed(2):'';
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
-  $('summary').innerHTML=summaryTable(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
-  $('brand').textContent=(settings.bizName||'')+' · Quote Builder';
+  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
+  updateBrand();
   $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
+}
+function legalBits(){
+  const abn=String(settings.abn||'').trim();
+  const qbcc=String(settings.qbcc||'').trim();
+  return {abn:abn||'(add your ABN)', qbcc:qbcc||'(add your licence number)', named:!!(abn||qbcc)};
+}
+function updateBrand(){
+  $('brand').textContent=(settings.bizName||'')+' · Quote Builder';
+  const logo=$('brand-logo');
+  if(settings.logo){logo.src=settings.logo;logo.hidden=false;logo.alt=(settings.bizName||'Business')+' logo'}
+  else{logo.removeAttribute('src');logo.hidden=true;logo.alt=''}
+  const legal=legalBits();
+  $('brand-legal').textContent=`ABN ${legal.abn} · QBCC licence ${legal.qbcc}`;
+}
+function depositFor(total){
+  const under=Math.min(10,Math.max(0,+settings.depositUnderPct||0));
+  const over=Math.min(5,Math.max(0,+settings.depositOverPct||0));
+  const pct=total>=20000?over:under;
+  return {pct, amount:Calc.round((+total||0)*pct/100)};
+}
+function complianceHtml(t){
+  const dep=t&&t.total?depositFor(t.total):null;
+  const depLine=dep?`Deposit ${dep.pct}% (${fromPrice(dep.amount)}) — verify with QBCC.`:'Deposit is calculated once the floor size is entered. Verify with QBCC.';
+  return `<div class="qd-notes"><p>${esc(WATERPROOF)}</p><p>${esc(depLine)}</p><p>${esc(settings.progressPayments||'')}</p><p>${esc(settings.warranty||'')}</p><p><strong>Book a free measure &amp; quote</strong></p></div>`;
 }
 function summaryTable(t){
   const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
@@ -689,10 +746,12 @@ function renderPrint(){
   const t=Calc.totals(quote,settings), c=quote.customer, created=new Date(quote.createdAt);
   const valid=new Date(created.getTime()+settings.validDays*864e5);
   const cat=catPkg(quote.packageId);
+  const legal=legalBits();
+  const logo=settings.logo?`<img class="qd-logo" src="${settings.logo}" alt="">`:'';
   const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
   const formula=t.area>0?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Floor size not set';
   $('printArea').innerHTML=`<div class="quote-doc">
-   <div class="qd-head"><div><h2>${esc(settings.bizName)}</h2><div class="hint">${esc(settings.contact)}</div></div>
+   <div class="qd-head"><div>${logo}<h2>${esc(settings.bizName)}</h2><div class="hint">${esc(settings.contact)}</div><div class="hint">ABN ${esc(legal.abn)} · QBCC licence ${esc(legal.qbcc)}</div></div>
    <div class="qd-meta"><strong style="font-size:18px">QUOTE</strong><br>No. ${esc(quote.number)}<br>Date: ${fmtDate(created)}<br>Valid until: ${fmtDate(valid)}</div></div>
    <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name)}<br>${esc(c.address)}<br>${esc(c.phone)}<br>${esc(c.email)}</div>
    <div><strong>Bathroom</strong><br>${quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:''}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'-')}</div></div>
@@ -704,6 +763,7 @@ function renderPrint(){
    <tr class="total"><td class="n">Total</td><td class="n">${t.total?fromPrice(t.total):'—'}</td></tr>
    <tr><td class="n hint">Includes GST</td><td class="n hint">${t.gst?fmt(t.gst):'—'}</td></tr></table>
    ${quote.notes?`<p><strong>Notes</strong><br>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
+   ${complianceHtml(t)}
    <p class="qd-small">Estimate, subject to a free site measure. This quote is valid for ${settings.validDays} days from the date of issue. Prices are in Australian dollars and include GST. Bath and listed extras are separate from the package. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
 }
 
@@ -718,6 +778,12 @@ function renderSaved(){
 
 function renderSettings(){
   $('s-biz').value=settings.bizName;$('s-contact').value=settings.contact;$('s-valid').value=settings.validDays;
+  $('s-abn').value=settings.abn||'';$('s-qbcc').value=settings.qbcc||'';
+  $('s-dep-under').value=settings.depositUnderPct??10;$('s-dep-over').value=settings.depositOverPct??5;
+  $('s-progress').value=settings.progressPayments||DEFAULT_PROGRESS;$('s-warranty').value=settings.warranty||DEFAULT_WARRANTY;
+  const preview=$('s-logo-preview');
+  if(settings.logo){preview.src=settings.logo;preview.hidden=false;preview.alt='Logo preview'}
+  else{preview.removeAttribute('src');preview.hidden=true;preview.alt=''}
   $('s-render-key').value=settings.renderApiKey||'';
   $('s-nico').value=settings.nicoEmail||'';
   $('s-lead-url').value=settings.leadEndpoint||'';
@@ -733,6 +799,11 @@ function renderSettings(){
 }
 function readSettings(){
   settings.bizName=$('s-biz').value;settings.contact=$('s-contact').value;settings.validDays=Math.max(1,+$('s-valid').value||30);
+  settings.abn=($('s-abn').value||'').trim();settings.qbcc=($('s-qbcc').value||'').trim();
+  settings.depositUnderPct=Math.min(10,Math.max(0,+$('s-dep-under').value||0));
+  settings.depositOverPct=Math.min(5,Math.max(0,+$('s-dep-over').value||0));
+  settings.progressPayments=$('s-progress').value||DEFAULT_PROGRESS;
+  settings.warranty=$('s-warranty').value||DEFAULT_WARRANTY;
   settings.renderApiKey=($('s-render-key').value||'').trim();
   settings.nicoEmail=($('s-nico').value||'').trim();
   settings.leadEndpoint=($('s-lead-url').value||'').trim();
@@ -814,7 +885,36 @@ $('pkg-list').addEventListener('input',e=>{
 $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
 $('s-save').onclick=()=>{readSettings();Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
-$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep={renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
+function keptBusiness(){
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
+}
+$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
+$('btn-book').onclick=()=>{$('lead-card').scrollIntoView({behavior:'smooth',block:'start'});$('q-name').focus()};
+function shrinkLogo(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      const max=480, scale=Math.min(1,max/Math.max(img.width,img.height,1));
+      const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      const g=canvas.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,w,h);g.drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg',0.85));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('logo'))};
+    img.src=url;
+  });
+}
+$('s-logo').addEventListener('change',async e=>{
+  const file=(e.target.files||[])[0];
+  e.target.value='';
+  if(!file) return;
+  readSettings();
+  try{settings.logo=await shrinkLogo(file);renderSettings();updateBrand()}
+  catch{$('s-msg').textContent='That logo could not be read.'}
+});
+$('s-logo-clear').onclick=()=>{readSettings();settings.logo='';renderSettings();updateBrand()};
 window.addEventListener('beforeprint',()=>{if(catalogue&&quote) renderPrint()});
 
 /* Image render providers. Only Pollinations is wired up. It is free and does not use the API key.
@@ -875,6 +975,13 @@ async function boot(){
     const ids=new Set(settings.packages.map(p=>p.id));
     const missing=defaults.packages.filter(p=>!ids.has(p.id));
     if(missing.length) settings.packages=[...missing, ...settings.packages];
+    if(settings.abn==null) settings.abn='';
+    if(settings.qbcc==null) settings.qbcc='';
+    if(!settings.logo) settings.logo='';
+    if(settings.depositUnderPct==null) settings.depositUnderPct=10;
+    if(settings.depositOverPct==null) settings.depositOverPct=5;
+    if(!settings.progressPayments) settings.progressPayments=DEFAULT_PROGRESS;
+    if(!settings.warranty) settings.warranty=DEFAULT_WARRANTY;
   }
   loadQuoteToForm(newQuote());
   if($('view-planner').classList.contains('active')) Planner.show();
