@@ -44,10 +44,16 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 #quote-estimate:empty{display:none}
 #quote-estimate{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
 .photo-check h3{margin:0 0 6px;font-size:15px}
-.checks label{display:flex;gap:8px;align-items:center;color:var(--ink);margin:6px 0}
-.checks input{width:auto}
+.checkline{display:flex;gap:8px;align-items:center;color:var(--ink);margin:6px 0}
+.checkline input{width:auto}
+.checkline label{margin:0;color:var(--ink)}
+.follow textarea{min-height:88px;font-size:16px}
+.follow input{font-size:16px}
+.btn:disabled{opacity:.45}
+#fu-mailto{display:inline-block;text-decoration:none;text-align:center}
+#fu-mailto[hidden]{display:none}
 .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
-@media(max-width:860px){.grid{grid-template-columns:1fr}}
+@media(max-width:860px){.grid{grid-template-columns:1fr}#view-quote .card{position:static!important}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
 .card h2{font-size:16px;margin:0 0 12px}
 label{display:block;font-size:13px;color:var(--mute);margin:8px 0 4px}
@@ -177,7 +183,7 @@ header.app{position:sticky;top:0;z-index:20}
 }
 #m-total{display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:#fff;padding:10px 14px;justify-content:space-between;align-items:center;font-weight:700;gap:8px;flex-wrap:wrap}
 #m-total span{font-size:14px;line-height:1.3}
-@media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}}
+@media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}body.on-quote:not(.client) main{padding-bottom:96px}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
@@ -217,9 +223,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div><label for="an-area">Area (m²)</label><input id="an-area" inputmode="decimal" autocomplete="off"></div>
         </div>
         <div class="checks">
-          <label><input id="an-retile" type="checkbox"> Retile</label>
-          <label><input id="an-relocate" type="checkbox"> Relocate fixtures</label>
-          <label><input id="an-waterproof" type="checkbox"> Waterproof</label>
+          <div class="checkline"><input id="an-retile" type="checkbox"><label for="an-retile">Retile</label></div>
+          <div class="checkline"><input id="an-relocate" type="checkbox"><label for="an-relocate">Relocate fixtures</label></div>
+          <div class="checkline"><input id="an-waterproof" type="checkbox"><label for="an-waterproof">Waterproof</label></div>
         </div>
         <div class="actions">
           <button class="btn" id="an-confirm" type="button">Confirm details</button>
@@ -267,6 +273,25 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <p id="analysis-summary" class="hint"></p>
           <button class="btn book" id="btn-book" type="button">Open assistant</button>
           <p class="hint" id="lead-err" role="alert"></p>
+        </div>
+        <div class="card follow" id="follow-card">
+          <h2>Follow-up drafts</h2>
+          <p class="hint">These stay drafts until you approve the wording. Copy and email open a draft only. Nothing is sent automatically.</p>
+          <label for="fu-sms">SMS</label>
+          <textarea id="fu-sms" readonly></textarea>
+          <label for="fu-subject">Email subject</label>
+          <input id="fu-subject" readonly>
+          <label for="fu-email">Email</label>
+          <textarea id="fu-email" readonly></textarea>
+          <div class="checkline"><input id="fu-approve" type="checkbox"><label for="fu-approve">I approve this wording</label></div>
+          <div class="actions">
+            <button class="btn sec" type="button" id="fu-copy-sms" disabled>Copy SMS</button>
+            <button class="btn sec" type="button" id="fu-copy-email" disabled>Copy email</button>
+            <a class="btn sec" id="fu-mailto" hidden>Email draft</a>
+            <button class="btn" type="button" id="fu-pdf">Print / Save as PDF</button>
+          </div>
+          <p class="hint">Nico's lead summary is Send to Nico, or Export CSV on Projects. Neither sends by itself.</p>
+          <p class="hint" id="fu-status" role="status"></p>
         </div>
       </div>
       <div>
@@ -685,7 +710,7 @@ function nicoBody(q){
     `Suburb: ${c.suburb||c.address||''}`,
     `Package: ${q.pkgSnapshot?.name||''}`,
     `Floor area: ${(+area||0).toFixed(2)} m²`,
-    `Price: from ${fmt(total)} incl. GST`,
+    `Price: ${total>0?`from ${fmt(total)} incl. GST, subject to site measure`:'floor size not set'}`,
     `Notes: ${q.notes||''}`,
     `Photos on this device: ${(q.photos||[]).length}`
   ].join('\n');
@@ -780,6 +805,57 @@ function update(){
   updateBrand();
   $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
   if(window.Estimate) Estimate.refreshFigures();
+  renderFollowup();
+}
+function followDrafts(q){
+  const c=q.customer||{};
+  const t=Calc.totals(q,settings);
+  const name=(c.name||'').trim()||'there';
+  const suburb=(c.suburb||c.address||'').trim();
+  const pkg=t.pkg?t.pkg.name:'the package you looked at';
+  const price=t.total>0?`from ${fmt(t.total)} incl. GST, subject to site measure`:'still to be priced once the floor size is confirmed';
+  const place=suburb?` in ${suburb}`:'';
+  const sms=`Hi ${name}, it's Nico from Gert's Reno. Thanks for the bathroom enquiry${place}. The estimate for ${pkg} is ${price}. It is not a final price until a free site measure. Reply if you would like to book that.`;
+  const subject=`Bathroom estimate${suburb?` — ${suburb}`:''}`;
+  const email=`Hi ${name},\n\nThanks for asking about a bathroom renovation${place}.\n\nThe estimate for ${pkg} is ${price}. This is not a final price. Nico confirms it after a free site measure.\n\nReply to this email if you would like to book the measure.\n\nGert's Reno`;
+  return {sms,subject,email};
+}
+function renderFollowup(){
+  if(!quote||!$('fu-sms')) return;
+  const d=followDrafts(quote);
+  const prev=quote.followup||{};
+  const same=prev.sms===d.sms&&prev.email===d.email&&prev.subject===d.subject;
+  const approved=!!prev.approved&&same;
+  quote.followup={...d,approved,approvedAt:approved?(prev.approvedAt||null):null};
+  $('fu-sms').value=d.sms;
+  $('fu-subject').value=d.subject;
+  $('fu-email').value=d.email;
+  $('fu-approve').checked=approved;
+  $('fu-copy-sms').disabled=!approved;
+  $('fu-copy-email').disabled=!approved;
+  const link=$('fu-mailto');
+  if(approved){
+    const c=quote.customer||{};
+    link.hidden=false;
+    link.href=`mailto:${encodeURIComponent((c.email||'').trim())}?subject=${encodeURIComponent(d.subject)}&body=${encodeURIComponent(d.email)}`;
+  }else{
+    link.hidden=true;
+    link.removeAttribute('href');
+  }
+  $('fu-status').textContent=approved
+    ?'Wording approved on this phone. Copy or open the email draft. You still send it yourself.'
+    :'Draft only. Approve the wording before copying or emailing. Nothing is sent automatically.';
+}
+async function copyFollow(text, okMsg){
+  let ok=false;
+  try{await navigator.clipboard.writeText(text);ok=true}
+  catch{
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();
+    try{ok=!!document.execCommand('copy')}catch{ok=false}
+    ta.remove();
+  }
+  $('fu-status').textContent=ok?okMsg:'Could not copy. Select the draft and copy it yourself. Nothing was sent.';
 }
 function legalBits(){
   const abn=String(settings.abn||'').trim();
@@ -965,7 +1041,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='settings') renderSettings();
 });
 $('view-quote').addEventListener('input',e=>{
-  if(!quote) return;
+  if(!quote||e.target.id==='fu-approve'||e.target.id==='fu-sms'||e.target.id==='fu-email'||e.target.id==='fu-subject') return;
   if(e.target.dataset.qty){
     const pick=(quote.picks||[]).find(p=>p.id===e.target.dataset.qty);
     if(pick) pick.qty=Math.max(1,+e.target.value||1);
@@ -975,7 +1051,7 @@ $('view-quote').addEventListener('input',e=>{
   update();
 });
 $('view-quote').addEventListener('change',e=>{
-  if(!quote) return;
+  if(!quote||e.target.id==='fu-approve') return;
   if(e.target.dataset.xid){
     const id=e.target.dataset.xid;
     quote.picks=quote.picks||[];
@@ -990,6 +1066,15 @@ $('add-extra').onclick=()=>{quote.extras.push({desc:'',amount:''});renderCustom(
 $('custom-extras').onclick=e=>{const r=e.target.dataset.rm;if(r!==undefined){quote.extras.splice(+r,1);renderCustom();update()}};
 $('btn-save').onclick=()=>saveQuote();
 $('btn-print').onclick=()=>{renderPrint();window.print()};
+$('fu-pdf').onclick=()=>{renderPrint();window.print()};
+$('fu-approve').addEventListener('change',()=>{
+  if(!quote) return;
+  const d=followDrafts(quote);
+  quote.followup={...d,approved:$('fu-approve').checked,approvedAt:$('fu-approve').checked?new Date().toISOString():null};
+  renderFollowup();
+});
+$('fu-copy-sms').onclick=()=>{if(quote&&quote.followup&&quote.followup.approved) copyFollow(quote.followup.sms,'SMS copied. Paste it into your phone. Nothing was sent.')};
+$('fu-copy-email').onclick=()=>{if(quote&&quote.followup&&quote.followup.approved) copyFollow(`Subject: ${quote.followup.subject}\n\n${quote.followup.email}`,'Email copied. Paste it into your mail app. Nothing was sent.')};
 $('btn-nico').onclick=async()=>{if(await saveQuote()) nicoMailto(quote)};
 $('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
 $('btn-csv').onclick=exportLeadsCsv;

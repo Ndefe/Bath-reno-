@@ -27,13 +27,13 @@
 - Photo check on the intake: the client enters length, width or area, and ticks retile, relocate fixtures, or waterproof, then confirms or corrects. The vision call sits behind a provider interface and is not connected, because the free model cannot see photos.
 - AI estimate: the look maps to a package, and the figure is that package's base fee plus its rate per m². It is shown as "from $X incl. GST, subject to site measure". The text model writes the explanation only and cannot set the number. Nico confirms it before it is final.
 - AI design: the chosen package preloads the planner and the walk-through with that package's real products. Opening the planner starts a Pollinations render of that room. The picture is marked as an AI illustration.
+- Quote and follow-up: the branded PDF is printed from the project. SMS and email stay as drafts until the wording is approved, then they can be copied or opened in an email draft. Nothing is sent automatically. Nico's lead summary still goes out by mailto or CSV.
 
 ## Next
 
 The client flow is now an AI workflow, in this order:
 
-1. Quote and follow-up: branded PDF from the project, and SMS and email drafts that stay drafts until Nico approves them. Copy and mailto only. Nico's summary goes out by mailto or CSV.
-2. Owner dashboard behind a PIN in Settings: pipeline (New, Contacted, Measure booked, Quoted, Won, Lost), a lead score, and a next action.
+1. Owner dashboard behind a PIN in Settings: pipeline (New, Contacted, Measure booked, Quoted, Won, Lost), a lead score, and a next action.
 
 After that:
 
