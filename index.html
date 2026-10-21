@@ -1348,6 +1348,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(kept) quote.room=kept;
     pushQuoteToInputs();
     if(window.Estimate) await Estimate.write();
+    if(window.Planner&&Planner.preloadFromQuote) Planner.preloadFromQuote();
     const ok=await saveQuote();
     quote.intake.finishing=false;
     if(!ok){quote.intake.complete=false; push('assistant','I could not save this on the phone. Check the details and try again.'); render(); return}
@@ -1379,7 +1380,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     log.scrollTop=log.scrollHeight;
     const chips=$('chat-chips');
     if(intake.complete){
-      chips.innerHTML='<button type="button" class="chip" data-act="open">Open project</button><button type="button" class="chip" data-act="reset">Start again</button>';
+      chips.innerHTML='<button type="button" class="chip" data-act="open">Open project</button><button type="button" class="chip" data-act="design">See this look</button><button type="button" class="chip" data-act="reset">Start again</button>';
     }else{
       const step=nextField();
       chips.innerHTML=(step?.chips||[]).map(label=>`<button type="button" class="chip" data-act="send" data-value="${esc(label)}">${esc(label)}</button>`).join('');
@@ -1413,6 +1414,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
       if(!btn) return;
       if(btn.dataset.act==='send') onSend(btn.dataset.value);
       if(btn.dataset.act==='open') document.querySelector('nav button[data-view=quote]').click();
+      if(btn.dataset.act==='design') document.querySelector('nav button[data-view=planner]').click();
       if(btn.dataset.act==='reset') resetChat();
     });
     $('chat-photo').onclick=()=>$('chat-file').click();
@@ -2999,8 +3001,8 @@ const Planner=(()=>{
     $('pl-metal').onchange=e=>{design.metal=e.target.value;$('pl-look').value='';buildItems()};
     document.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{if(!selected)return;const [dx,dz]=b.dataset.mv.split(',').map(Number);selected.x+=dx*0.1;selected.z+=dz*0.1;clampItem(selected);buildItems()});
     $('pl-rot').onclick=()=>{if(!selected)return;selected.rot=(selected.rot+1)%4;clampItem(selected);buildItems()};
-    $('pl-del').onclick=()=>{if(!selected)return;design.items.splice(design.items.indexOf(selected),1);select(null);buildItems()};
-    $('pl-clear').onclick=()=>{if(confirm('Remove all items?')){design.items=[];select(null);buildItems()}};
+    $('pl-del').onclick=()=>{if(!selected)return;design.placedBy='user';design.items.splice(design.items.indexOf(selected),1);select(null);buildItems()};
+    $('pl-clear').onclick=()=>{if(confirm('Remove all items?')){design.placedBy='user';design.items=[];select(null);buildItems()}};
     $('pl-client').onclick=toggleClient;$('pl-png').onclick=saveImage;
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('client')&&!walking)toggleClient()});
     bindWalkInput();
@@ -3029,7 +3031,10 @@ const Planner=(()=>{
     if(spot){spot.position.set(0,h-0.16,0);spot.target.position.set(0,0,0);spot.target.updateMatrixWorld()}
     const lamp=scene.getObjectByName('lamp');
     if(lamp) lamp.position.set(0,h-0.02,0);
-    $('pl-l').value=l;$('pl-w').value=w;$('pl-h').value=design.room.h;$('pl-area').textContent=`Floor area ${(l*w).toFixed(2)} m² (synced to quote)`;
+    $('pl-l').value=l;$('pl-w').value=w;$('pl-h').value=design.room.h;
+    const pkgName=(window.BQ&&settings.packages.find(p=>p.id===BQ.quote.packageId)||{}).name||'';
+    const loaded=design.preloadStamp&&pkgName?` Loaded with the ${pkgName} products.`:'';
+    $('pl-area').textContent=`Floor area ${(l*w).toFixed(2)} m² (synced to quote).${loaded}`;
     if(TILES[design.floor]) $('pl-floor').value=design.floor;
     if(TILES[design.wall]) $('pl-wall').value=design.wall;
     if(METALS[design.metal]) $('pl-metal').value=design.metal;
@@ -3114,7 +3119,7 @@ const Planner=(()=>{
     refreshSel();
   }
   function addItem(type){
-    const it={type,x:(design.items.length%3-1)*0.6,z:-99,rot:0};clampItem(it);design.items.push(it);buildItems();select(it);return it;
+    const it={type,x:(design.items.length%3-1)*0.6,z:-99,rot:0};clampItem(it);design.placedBy='user';design.items.push(it);buildItems();select(it);return it;
   }
   function select(it){selected=it;refreshSel()}
   function refreshSel(){
@@ -3133,7 +3138,7 @@ const Planner=(()=>{
     else select(null);
   }
   function onMove(e){if(!drag||!selected)return;ray.setFromCamera(ndc(e),camera);if(ray.ray.intersectPlane(floorPlane,tmp)){selected.x=tmp.x+drag.dx;selected.z=tmp.z+drag.dz;clampItem(selected);const g=itemsGroup.children.find(c=>c.userData.item===selected);if(g){g.position.x=selected.x;g.position.z=selected.z}}}
-  function onUp(){if(drag){drag=null;if(!walking)controls.enabled=true}}
+  function onUp(){if(drag){drag=null;if(design) design.placedBy='user';if(!walking)controls.enabled=true}}
 
   const FINISH={black:'matte black',chrome:'polished chrome',copper:'brushed copper',brass:'brushed brass',bronze:'brushed bronze'};
   const FIXTURE_CAT={vanity:['vanity'],toilet:['toilet_suite'],shower:['shower_screen'],bath:['bath'],mirror:['mirror_cabinet','mirror'],rail:['towel_rail'],tap:['basin_mixer','shower_mixer']};
@@ -3510,12 +3515,70 @@ const Planner=(()=>{
     return {walking,x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,eye:camera?camera.position.y:0,ratio:renderer?renderer.getPixelRatio():0,fov:camera?camera.fov:0};
   }
 
-  function applyLook(key){
+  function applyLook(key, opts){
     const L=LOOKS[key];if(!L||!design) return;
     Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:key});
     sizeFromPackage(key);
     design.items.forEach(clampItem);
-    if(inited){$('pl-look').value=key;buildRoom();buildItems()}
+    if(inited && !(opts&&opts.silent)){$('pl-look').value=key;buildRoom();buildItems()}
+  }
+  function wantsBath(){
+    return (BQ.quote.picks||[]).some(p=>String(p.id).startsWith('bath_'));
+  }
+  const FIXTURE_TYPE={vanity:'vanity',toilet_suite:'toilet',shower_screen:'shower',mirror:'mirror',mirror_cabinet:'mirror',towel_rail:'rail',basin_mixer:'tap',bath:'bath'};
+  function layoutForPackage(pkgId){
+    const pkg=catalogue&&catalogue.packages.find(p=>p.id===pkgId);
+    if(!pkg||!design) return [];
+    const types=[];
+    for(const item of pkg.items){
+      if(item.optional && !(item.category==='bath' && wantsBath())) continue;
+      const type=FIXTURE_TYPE[item.category];
+      if(type && !types.includes(type)) types.push(type);
+    }
+    const {l,w}=design.room;
+    const spots={
+      shower:{x:-l/2,z:-w/2,rot:0},
+      toilet:{x:l*0.15,z:-w/2,rot:0},
+      vanity:{x:l/2,z:0,rot:1},
+      mirror:{x:l/2,z:0,rot:1},
+      tap:{x:l/2,z:0.2,rot:1},
+      rail:{x:-l/2,z:0.15,rot:1},
+      bath:{x:0,z:0,rot:0}
+    };
+    return types.map(type=>{
+      const spot=spots[type]||{x:0,z:0,rot:0};
+      const it={type,x:spot.x,z:spot.z,rot:spot.rot};
+      clampItem(it);
+      return it;
+    });
+  }
+  function preloadFromQuote(){
+    if(!window.BQ||!BQ.quote) return null;
+    ensureDesign();
+    const q=BQ.quote;
+    const r=q.room||{};
+    if(r.mode==='lw'&&+r.length>0&&+r.width>0){design.room.l=+r.length;design.room.w=+r.width}
+    else if(+r.area>0){const w=Math.sqrt(+r.area/1.25);design.room.w=Calc.round(w);design.room.l=Calc.round(+r.area/design.room.w)}
+    const pkg=settings.packages.find(p=>p.id===q.packageId);
+    if(pkg&&pkg.look) applyLook(pkg.look,{silent:true});
+    else sizeFromPackage(q.packageId);
+    const stamp=(q.packageId||'')+'|'+(wantsBath()?'bath':'room');
+    if(design.placedBy!=='user' && design.preloadStamp!==stamp){
+      design.items=layoutForPackage(q.packageId);
+      design.preloadStamp=stamp;
+    }
+    q.design=design;
+    return design;
+  }
+  let renderStartedFor=null;
+  function maybeRender(){
+    const q=BQ.quote;
+    if(!q||renderState.busy) return;
+    if(q.render&&q.render.dataUrl) return;
+    if(!(q.intake&&q.intake.complete)) return;
+    if(renderStartedFor===q.id) return;
+    renderStartedFor=q.id;
+    runRender();
   }
   function applyPackageLook(){
     if(!window.BQ||!BQ.quote) return;
@@ -3549,13 +3612,14 @@ const Planner=(()=>{
     if(!window.BQ||!BQ.quote) return;
     if(walking) exitWalk();
     if(!inited) init();
-    ensureDesign();syncFromQuote();
-    syncRenderFromQuote();
-    sizeFromPackage(BQ.quote.packageId||design.look);
+    preloadFromQuote();
+    syncFromQuote();
     design.items.forEach(clampItem);
+    syncRenderFromQuote();
     $('pl-look').value=design.look||'';
     buildRoom();buildItems();
     if(!(+BQ.quote.room.length>0&&+BQ.quote.room.width>0)&&BQ.quote.room.mode==='lw') syncToQuote();
+    maybeRender();
     setTimeout(resize,0);
   }
   function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
@@ -3568,7 +3632,7 @@ const Planner=(()=>{
   $('pl-ai-again').onclick=runRender;
   $('pl-ai-save').onclick=saveRender;
   $('pl-ai-quote').onclick=toggleQuoteRender;
-  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,enterWalk,exitWalk,lookHere,getWalk,_:{get design(){return design},TILES,ITEMS,blocked,get renderer(){return renderer},get room(){return roomMesh},get camera(){return camera}}};
+  return {show,loadFromQuote,applyPackageLook,preloadFromQuote,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,enterWalk,exitWalk,lookHere,getWalk,_:{get design(){return design},TILES,ITEMS,blocked,get renderer(){return renderer},get room(){return roomMesh},get camera(){return camera}}};
 })();
 window.Planner=Planner;
 boot();
