@@ -9,10 +9,10 @@
 - Catalogue extras are selectable on the quote, including area-based and package-specific items
 - Each package's included products are shown on the quote with name, code, and a local thumbnail
 - Planner looks for all three packages. Fixture sizes come from the products' real dimensions
+- Free AI photo-style renders from the planner (Pollinations). The picture can be saved or added to the printed quote. An optional API key is stored only in this browser for a future paid provider
 
 ## Next
 
 - Professional PDF quote
 - Better 3D modeller: room shape, doors and windows, wall-by-wall tiles, drag and snap, and no overlaps
-- AI photoreal renders
 - Saving and sharing client projects

@@ -56,18 +56,36 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
   tr{page-break-inside:avoid}
 }
 /* Planner */
-.planner{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.planner{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,380px);gap:16px;align-items:start}
+.pl-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 @media(max-width:860px){.planner{grid-template-columns:1fr}}
 .pl-stage{position:relative;background:#dfe5ea;border-radius:12px;overflow:hidden;height:70vh;min-height:360px}
 #pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:none}
-.pl-overlay{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end}
 .pl-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:#455;background:#fffc;padding:3px 8px;border-radius:6px}
 .pl-palette{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
+.pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:8px 0}
+.pl-render-loading[hidden]{display:none!important}
+.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+#pl-render-img{width:100%;height:auto;border-radius:8px;display:block;background:#eef2f5}
+#pl-render-status.is-error{color:var(--danger)}
+#pl-render-status:empty{display:none}
+button:disabled{opacity:.6;cursor:progress}
+.qd-render{margin:10px 0}
+.qd-render img{width:100%;max-height:240px;object-fit:cover;border-radius:8px;display:block}
 body.client header.app,body.client .pl-panel,body.client .pl-hint{display:none}
 body.client main{max-width:none;padding:0}
-body.client .planner{display:block}
+body.client .planner{grid-template-columns:minmax(0,1fr) minmax(240px,400px);height:100vh;gap:0}
 body.client .pl-stage{height:100vh;border-radius:0}
+body.client .pl-side{max-height:100vh;overflow:auto;padding:12px;background:var(--bg)}
+@media(max-width:860px){
+  body.client .planner{grid-template-columns:1fr;height:auto;gap:12px}
+  body.client .pl-stage{height:48vh;min-height:220px}
+  body.client .pl-side{max-height:none;padding:10px}
+}
 
 
 .products{display:flex;flex-direction:column;gap:8px;margin-top:10px}
@@ -107,7 +125,7 @@ header.app{position:sticky;top:0;z-index:20}
 @media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
-@media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}}
+@media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
 </head>
 <body class="on-quote">
@@ -165,10 +183,27 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="pl-stage" id="pl-stage">
         <div id="pl-canvas"></div>
         <div class="pl-overlay">
-          <button class="btn sm" id="pl-client">Client view</button>
-          <button class="btn sec sm" id="pl-png">Save image</button>
+          <button class="btn sm" type="button" id="pl-client">Client view</button>
+          <button class="btn sec sm" type="button" id="pl-png">Save image</button>
+          <button class="btn sm" type="button" id="pl-ai">AI render</button>
         </div>
         <div class="pl-hint">Drag an item to move it · drag empty space to orbit · scroll/pinch to zoom</div>
+      </div>
+      <div class="pl-side">
+      <div class="card pl-render" id="pl-render">
+        <h2>AI render</h2>
+        <p class="hint">Photo-style picture of this room. It is an AI illustration and may not match the exact layout.</p>
+        <div id="pl-render-view" hidden>
+          <img id="pl-render-img" alt="AI illustration of this bathroom">
+        </div>
+        <div class="pl-render-loading" id="pl-render-loading" hidden><span class="spin" aria-hidden="true"></span><span>Generating a photo-style render. This often takes 10–60 seconds.</span></div>
+        <p id="pl-render-status" class="hint" role="status" aria-live="polite"></p>
+        <div class="actions">
+          <button class="btn" type="button" id="pl-ai-card">AI render</button>
+          <button class="btn sec" type="button" id="pl-ai-again" hidden>Regenerate</button>
+          <button class="btn sec" type="button" id="pl-ai-save" hidden>Save image</button>
+          <button class="btn sec" type="button" id="pl-ai-quote" hidden>Add to quote</button>
+        </div>
       </div>
       <div class="pl-panel card">
         <h2>Room (m)</h2>
@@ -189,6 +224,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div class="actions"><button class="btn del sm" id="pl-del">Delete item</button><button class="btn del sm" id="pl-clear">Clear all</button></div>
         <div class="hint" style="margin-top:8px">Fixture sizes follow the package. The design is saved with the quote when you press "Save quote".</div>
       </div>
+      </div>
     </div>
   </section>
 
@@ -201,6 +237,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="row"><div><label>Business name</label><input id="s-biz"></div><div><label>Contact line (phone / email / ABN)</label><input id="s-contact"></div></div>
       <div class="row"><div><label>Quote valid (days)</label><input id="s-valid" type="number" min="1"></div>
       <div><label>GST</label><p class="hint">Catalogue rates already include GST. The quote shows the GST included in the total.</p></div></div>
+      <label for="s-render-key">AI render API key (optional)</label>
+      <input id="s-render-key" type="password" autocomplete="off" spellcheck="false">
+      <p class="hint">Stored only in this browser. Pollinations does not use a key. A future paid provider would.</p>
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
@@ -434,7 +473,7 @@ function update(){
   $('q-area-calc').value=t.area?t.area.toFixed(2):'';
   const example=t.pkg?` 6 m² is ${fmt((+t.pkg.baseFee)+(+t.pkg.rate)*6)} inc GST.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Price includes GST. Bath and extras are on top.${t.area>0?'':example}`:'';
-  $('summary').innerHTML=summaryTable(t)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days</div>`;
+  $('summary').innerHTML=summaryTable(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
   $('brand').textContent=(settings.bizName||'')+' · Quote Builder';
   $('m-total-v').textContent=fmt(t.total);
 }
@@ -455,9 +494,15 @@ function saveQuote(){
   if(window.Planner) quote.design=Planner.getDesign();
   const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
   const i=list.findIndex(x=>x.id===quote.id);if(i>=0)list[i]=rec;else list.unshift(rec);
-  Store.set(K.quotes,list);update();$('save-msg').textContent='Saved '+quote.number;
+  try{Store.set(K.quotes,list)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove the AI render and try again.';return}
+  update();$('save-msg').textContent='Saved '+quote.number;
 }
 
+function renderFigure(q){
+  const src=q&&q.render&&q.render.dataUrl;
+  if(!src||!String(src).startsWith('data:image/')) return '';
+  return `<figure class="qd-render"><img src="${src}" alt="AI illustration of the bathroom"><figcaption class="qd-small">AI illustration. It may not match the exact layout.</figcaption></figure>`;
+}
 function renderPrint(){
   readForm();ensureNumber();update();
   const t=Calc.totals(quote,settings), c=quote.customer, created=new Date(quote.createdAt);
@@ -471,6 +516,7 @@ function renderPrint(){
    <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name)}<br>${esc(c.address)}<br>${esc(c.phone)}<br>${esc(c.email)}</div>
    <div><strong>Bathroom</strong><br>${quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:''}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'-')}</div></div>
    ${productsHtml(quote.packageId)}
+   ${renderFigure(quote)}
    <table><tr><th>Description</th><th class="n">Amount</th></tr>
    <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${esc(t.pkg?.desc||'')}</span><br><span class="hint">${esc(cat?.pricing?.includes||'')}</span><br><span class="hint">${formula}</span></td><td class="n">${fmt(t.base)}</td></tr>
    ${lines}
@@ -488,6 +534,7 @@ function renderSaved(){
 
 function renderSettings(){
   $('s-biz').value=settings.bizName;$('s-contact').value=settings.contact;$('s-valid').value=settings.validDays;
+  $('s-render-key').value=settings.renderApiKey||'';
   const looks=Object.entries(window.LOOKS||{});
   $('pkg-list').innerHTML=settings.packages.map((p,i)=>`<div class="pkg">
    <div class="row"><div><label>Name</label><input data-p="${i}" data-f="name" value="${esc(p.name)}"></div>
@@ -499,6 +546,8 @@ function renderSettings(){
 }
 function readSettings(){
   settings.bizName=$('s-biz').value;settings.contact=$('s-contact').value;settings.validDays=Math.max(1,+$('s-valid').value||30);
+  settings.renderApiKey=($('s-render-key').value||'').trim();
+  if(!settings.renderProvider) settings.renderProvider='pollinations';
 }
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -551,8 +600,49 @@ $('pkg-list').addEventListener('input',e=>{
 $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
 $('s-save').onclick=()=>{readSettings();Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
-$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){settings=structuredClone(defaults);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
+$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const renderApiKey=settings.renderApiKey||'',renderProvider=settings.renderProvider||'pollinations';settings=structuredClone(defaults);settings.renderApiKey=renderApiKey;settings.renderProvider=renderProvider;Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 window.addEventListener('beforeprint',()=>{if(catalogue&&quote) renderPrint()});
+
+/* Image render providers. Only Pollinations is wired up. It is free and does not use the API key.
+   Add another entry to PROVIDERS and set settings.renderProvider to switch. The key stays in localStorage
+   and is passed only into provider.generate. */
+const RenderService=(()=>{
+  const PROVIDERS={
+    pollinations:{
+      id:'pollinations',
+      label:'Pollinations (free)',
+      requiresKey:false,
+      async generate({prompt,seed,apiKey,signal}){
+        void apiKey;
+        const params=new URLSearchParams({width:'1024',height:'768',nologo:'true',seed:String(seed),model:'flux'});
+        const endpoint=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?${params}`;
+        const res=await fetch(endpoint,{signal});
+        if(!res.ok){const e=new Error('The render service had a problem (HTTP '+res.status+'). Please try again in a moment.');e.code='http';throw e}
+        const mediaType=res.headers.get('content-type')||'';
+        const blob=await res.blob();
+        const type=blob.type||mediaType;
+        if(!/^image\//.test(type)||blob.size<32){const e=new Error('The render service did not return an image. Please try again.');e.code='type';throw e}
+        return {blob,mediaType:type};
+      }
+    }
+  };
+  const api={timeoutMs:90000,providers:PROVIDERS};
+  api.generate=async function({prompt,seed}){
+    const id=(settings&&settings.renderProvider)||'pollinations';
+    const provider=PROVIDERS[id]||PROVIDERS.pollinations;
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),api.timeoutMs);
+    try{
+      return await provider.generate({prompt,seed,apiKey:(settings&&settings.renderApiKey)||'',signal:ctrl.signal});
+    }catch(err){
+      if(err&&err.name==='AbortError'){const e=new Error('The render took too long and was stopped. It can take up to a minute. Please try again.');e.code='timeout';throw e}
+      if(err instanceof TypeError){const e=new Error('Could not reach the render service. Check your connection and try again.');e.code='network';throw e}
+      throw err;
+    }finally{clearTimeout(timer)}
+  };
+  return api;
+})();
+window.RenderService=RenderService;
 
 async function boot(){
   try{
@@ -1937,6 +2027,173 @@ const Planner=(()=>{
   function onMove(e){if(!drag||!selected)return;ray.setFromCamera(ndc(e),camera);if(ray.ray.intersectPlane(floorPlane,tmp)){selected.x=tmp.x+drag.dx;selected.z=tmp.z+drag.dz;clampItem(selected);const g=itemsGroup.children.find(c=>c.userData.item===selected);if(g){g.position.x=selected.x;g.position.z=selected.z}}}
   function onUp(){if(drag){drag=null;controls.enabled=true}}
 
+  const FINISH={black:'matte black',chrome:'polished chrome',copper:'brushed copper',brass:'brushed brass',bronze:'brushed bronze'};
+  const FIXTURE_CAT={vanity:['vanity'],toilet:['toilet_suite'],shower:['shower_screen'],bath:['bath'],mirror:['mirror_cabinet','mirror'],rail:['towel_rail'],tap:['basin_mixer','shower_mixer']};
+  let renderState={busy:false,blob:null,dataUrl:'',seed:null};
+  let renderForQuote=null;
+
+  function productFor(type,pkg){
+    const cats=FIXTURE_CAT[type]||[];
+    if(!pkg) return null;
+    for(const c of cats){const hit=pkg.items.find(i=>i.category===c);if(hit) return hit}
+    return null;
+  }
+  function tileBit(tile){
+    if(!tile) return '';
+    const size=String(tile.size_mm||'').replace(/x/ig,'×');
+    return `${tile.name} (${tile.code}), ${size} mm, ${(tile.finish||'standard').toLowerCase()} finish`;
+  }
+  function where(it){
+    const nx=design.room.l?it.x/(design.room.l/2):0;
+    const nz=design.room.w?it.z/(design.room.w/2):0;
+    const side=nx<-0.28?'the left side':nx>0.28?'the right side':'the centre';
+    const place=side==='the centre'?`in ${side}`:`on ${side}`;
+    if(nz<-0.28) return `${place}, against the far wall`;
+    if(nz>0.28) return `${place}, toward the near wall`;
+    return `${place}, in the middle of the room`;
+  }
+  function buildRenderPrompt(){
+    if(!design) return '';
+    const q=BQ.quote;
+    const pkg=catalogue&&q?catalogue.packages.find(p=>p.id===q.packageId):null;
+    const look=window.LOOKS[design.look];
+    const lookName=(pkg&&design.look===pkg.id)?(settings.packages.find(p=>p.id===pkg.id)||pkg).name:(look?look.name:(pkg?pkg.name:'Custom'));
+    const finish=FINISH[design.metal]||'mixed metal';
+    const {l,w,h}=design.room;
+    const floor=pkg&&pkg.tiles.find(t=>t.role==='floor');
+    const wall=pkg&&pkg.tiles.find(t=>t.role==='wall');
+    const feature=pkg&&pkg.tiles.find(t=>t.role==='feature');
+    const light=document.body.classList.contains('client')
+      ?'Warm flattering client-presentation light, soft daylight and gentle ceiling spots.'
+      :'Soft natural daylight from a side window and warm white recessed ceiling downlights.';
+    const parts=[
+      'Photorealistic interior photograph of a renovated bathroom, 24mm lens at eye level, realistic grout and metal, no people, no text, no logo.',
+      light,
+      `${lookName} style. Room ${Number(l).toFixed(2)} m long, ${Number(w).toFixed(2)} m wide, ${Number(h).toFixed(2)} m ceiling.`,
+      floor?`Floor tiles: ${tileBit(floor)}, laid straight.`:(TILES[design.floor]?`Floor: ${TILES[design.floor].name}.`:''),
+      wall?`Wall tiles: ${tileBit(wall)}, tiled to about 2.1 m.`:(TILES[design.wall]?`Walls: ${TILES[design.wall].name}.`:''),
+      feature?`Feature wall accent, about 2.5 square metres: ${tileBit(feature)}.`:'',
+      `Tapware, shower hardware and metal accessories are ${finish}.`
+    ];
+    const items=design.items||[];
+    if(!items.length) parts.push('No fixtures are placed yet. Show the tiled room shell in this finish, uncluttered and ready to furnish.');
+    else{
+      parts.push('Placed fixtures:');
+      items.forEach(it=>{
+        const spec=ITEMS[it.type];
+        if(!spec) return;
+        const product=productFor(it.type,pkg);
+        const dims=`about ${Math.round(spec.w*1000)} by ${Math.round((spec.y>0?spec.h:spec.d)*1000)} mm`;
+        const named=product?product.name:spec.name;
+        const colour=product&&product.colour?product.colour:'';
+        let finishBit;
+        if(it.type==='tap'||it.type==='rail'||it.type==='shower') finishBit=`${finish} finish`;
+        else if(it.type==='vanity') finishBit=`${colour?colour+', ':''}with ${finish} tapware`;
+        else finishBit=colour;
+        const turned=it.rot?`, turned ${it.rot*90} degrees`: '';
+        parts.push(`${spec.name}: ${named}, ${dims}${finishBit?', '+finishBit:''}, ${where(it)}${turned}.`);
+      });
+    }
+    let prompt=parts.filter(Boolean).join(' ');
+    if(prompt.length>1500) prompt=prompt.slice(0,1497).replace(/\s+\S*$/, '')+'.';
+    return prompt;
+  }
+  function setRenderStatus(msg,kind){
+    const el=$('pl-render-status');
+    el.textContent=msg||'';
+    el.classList.toggle('is-error',kind==='error');
+  }
+  function setRenderBusy(on){
+    $('pl-render').setAttribute('aria-busy',on?'true':'false');
+    $('pl-render-loading').hidden=!on;
+    $('pl-ai').disabled=on;
+    $('pl-ai-card').disabled=on;
+    $('pl-ai-again').disabled=on;
+    $('pl-ai').textContent=on?'Rendering…':'AI render';
+    $('pl-ai-card').textContent=on?'Rendering…':'AI render';
+  }
+  function updateRenderActions(){
+    const has=!!renderState.dataUrl;
+    $('pl-ai-again').hidden=!has;
+    $('pl-ai-save').hidden=!has;
+    $('pl-ai-quote').hidden=!has;
+    const onQuote=!!(BQ.quote&&BQ.quote.render&&BQ.quote.render.dataUrl&&BQ.quote.render.seed===renderState.seed);
+    $('pl-ai-quote').textContent=onQuote?'Remove from quote':'Add to quote';
+  }
+  function blobToDataURL(blob){
+    return new Promise((resolve,reject)=>{
+      const r=new FileReader();
+      r.onload=()=>resolve(r.result);
+      r.onerror=()=>reject(new Error('Could not read the render. Please try again.'));
+      r.readAsDataURL(blob);
+    });
+  }
+  function syncRenderFromQuote(){
+    const q=BQ.quote;
+    if(!q||renderState.busy) return;
+    if(renderForQuote===q.id){updateRenderActions();return}
+    renderForQuote=q.id;
+    const saved=q.render;
+    if(saved&&saved.dataUrl){
+      renderState={busy:false,blob:null,dataUrl:saved.dataUrl,seed:saved.seed};
+      $('pl-render-img').src=saved.dataUrl;
+      $('pl-render-view').hidden=false;
+    }else{
+      renderState={busy:false,blob:null,dataUrl:'',seed:null};
+      $('pl-render-view').hidden=true;
+      $('pl-render-img').removeAttribute('src');
+    }
+    setRenderStatus('','');
+    updateRenderActions();
+  }
+  async function runRender(){
+    if(renderState.busy) return;
+    if(!BQ.quote) return;
+    if(!design) ensureDesign();
+    const seed=Math.floor(Math.random()*1e9);
+    const prompt=buildRenderPrompt();
+    const quoteId=BQ.quote.id;
+    renderState.busy=true;
+    setRenderBusy(true);
+    setRenderStatus('','');
+    try{
+      const {blob,mediaType}=await RenderService.generate({prompt,seed});
+      if(!BQ.quote||BQ.quote.id!==quoteId){renderState.busy=false;renderForQuote=null;syncRenderFromQuote()}
+      else{
+      const dataUrl=await blobToDataURL(blob);
+      renderState={busy:false,blob,dataUrl,seed,mediaType,prompt};
+      $('pl-render-img').src=dataUrl;
+      $('pl-render-view').hidden=false;
+      setRenderStatus('','');
+      $('pl-render').scrollIntoView({block:'nearest',behavior:'smooth'});
+      }
+    }catch(err){
+      renderState.busy=false;
+      const known=err&&err.code;
+      setRenderStatus(known&&err.message?err.message:'Something went wrong generating the render. Please try again.','error');
+    }
+    setRenderBusy(false);
+    updateRenderActions();
+  }
+  function saveRender(){
+    if(!renderState.dataUrl&&!renderState.blob) return;
+    const ext=/png/i.test(renderState.mediaType||'')?'png':'jpg';
+    const a=document.createElement('a');
+    const url=renderState.blob?URL.createObjectURL(renderState.blob):renderState.dataUrl;
+    a.href=url;a.download=`bathroom-render-${renderState.seed||'image'}.${ext}`;
+    document.body.appendChild(a);a.click();a.remove();
+    if(renderState.blob) setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+  function toggleQuoteRender(){
+    const q=BQ.quote;
+    if(!q||!renderState.dataUrl) return;
+    const same=q.render&&q.render.seed===renderState.seed&&q.render.dataUrl;
+    q.render=same?null:{dataUrl:renderState.dataUrl,seed:renderState.seed};
+    updateRenderActions();
+    setRenderStatus(q.render?'Added to the printed quote.':'Removed from the printed quote.','');
+    if(typeof update==='function') update();
+  }
+
   function applyLook(key){
     const L=LOOKS[key];if(!L||!design) return;
     Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:key});
@@ -1976,6 +2233,7 @@ const Planner=(()=>{
     if(!window.BQ||!BQ.quote) return;
     if(!inited) init();
     ensureDesign();syncFromQuote();
+    syncRenderFromQuote();
     sizeFromPackage(BQ.quote.packageId||design.look);
     design.items.forEach(clampItem);
     $('pl-look').value=design.look||'';
@@ -1985,7 +2243,12 @@ const Planner=(()=>{
   }
   function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
   function getDesign(){return BQ.quote.design||design}
-  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,_:{get design(){return design},TILES,ITEMS,get renderer(){return renderer}}};
+  $('pl-ai').onclick=runRender;
+  $('pl-ai-card').onclick=runRender;
+  $('pl-ai-again').onclick=runRender;
+  $('pl-ai-save').onclick=saveRender;
+  $('pl-ai-quote').onclick=toggleQuoteRender;
+  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,_:{get design(){return design},TILES,ITEMS,get renderer(){return renderer}}};
 })();
 window.Planner=Planner;
 boot();
