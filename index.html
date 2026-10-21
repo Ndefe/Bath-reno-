@@ -61,8 +61,18 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 @media(max-width:860px){.planner{grid-template-columns:1fr}}
 .pl-stage{position:relative;background:#dfe5ea;border-radius:12px;overflow:hidden;height:70vh;min-height:360px}
 #pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:none}
-.pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end}
+.pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end;z-index:5}
 .pl-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:#455;background:#fffc;padding:3px 8px;border-radius:6px}
+.pl-joy{position:absolute;left:16px;bottom:16px;width:120px;height:120px;border-radius:50%;background:rgba(16,24,32,.4);border:2px solid rgba(255,255,255,.85);z-index:6;touch-action:none}
+.pl-joy[hidden]{display:none!important}
+.pl-joy-knob{position:absolute;left:34px;top:34px;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:none}
+.pl-walk-help{position:absolute;left:12px;bottom:148px;z-index:5;max-width:calc(100% - 24px);font-size:12px;line-height:1.35;color:#fff;background:rgba(16,24,32,.5);padding:4px 8px;border-radius:6px}
+.pl-walk-help[hidden]{display:none!important}
+body.walking{overflow:hidden}
+body.walking header.app,body.walking .pl-side,body.walking .pl-hint{display:none}
+body.walking main{max-width:none;padding:0}
+body.walking .planner{display:block}
+body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-palette{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
 .pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:8px 0}
@@ -186,7 +196,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <button class="btn sm" type="button" id="pl-client">Client view</button>
           <button class="btn sec sm" type="button" id="pl-png">Save image</button>
           <button class="btn sm" type="button" id="pl-ai">AI render</button>
+          <button class="btn sm" type="button" id="pl-walk">Walk through</button>
+          <button class="btn sm" type="button" id="pl-walk-exit" hidden>Exit</button>
+          <button class="btn sec sm" type="button" id="pl-walk-reset" hidden>Look here</button>
         </div>
+        <p id="pl-walk-help" class="pl-walk-help" hidden></p>
+        <div id="pl-joy" class="pl-joy" hidden role="application" aria-label="Move"><div class="pl-joy-knob" id="pl-joy-knob"></div></div>
         <div class="pl-hint">Drag an item to move it · drag empty space to orbit · scroll/pinch to zoom</div>
       </div>
       <div class="pl-side">
@@ -1795,7 +1810,7 @@ const Planner=(()=>{
   };
   TILES['black-hex'].draw=(g,S)=>{g.fillStyle='#d9d9d9';g.fillRect(0,0,S,S);g.fillStyle='#1e1f22';const w=S/2,rh=S/2,R=Math.min(w/Math.sqrt(3),rh/1.5)-2;
     for(let row=-1;row<=2;row++)for(let col=-1;col<=2;col++)hex(g,col*w+(row%2?w/2:0),row*rh,R)};
-  const METALS={black:{name:'Matte black',c:0x1b1b1d,m:0.3,r:0.6},chrome:{name:'Chrome',c:0xd8dde2,m:0.45,r:0.2},copper:{name:'Brushed copper',c:0xc27a4e,m:0.45,r:0.3},brass:{name:'Brushed brass',c:0xb08d57,m:0.55,r:0.32},bronze:{name:'Brushed bronze',c:0x8d5a3a,m:0.5,r:0.35}};
+  const METALS={black:{name:'Matte black',c:0x1b1b1d,m:0.45,r:0.55},chrome:{name:'Chrome',c:0xe4e8ec,m:0.92,r:0.16},copper:{name:'Brushed copper',c:0xc27a4e,m:0.82,r:0.36},brass:{name:'Brushed brass',c:0xb08d57,m:0.84,r:0.34},bronze:{name:'Brushed bronze',c:0x8d5a3a,m:0.8,r:0.4}};
   /* Defaults are Grey Modern. sizeFromPackage() replaces these from the catalogue. */
   const ITEMS={
     bath:{name:'Bath',w:1.56,d:0.75,h:0.56,y:0},
@@ -1814,6 +1829,12 @@ const Planner=(()=>{
 
   let renderer,scene,camera,controls,roomMesh,itemsGroup,selHelper,ray=new THREE.Raycaster(),inited=false;
   let design=null,selected=null,drag=null;
+  let walking=false,pixelRatio=1,adaptAcc=0,adaptN=0,savedView=null;
+  const PLAYER_R=0.17;
+  const player={x:0,z:0,yaw:0,pitch:0};
+  const held={w:false,a:false,s:false,d:false};
+  const joy={on:false,dx:0,dy:0,id:null};
+  const lookPtr={on:false,id:null,x:0,y:0};
   const texCache={};
   const defaultDesign=()=>({room:{l:2.5,w:2.0,h:2.4},floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef,items:[]});
 
@@ -1827,12 +1848,19 @@ const Planner=(()=>{
     TILES[key].draw(c.getContext('2d'),c.width,c.height);
     return texCache[key]=c;
   }
+  function tileSurface(key){
+    const n=(TILES[key]&&TILES[key].name||'').toLowerCase();
+    if(key==='statuario'||/gloss/.test(n)) return {roughness:0.2,metalness:0.05};
+    return {roughness:0.84,metalness:0};
+  }
   function tileMat(key,wm,hm){
     const spec=TILES[key]||TILES['white-matte'];
-    const t=new THREE.CanvasTexture(tileCanvas(spec===TILES[key]?key:'white-matte'));
+    const real=spec===TILES[key]?key:'white-matte';
+    const t=new THREE.CanvasTexture(tileCanvas(real));
     t.wrapS=t.wrapT=THREE.RepeatWrapping;
     const [sx,sy]=spec.size;t.repeat.set(wm/sx,hm/sy);t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
-    return new THREE.MeshStandardMaterial({map:t,side:THREE.BackSide,roughness:0.45,metalness:0});
+    const surf=tileSurface(real);
+    return new THREE.MeshStandardMaterial({map:t,side:THREE.BackSide,roughness:surf.roughness,metalness:surf.metalness});
   }
   function paintPalette(){
     $('pl-palette').innerHTML=Object.entries(ITEMS).map(([k,v])=>`<button class="btn sec sm" type="button" data-add="${k}">+ ${esc(v.name)} ${sizeText(v)}</button>`).join('');
@@ -1878,15 +1906,23 @@ const Planner=(()=>{
   function init(){
     const host=$('pl-canvas');
     renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio));renderer.outputEncoding=THREE.sRGBEncoding;
+    pixelRatio=basePixelRatio();
+    renderer.setPixelRatio(pixelRatio);renderer.outputEncoding=THREE.sRGBEncoding;
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
     scene=new THREE.Scene();scene.background=new THREE.Color(0xdfe5ea);
     camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(3.2,3.6,4.2);
     controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0,0.9,0);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.49;controls.minDistance=1.5;controls.maxDistance=12;
-    scene.add(new THREE.HemisphereLight(0xffffff,0xb9b0a0,0.65));
-    const sun=new THREE.DirectionalLight(0xffffff,0.7);sun.position.set(2,5,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4});scene.add(sun);
-    const ceilLight=new THREE.PointLight(0xfff1dd,0.5,8);ceilLight.position.set(0,2.2,0);ceilLight.name='ceil';scene.add(ceilLight);
+    scene.add(new THREE.HemisphereLight(0xfff6ec,0xb7b1a8,0.38));
+    const fill=new THREE.DirectionalLight(0xe4ebf4,0.16);fill.position.set(-2,3.2,2);scene.add(fill);
+    const spot=new THREE.SpotLight(0xfff1dd,2.4,0,Math.PI/2.15,0.75,1);
+    spot.name='ceil';spot.castShadow=true;
+    const sm=Math.min(window.innerWidth,window.innerHeight)<=900?512:1024;
+    spot.shadow.mapSize.set(sm,sm);spot.shadow.bias=-0.0008;spot.shadow.normalBias=0.04;spot.shadow.radius=4;
+    spot.shadow.camera.near=0.1;spot.shadow.camera.far=8;
+    scene.add(spot);scene.add(spot.target);
+    const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,0.02,24),new THREE.MeshStandardMaterial({color:0xfff8ef,emissive:0xffe2b8,emissiveIntensity:0.7,roughness:0.4}));
+    lamp.name='lamp';lamp.castShadow=false;scene.add(lamp);
     itemsGroup=new THREE.Group();scene.add(itemsGroup);
     selHelper=new THREE.BoxHelper(undefined,0x0e7c86);selHelper.visible=false;scene.add(selHelper);
     $('pl-look').innerHTML=Object.entries(LOOKS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('')+'<option value="">Custom</option>';
@@ -1906,22 +1942,33 @@ const Planner=(()=>{
     $('pl-del').onclick=()=>{if(!selected)return;design.items.splice(design.items.indexOf(selected),1);select(null);buildItems()};
     $('pl-clear').onclick=()=>{if(confirm('Remove all items?')){design.items=[];select(null);buildItems()}};
     $('pl-client').onclick=toggleClient;$('pl-png').onclick=saveImage;
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('client'))toggleClient()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('client')&&!walking)toggleClient()});
+    bindWalkInput();
     const el=renderer.domElement;
     el.addEventListener('pointerdown',onDown);el.addEventListener('pointermove',onMove);window.addEventListener('pointerup',onUp);
     new ResizeObserver(resize).observe(host);
     inited=true;
-    (function loop(){requestAnimationFrame(loop);controls.update();if(selected)selHelper.update();renderer.render(scene,camera)})();
+    let lastFrame=performance.now();
+    (function loop(now){
+      requestAnimationFrame(loop);
+      const dt=Math.min(0.05,(now-lastFrame)/1000)||0;lastFrame=now;
+      if(walking) stepWalk(dt);
+      else{controls.update();if(selected)selHelper.update()}
+      renderer.render(scene,camera);
+    })();
   }
-  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht)return;renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix()}
+  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
 
   function buildRoom(){
     if(roomMesh){scene.remove(roomMesh);roomMesh.geometry.dispose()}
     const {l,w,h}=design.room;
-    const invisible=new THREE.MeshBasicMaterial({visible:false});
-    const mats=[tileMat(design.wall,w,h),tileMat(design.wall,w,h),invisible,tileMat(design.floor,l,w),tileMat(design.wall,l,h),tileMat(design.wall,l,h)];
+    const ceilMat=new THREE.MeshStandardMaterial({color:0xf4f1eb,roughness:0.92,metalness:0,side:THREE.BackSide});
+    const mats=[tileMat(design.wall,w,h),tileMat(design.wall,w,h),ceilMat,tileMat(design.floor,l,w),tileMat(design.wall,l,h),tileMat(design.wall,l,h)];
     roomMesh=new THREE.Mesh(new THREE.BoxGeometry(l,h,w),mats);roomMesh.position.y=h/2;roomMesh.receiveShadow=true;scene.add(roomMesh);
-    scene.getObjectByName('ceil').position.y=h-0.2;
+    const spot=scene.getObjectByName('ceil');
+    if(spot){spot.position.set(0,h-0.16,0);spot.target.position.set(0,0,0);spot.target.updateMatrixWorld()}
+    const lamp=scene.getObjectByName('lamp');
+    if(lamp) lamp.position.set(0,h-0.02,0);
     $('pl-l').value=l;$('pl-w').value=w;$('pl-h').value=design.room.h;$('pl-area').textContent=`Floor area ${(l*w).toFixed(2)} m² (synced to quote)`;
     if(TILES[design.floor]) $('pl-floor').value=design.floor;
     if(TILES[design.wall]) $('pl-wall').value=design.wall;
@@ -1934,7 +1981,7 @@ const Planner=(()=>{
   function mixer(g,metal,x,y,z){cyl(g,metal,0.022,0.025,0.16,x,y+0.08,z);box(g,metal,0.02,0.02,0.12,x,y+0.15,z+0.06);box(g,metal,0.015,0.05,0.015,x,y+0.19,z-0.01)}
   function makeItem(type){
     const g=new THREE.Group(), spec=ITEMS[type];
-    const mt=METALS[design.metal]||METALS.black, metal=M(mt.c,{metalness:mt.m,roughness:mt.r}), white=M(0xfafafa,{roughness:0.2}), wood=M(design.wood||0xf2f2ef,{roughness:0.55});
+    const mt=METALS[design.metal]||METALS.black, metal=M(mt.c,{metalness:mt.m,roughness:mt.r}), white=M(0xf7f6f4,{roughness:0.32}), wood=M(design.wood||0xf2f2ef,{roughness:0.62});
     const w=spec.w, d=spec.d, h=spec.h||0.5;
     if(type==='bath'){
       box(g,white,w,h,d,0,h/2,0);
@@ -2012,7 +2059,7 @@ const Planner=(()=>{
   function select(it){selected=it;refreshSel()}
   function refreshSel(){
     const g=itemsGroup.children.find(c=>c.userData.item===selected);
-    selHelper.visible=!!g&&!document.body.classList.contains('client');
+    selHelper.visible=!!g&&!document.body.classList.contains('client')&&!walking;
     if(g) selHelper.setFromObject(g);
     $('pl-sel').textContent=selected?`${ITEMS[selected.type].name} ${sizeText(ITEMS[selected.type])}`:'none';
   }
@@ -2020,12 +2067,13 @@ const Planner=(()=>{
   const floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),tmp=new THREE.Vector3();
   function ndc(e){const r=renderer.domElement.getBoundingClientRect();return new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1)}
   function onDown(e){
+    if(walking) return;
     ray.setFromCamera(ndc(e),camera);const hit=ray.intersectObjects(itemsGroup.children,true)[0];
     if(hit){let o=hit.object;while(o&&!o.userData.item)o=o.parent;select(o.userData.item);ray.ray.intersectPlane(floorPlane,tmp);drag={dx:selected.x-tmp.x,dz:selected.z-tmp.z};controls.enabled=false;}
     else select(null);
   }
   function onMove(e){if(!drag||!selected)return;ray.setFromCamera(ndc(e),camera);if(ray.ray.intersectPlane(floorPlane,tmp)){selected.x=tmp.x+drag.dx;selected.z=tmp.z+drag.dz;clampItem(selected);const g=itemsGroup.children.find(c=>c.userData.item===selected);if(g){g.position.x=selected.x;g.position.z=selected.z}}}
-  function onUp(){if(drag){drag=null;controls.enabled=true}}
+  function onUp(){if(drag){drag=null;if(!walking)controls.enabled=true}}
 
   const FINISH={black:'matte black',chrome:'polished chrome',copper:'brushed copper',brass:'brushed brass',bronze:'brushed bronze'};
   const FIXTURE_CAT={vanity:['vanity'],toilet:['toilet_suite'],shower:['shower_screen'],bath:['bath'],mirror:['mirror_cabinet','mirror'],rail:['towel_rail'],tap:['basin_mixer','shower_mixer']};
@@ -2194,6 +2242,214 @@ const Planner=(()=>{
     if(typeof update==='function') update();
   }
 
+  function basePixelRatio(){
+    const dpr=window.devicePixelRatio||1;
+    const small=Math.min(window.innerWidth,window.innerHeight)<=900;
+    return Math.min(small?1.5:2,Math.max(1,dpr));
+  }
+  function useTouchWalk(){
+    return window.matchMedia('(pointer: coarse)').matches||window.innerWidth<=860;
+  }
+  function eyeHeight(){
+    const h=design&&design.room?design.room.h:2.4;
+    return Math.min(1.65,Math.max(1.2,h-0.3));
+  }
+  function blocked(x,z){
+    if(!design) return true;
+    const {l,w}=design.room;
+    if(x<-l/2+PLAYER_R||x>l/2-PLAYER_R||z<-w/2+PLAYER_R||z>w/2-PLAYER_R) return true;
+    for(const it of design.items){
+      const spec=ITEMS[it.type];if(!spec) continue;
+      const [fw,fd]=footprint(it);
+      if(Math.abs(x-it.x)<fw/2+PLAYER_R&&Math.abs(z-it.z)<fd/2+PLAYER_R) return true;
+    }
+    return false;
+  }
+  function tryMove(nx,nz){
+    if(!blocked(nx,nz)){player.x=nx;player.z=nz;return}
+    if(!blocked(nx,player.z)){player.x=nx;return}
+    if(!blocked(player.x,nz)) player.z=nz;
+  }
+  function applyWalkCamera(){
+    camera.up.set(0,1,0);
+    camera.position.set(player.x,eyeHeight(),player.z);
+    camera.rotation.order='YXZ';
+    camera.rotation.y=player.yaw;
+    camera.rotation.x=player.pitch;
+    camera.rotation.z=0;
+  }
+  function placeAtDoor(){
+    const {l,w}=design.room;
+    const z=w/2-0.45;
+    const spots=[0];
+    for(let s=0.2;s<l/2;s+=0.2) spots.push(s,-s);
+    for(const x of spots){
+      if(!blocked(x,z)){player.x=x;player.z=z;player.yaw=0;player.pitch=-0.22;return}
+    }
+    player.x=0;player.z=0;player.yaw=0;player.pitch=-0.22;
+  }
+  function setWalkUI(on){
+    $('pl-walk').hidden=on;
+    $('pl-client').hidden=on;
+    $('pl-png').hidden=on;
+    $('pl-ai').hidden=on;
+    $('pl-walk-exit').hidden=!on;
+    $('pl-walk-reset').hidden=!on;
+    $('pl-joy').hidden=!on||!useTouchWalk();
+    const help=$('pl-walk-help');
+    help.hidden=!on;
+    help.textContent=on?(useTouchWalk()?'Drag to look. Use the stick to walk.':'Click to look. WASD or arrows to walk. Esc releases the mouse.'):'';
+  }
+  function enterWalk(){
+    if(!window.BQ||!BQ.quote) return;
+    if(!inited) init();
+    if(!design) ensureDesign();
+    if(walking||!design) return;
+    savedView={pos:camera.position.clone(),target:controls.target.clone(),fov:camera.fov,tone:renderer.toneMapping,exp:renderer.toneMappingExposure,bg:scene.background.clone()};
+    walking=true;
+    controls.enabled=false;
+    if(drag) drag=null;
+    select(null);
+    placeAtDoor();
+    camera.fov=70;
+    camera.updateProjectionMatrix();
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=0.85;
+    scene.background=new THREE.Color(0xe6e0d6);
+    document.body.classList.add('walking');
+    setWalkUI(true);
+    applyWalkCamera();
+    resize();
+  }
+  function exitWalk(){
+    if(!walking) return;
+    walking=false;
+    held.w=held.a=held.s=held.d=false;
+    joy.on=false;joy.dx=0;joy.dy=0;
+    const knob=$('pl-joy-knob');if(knob) knob.style.transform='';
+    if(document.pointerLockElement) document.exitPointerLock();
+    document.body.classList.remove('walking');
+    setWalkUI(false);
+    if(savedView){
+      camera.position.copy(savedView.pos);
+      controls.target.copy(savedView.target);
+      camera.fov=savedView.fov;
+      camera.updateProjectionMatrix();
+      renderer.toneMapping=savedView.tone;
+      renderer.toneMappingExposure=savedView.exp;
+      scene.background=savedView.bg;
+    }
+    controls.enabled=true;
+    controls.update();
+    resize();
+  }
+  function lookHere(){
+    if(!walking) return;
+    const dx=-player.x,dz=-player.z;
+    player.yaw=Math.hypot(dx,dz)<0.15?0:Math.atan2(-dx,-dz);
+    player.pitch=-0.22;
+    applyWalkCamera();
+  }
+  function pushOut(){
+    if(!blocked(player.x,player.z)) return;
+    for(let r=0.05;r<=1.4;r+=0.05){
+      for(let a=0;a<12;a++){
+        const t=a/12*Math.PI*2,x=player.x+Math.cos(t)*r,z=player.z+Math.sin(t)*r;
+        if(!blocked(x,z)){player.x=x;player.z=z;return}
+      }
+    }
+  }
+  function stepWalk(dt){
+    pushOut();
+    let f=0,s=0;
+    if(held.w) f+=1;
+    if(held.s) f-=1;
+    if(held.d) s+=1;
+    if(held.a) s-=1;
+    if(joy.on){
+      const mag=Math.hypot(joy.dx,joy.dy);
+      if(mag>0.12){s+=joy.dx;f+=-joy.dy}
+    }
+    const mag=Math.hypot(f,s);
+    if(mag>0){
+      f/=mag;s/=mag;
+      const yaw=player.yaw,speed=1.2*dt;
+      tryMove(player.x+(-Math.sin(yaw)*f+Math.cos(yaw)*s)*speed,player.z+(-Math.cos(yaw)*f-Math.sin(yaw)*s)*speed);
+    }
+    applyWalkCamera();
+    adaptAcc+=dt;adaptN++;
+    if(adaptN>=24){
+      const avg=adaptAcc/adaptN;adaptAcc=0;adaptN=0;
+      if(avg>1/28&&pixelRatio>1){pixelRatio=Math.max(1,Math.round((pixelRatio-0.25)*100)/100);resize()}
+    }
+  }
+  function bindWalkInput(){
+    const el=$('pl-joy'),knob=$('pl-joy-knob'),maxR=34;
+    function setKnob(dx,dy){
+      const dist=Math.hypot(dx,dy)||1,k=Math.min(1,maxR/dist),x=dx*k,y=dy*k;
+      knob.style.transform=`translate(${x}px,${y}px)`;
+      joy.dx=(dx/dist)*Math.min(dist,maxR)/maxR;joy.dy=(dy/dist)*Math.min(dist,maxR)/maxR;
+    }
+    el.addEventListener('pointerdown',e=>{
+      if(!walking) return;
+      joy.on=true;joy.id=e.pointerId;el.setPointerCapture(e.pointerId);
+      const r=el.getBoundingClientRect();
+      setKnob(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2));
+      e.preventDefault();e.stopPropagation();
+    });
+    el.addEventListener('pointermove',e=>{
+      if(!joy.on||e.pointerId!==joy.id) return;
+      const r=el.getBoundingClientRect();
+      setKnob(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2));
+    });
+    function endJoy(e){if(e.pointerId!==joy.id) return;joy.on=false;joy.dx=0;joy.dy=0;joy.id=null;knob.style.transform=''}
+    el.addEventListener('pointerup',endJoy);el.addEventListener('pointercancel',endJoy);
+    const canvas=renderer.domElement;
+    canvas.addEventListener('pointerdown',e=>{
+      if(!walking) return;
+      if(useTouchWalk()){
+        lookPtr.on=true;lookPtr.id=e.pointerId;lookPtr.x=e.clientX;lookPtr.y=e.clientY;
+        canvas.setPointerCapture(e.pointerId);
+      }else if(document.pointerLockElement!==canvas) canvas.requestPointerLock();
+    });
+    canvas.addEventListener('pointermove',e=>{
+      if(!walking||!lookPtr.on||e.pointerId!==lookPtr.id) return;
+      player.yaw-=(e.clientX-lookPtr.x)*0.005;
+      player.pitch-=(e.clientY-lookPtr.y)*0.004;
+      player.pitch=Math.max(-1.15,Math.min(1.15,player.pitch));
+      lookPtr.x=e.clientX;lookPtr.y=e.clientY;
+    });
+    function endLook(e){if(e.pointerId===lookPtr.id) lookPtr.on=false}
+    canvas.addEventListener('pointerup',endLook);canvas.addEventListener('pointercancel',endLook);
+    document.addEventListener('mousemove',e=>{
+      if(!walking||document.pointerLockElement!==canvas) return;
+      player.yaw-=e.movementX*0.0022;
+      player.pitch-=e.movementY*0.0022;
+      player.pitch=Math.max(-1.15,Math.min(1.15,player.pitch));
+    });
+    window.addEventListener('keydown',e=>{
+      if(!walking) return;
+      const tag=e.target&&e.target.tagName;
+      if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+      const k=e.key.toLowerCase();
+      if(k==='w'||k==='arrowup'){held.w=true;e.preventDefault()}
+      else if(k==='a'||k==='arrowleft'){held.a=true;e.preventDefault()}
+      else if(k==='s'||k==='arrowdown'){held.s=true;e.preventDefault()}
+      else if(k==='d'||k==='arrowright'){held.d=true;e.preventDefault()}
+    });
+    window.addEventListener('keyup',e=>{
+      const k=e.key.toLowerCase();
+      if(k==='w'||k==='arrowup') held.w=false;
+      else if(k==='a'||k==='arrowleft') held.a=false;
+      else if(k==='s'||k==='arrowdown') held.s=false;
+      else if(k==='d'||k==='arrowright') held.d=false;
+    });
+    window.addEventListener('blur',()=>{held.w=held.a=held.s=held.d=false});
+  }
+  function getWalk(){
+    return {walking,x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,eye:camera?camera.position.y:0,ratio:renderer?renderer.getPixelRatio():0,fov:camera?camera.fov:0};
+  }
+
   function applyLook(key){
     const L=LOOKS[key];if(!L||!design) return;
     Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:key});
@@ -2231,6 +2487,7 @@ const Planner=(()=>{
   function syncToQuote(){document.querySelector('input[name=dimMode][value=lw]').checked=true;$('q-len').value=design.room.l;$('q-wid').value=design.room.w;update();$('pl-area').textContent=`Floor area ${(design.room.l*design.room.w).toFixed(2)} m² (synced to quote)`}
   function show(){
     if(!window.BQ||!BQ.quote) return;
+    if(walking) exitWalk();
     if(!inited) init();
     ensureDesign();syncFromQuote();
     syncRenderFromQuote();
@@ -2243,12 +2500,15 @@ const Planner=(()=>{
   }
   function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
   function getDesign(){return BQ.quote.design||design}
+  $('pl-walk').onclick=enterWalk;
+  $('pl-walk-exit').onclick=exitWalk;
+  $('pl-walk-reset').onclick=lookHere;
   $('pl-ai').onclick=runRender;
   $('pl-ai-card').onclick=runRender;
   $('pl-ai-again').onclick=runRender;
   $('pl-ai-save').onclick=saveRender;
   $('pl-ai-quote').onclick=toggleQuoteRender;
-  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,_:{get design(){return design},TILES,ITEMS,get renderer(){return renderer}}};
+  return {show,loadFromQuote,applyPackageLook,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,enterWalk,exitWalk,lookHere,getWalk,_:{get design(){return design},TILES,ITEMS,blocked,get renderer(){return renderer},get room(){return roomMesh},get camera(){return camera}}};
 })();
 window.Planner=Planner;
 boot();
