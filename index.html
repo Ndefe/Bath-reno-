@@ -137,7 +137,8 @@ header.app{position:sticky;top:0;z-index:20}
   #view-quote{padding-bottom:84px}
   #summary{scroll-margin-top:88px}
 }
-#m-total{display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:#fff;padding:10px 14px;justify-content:space-between;align-items:center;font-weight:700;gap:8px}
+#m-total{display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:#fff;padding:10px 14px;justify-content:space-between;align-items:center;font-weight:700;gap:8px;flex-wrap:wrap}
+#m-total span{font-size:14px;line-height:1.3}
 @media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
@@ -332,7 +333,7 @@ function isLargeFormat(tile){
 }
 function catPkg(id){return catalogue?.packages.find(p=>p.id===id)||null}
 function extraApplies(ex,pkgId){
-  const m=String(ex.id).match(/_(grey-modern|beige-copper|marble-luxe)$/);
+  const m=String(ex.id).match(/_(grey-modern|beige-copper|marble-luxe|budget-compact)$/);
   return !m||m[1]===pkgId;
 }
 function allowsQty(ex){return /^each\b/i.test(ex.unit||'')}
@@ -399,6 +400,7 @@ const Calc={
 };
 
 const fmt=n=>new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(+n||0);
+const fromPrice=n=>`from ${fmt(n)} incl. GST`;
 const fmtDate=d=>new Intl.DateTimeFormat('en-AU',{timeZone:TZ,day:'numeric',month:'short',year:'numeric'}).format(d);
 const ymd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d).replace(/-/g,'');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -587,7 +589,7 @@ async function postLead(rec,t){
   return 'sent';
 }
 function fillPkgSelect(){
-  $('q-pkg').innerHTML=settings.packages.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${fmt(p.baseFee)} + ${fmt(p.rate)}/m²</option>`).join('');
+  $('q-pkg').innerHTML=settings.packages.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
   if(!settings.packages.some(p=>p.id===quote.packageId)) quote.packageId=settings.packages[0]?.id||'';
   $('q-pkg').value=quote.packageId;
 }
@@ -602,7 +604,7 @@ function renderExtras(){
     const on=!!pick, qty=pick?Math.max(1,+pick.qty||1):1;
     const amount=Calc.priceExtra(ex,area,quote.packageId,on?qty:1);
     const qtyBox=allowsQty(ex)?`<input class="qty" data-qty="${esc(ex.id)}" type="number" min="1" step="1" inputmode="numeric" value="${qty}" ${on?'':'hidden'} aria-label="Quantity for ${esc(ex.name)}">`:'';
-    return `<div class="extra-opt"><label><input type="checkbox" data-xid="${esc(ex.id)}" ${on?'checked':''}><span class="grow"><span class="ename">${esc(ex.name)}</span><span class="hint">${esc(extraHint(ex))}</span></span></label>${qtyBox}<span class="price" data-xprice="${esc(ex.id)}">${fmt(amount)}</span></div>`;
+    return `<div class="extra-opt"><label><input type="checkbox" data-xid="${esc(ex.id)}" ${on?'checked':''}><span class="grow"><span class="ename">${esc(ex.name)}</span><span class="hint">${esc(extraHint(ex))}</span></span></label>${qtyBox}<span class="price" data-xprice="${esc(ex.id)}">${amount?fromPrice(amount):'—'}</span></div>`;
   }).join('');
   renderCustom();
 }
@@ -612,7 +614,8 @@ function syncExtraPrices(){
     const ex=catalogue.extras.find(x=>x.id===el.dataset.xprice);
     if(!ex) return;
     const pick=(quote.picks||[]).find(p=>p.id===ex.id);
-    el.textContent=fmt(Calc.priceExtra(ex,area,quote.packageId,pick?pick.qty:1));
+    const amount=Calc.priceExtra(ex,area,quote.packageId,pick?pick.qty:1);
+    el.textContent=amount?fromPrice(amount):'—';
   });
 }
 function renderProducts(){
@@ -635,20 +638,20 @@ function update(){
   }else syncExtraPrices();
   const t=Calc.totals(quote,settings);
   $('q-area-calc').value=t.area?t.area.toFixed(2):'';
-  const example=t.pkg?` 6 m² is ${fmt((+t.pkg.baseFee)+(+t.pkg.rate)*6)} inc GST.`:'';
-  $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Price includes GST. Bath and extras are on top.${t.area>0?'':example}`:'';
-  $('summary').innerHTML=summaryTable(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
+  const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
+  $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
+  $('summary').innerHTML=summaryTable(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
   $('brand').textContent=(settings.bizName||'')+' · Quote Builder';
-  $('m-total-v').textContent=fmt(t.total);
+  $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
 }
 function summaryTable(t){
-  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${fmt(e.amount)}</td></tr>`).join('');
+  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
   const formula=t.area>0&&t.pkg?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Enter the floor size to price this package';
   return `<table>
-  <tr><td>${esc(t.pkg?.name||'No package')}<br><span class="hint">${formula}</span></td><td class="n" id="sum-base">${fmt(t.base)}</td></tr>
+  <tr><td>${esc(t.pkg?.name||'No package')}<br><span class="hint">${formula}</span></td><td class="n" id="sum-base">${t.base?fromPrice(t.base):'—'}</td></tr>
   ${lines}
-  <tr class="total"><td>Total (AUD inc GST)</td><td class="n" id="sum-total">${fmt(t.total)}</td></tr>
-  <tr><td class="hint">Includes GST</td><td class="n hint" id="sum-gst">${fmt(t.gst)}</td></tr>
+  <tr class="total"><td>Total</td><td class="n" id="sum-total">${t.total?fromPrice(t.total):'Enter the floor size'}</td></tr>
+  <tr><td class="hint">Includes GST</td><td class="n hint" id="sum-gst">${t.gst?fmt(t.gst):'—'}</td></tr>
   </table>`;
 }
 function ensureNumber(){if(!quote.number)quote.number=nextQuoteNumber()}
@@ -686,7 +689,7 @@ function renderPrint(){
   const t=Calc.totals(quote,settings), c=quote.customer, created=new Date(quote.createdAt);
   const valid=new Date(created.getTime()+settings.validDays*864e5);
   const cat=catPkg(quote.packageId);
-  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${fmt(e.amount)}</td></tr>`).join('');
+  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
   const formula=t.area>0?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Floor size not set';
   $('printArea').innerHTML=`<div class="quote-doc">
    <div class="qd-head"><div><h2>${esc(settings.bizName)}</h2><div class="hint">${esc(settings.contact)}</div></div>
@@ -696,19 +699,19 @@ function renderPrint(){
    ${productsHtml(quote.packageId)}
    ${renderFigure(quote)}
    <table><tr><th>Description</th><th class="n">Amount</th></tr>
-   <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${esc(t.pkg?.desc||'')}</span><br><span class="hint">${esc(cat?.pricing?.includes||'')}</span><br><span class="hint">${formula}</span></td><td class="n">${fmt(t.base)}</td></tr>
+   <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${esc(t.pkg?.desc||'')}</span><br><span class="hint">${esc(cat?.pricing?.includes||'')}</span><br><span class="hint">${formula}</span></td><td class="n">${t.base?fromPrice(t.base):'—'}</td></tr>
    ${lines}
-   <tr class="total"><td class="n">Total AUD (inc GST)</td><td class="n">${fmt(t.total)}</td></tr>
-   <tr><td class="n hint">Includes GST</td><td class="n hint">${fmt(t.gst)}</td></tr></table>
+   <tr class="total"><td class="n">Total</td><td class="n">${t.total?fromPrice(t.total):'—'}</td></tr>
+   <tr><td class="n hint">Includes GST</td><td class="n hint">${t.gst?fmt(t.gst):'—'}</td></tr></table>
    ${quote.notes?`<p><strong>Notes</strong><br>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
-   <p class="qd-small">This quote is valid for ${settings.validDays} days from the date of issue. Prices are in Australian dollars and include GST. Bath and listed extras are separate from the package. Final price subject to site inspection. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
+   <p class="qd-small">Estimate, subject to a free site measure. This quote is valid for ${settings.validDays} days from the date of issue. Prices are in Australian dollars and include GST. Bath and listed extras are separate from the package. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
 }
 
 function renderSaved(){
   const list=Store.get(K.quotes,[]);
   $('saved-list').innerHTML=list.length?list.map(q=>{
     const c=q.customer||{}, suburb=c.suburb||c.address||'';
-    return `<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(c.name||'(no name)')}${suburb?` · ${esc(suburb)}`:''}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${fmt(q.total)}</span></div>
+    return `<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(c.name||'(no name)')}${suburb?` · ${esc(suburb)}`:''}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${q.total?fromPrice(q.total):''}</span></div>
     <div class="actions"><button class="btn sm" type="button" data-open="${q.id}">Open</button> <button class="btn sec sm" type="button" data-nico="${q.id}">Send to Nico</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`;
   }).join(''):'<p class="hint">No saved projects yet.</p>';
 }
@@ -868,6 +871,11 @@ async function boot(){
   const saved=Store.get(K.settings,null);
   const ratesOk=saved&&Array.isArray(saved.packages)&&saved.packages.length&&saved.packages.every(p=>typeof p.baseFee==='number'&&typeof p.rate==='number');
   settings=ratesOk?saved:structuredClone(defaults);
+  if(ratesOk){
+    const ids=new Set(settings.packages.map(p=>p.id));
+    const missing=defaults.packages.filter(p=>!ids.has(p.id));
+    if(missing.length) settings.packages=[...missing, ...settings.packages];
+  }
   loadQuoteToForm(newQuote());
   if($('view-planner').classList.contains('active')) Planner.show();
 }
@@ -1986,6 +1994,7 @@ window.BQ={Calc,Store,boot,leadsCsv,nicoBody,get settings(){return settings},get
 <script>
 /* ===================== Planner (simple 3D) ===================== */
 window.LOOKS={
+  'budget-compact':{name:'Budget Compact',floor:'stone-code',wall:'whoosh-white',metal:'black',wood:0xf7f7f5},
   'grey-modern':{name:'Grey Modern',floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef},
   'beige-copper':{name:'Beige Copper',floor:'sand-600',wall:'cream-gloss',metal:'brass',wood:0xf7f4ef},
   'marble-luxe':{name:'Marble Luxe',floor:'statuario',wall:'statuario',metal:'bronze',wood:0x5c4038}
@@ -1998,6 +2007,8 @@ const Planner=(()=>{
     'black-hex':{name:'Black hex',size:[0.3,0.3],draw:null},
     'beige-stone':{name:'Beige stone',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#d8c6a8';g.fillRect(0,0,S,S);noise(g,S,14);g.strokeStyle='#bba887';g.lineWidth=3;g.strokeRect(0,0,S,S)}},
     'white-matte':{name:'White matte (plain)',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#f2f2ef';g.fillRect(0,0,S,S);g.strokeStyle='#dcdcd8';g.lineWidth=2;g.strokeRect(0,0,S,S)}},
+    'stone-code':{name:'Stone Code grey 600×600',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#8a8d90';g.fillRect(0,0,S,S);noise(g,S,12);g.strokeStyle='#6e7276';g.lineWidth=4;g.strokeRect(2,2,S-4,S-4)}},
+    'whoosh-white':{name:'Whoosh white gloss 75×300',size:[0.3,0.075],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f7f7f5';g.fillRect(0,0,W,H);const grd=g.createLinearGradient(0,0,0,H);grd.addColorStop(0,'rgba(255,255,255,0.7)');grd.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);g.strokeStyle='#deded8';g.lineWidth=Math.max(2,H*0.08);g.strokeRect(1,1,W-2,H-2)}},
     'regina-grey':{name:'Regina grey 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{g.fillStyle='#8e9398';g.fillRect(0,0,W,H);specks(g,W,H,16,500);g.strokeStyle='#6a6f74';g.lineWidth=Math.max(3,W*0.025);g.strokeRect(1.5,1.5,W-3,H-3)}},
     'regina-white':{name:'Regina white 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f4f3f0';g.fillRect(0,0,W,H);specks(g,W,H,8,280);g.strokeStyle='#d4d4cf';g.lineWidth=Math.max(3,W*0.025);g.strokeRect(1.5,1.5,W-3,H-3)}},
     'sand-600':{name:'Concrete sand 600×600',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#d9c7aa';g.fillRect(0,0,S,S);noise(g,S,16);g.strokeStyle='#c3ad8c';g.lineWidth=4;g.strokeRect(2,2,S-4,S-4)}},

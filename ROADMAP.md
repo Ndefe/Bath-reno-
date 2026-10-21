@@ -4,7 +4,7 @@
 
 - Bathroom quote builder and 3D planner, published at https://ndefe.github.io/Bath-reno-/
 - Quotes saved in the browser, with print / save as PDF
-- Real product catalogue (`catalogue.json`): Grey Modern, Beige Copper, and Marble Luxe, with National Tiles and Reece products
+- Real product catalogue (`catalogue.json`): Budget Compact, Grey Modern, Beige Copper, and Marble Luxe, with National Tiles and Reece products
 - Pricing is a GST-inclusive base fee plus a rate per m² of floor. Rates stay editable in Settings
 - Catalogue extras are selectable on the quote, including area-based and package-specific items
 - Each package's included products are shown on the quote with name, code, and a local thumbnail
@@ -19,10 +19,11 @@
 - Lead capture on every quote: name, phone, email and suburb are required; notes and photos are optional. Each lead and its design and quote are stored on this device.
 - Projects list to reopen, edit or delete a saved lead. Leads export as CSV with field names suited to Tradify, Fergus or Ascora.
 - Send to Nico opens a mail draft with the quote summary. An optional form endpoint (Formspree or Web3Forms) can be set in Settings and stays off until a URL is saved.
+- Every customer price is shown as "from $X incl. GST", and the quote says the estimate is subject to a free site measure.
+- Budget Compact package for a small bathroom, under $20,000 at about 3–4 m². It uses National Tiles Stone Code and Whoosh, and cheaper Reece fixtures already in the catalogue. Workings are in `docs/pricing-notes.md`.
 
 ## Next
 
-- Show every price as "from $X incl. GST", with a Budget/Compact package under $20k, and drop Oneflare references
 - Business details: name and logo, ABN and QBCC licence placeholders, waterproofing note, deposit terms, warranty, and a free measure call to action
 - Professional branded PDF quote: itemised scope, inclusions and exclusions, validity, deposit and progress payments
 - Modeller upgrades: doors, windows and L-shaped rooms
