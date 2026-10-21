@@ -36,6 +36,8 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .pipe .score{font-weight:700;margin:6px 0}
 .review-draft{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
 .review-draft h3{font-size:15px;margin:0 0 4px}
+.ref-code{font-size:18px;letter-spacing:.06em}
+.ref-reward{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
 .review-draft textarea{min-height:88px;font-size:16px}
 .gal-job h2{margin-bottom:4px}
 .ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px}
@@ -302,6 +304,16 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <button class="btn book" id="btn-book" type="button">Open assistant</button>
           <p class="hint" id="lead-err" role="alert"></p>
         </div>
+        <div class="card" id="referral-card">
+          <h2>Referral code</h2>
+          <p>Your code is <strong class="ref-code" id="ref-code"></strong></p>
+          <button class="btn sec sm" type="button" id="ref-copy">Copy code</button>
+          <p class="hint" id="ref-copy-status" role="status"></p>
+          <p class="hint">Share this code. A $250 thank-you is considered only after a referred job is marked Won, and only if Nico approves it. It is not taken off this quote. Nothing is paid or sent automatically.</p>
+          <label for="ref-used">Code from someone else (optional)</label>
+          <input id="ref-used" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="GR-">
+          <p class="hint" id="ref-used-msg"></p>
+        </div>
         <div class="card follow" id="follow-card">
           <h2>Follow-up drafts</h2>
           <p class="hint">These stay drafts until you approve the wording. Copy and email open a draft only. Nothing is sent automatically.</p>
@@ -428,6 +440,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="card">
         <h2>Pipeline</h2>
         <p class="hint">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final.</p>
+        <p class="hint" id="pipe-ref"></p>
         <div id="pipe-chips" class="chips"></div>
         <div id="pipe-list"></div>
         <button class="btn sec" id="pipe-lock-btn" type="button">Lock</button>
@@ -624,6 +637,7 @@ function nextQuoteNumber(){const c=(Store.get(K.counter,0)||0)+1;Store.set(K.cou
 function newQuote(){
   return {id:uid(),number:null,createdAt:new Date().toISOString(),
     customer:{name:'',phone:'',email:'',suburb:'',address:''},photos:[],stage:'New',intake:null,
+    referral:{code:'',usedCode:'',referrerId:'',reward:null,rewardMessage:null},
     room:{mode:'lw',length:'',width:'',area:'',notchL:'',notchW:'',notchCorner:'ne'},design:null,packageId:settings.packages[0]?.id||'',picks:[],extras:[],notes:''};
 }
 
@@ -705,6 +719,8 @@ function readForm(){
     notchCorner:$('q-notch-corner')?$('q-notch-corner').value:'ne'
   };
   quote.packageId=$('q-pkg').value;
+  if(!quote.referral||typeof quote.referral!=='object') quote.referral={code:'',usedCode:'',referrerId:'',reward:null,rewardMessage:null};
+  if($('ref-used')) quote.referral.usedCode=$('ref-used').value;
 }
 function renderLeadSummary(){
   const el=$('lead-summary');
@@ -785,11 +801,12 @@ function csvCell(v){
   return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
 }
 function leadsCsv(list){
-  const headers=['customer_name','phone','email','suburb','state','notes','job_description','package','floor_area_m2','quote_total','quote_number','created_at'];
+  const headers=['customer_name','phone','email','suburb','state','notes','job_description','package','floor_area_m2','quote_total','quote_number','created_at','referral_code','referred_by_code'];
   const rows=(list||[]).map(q=>{
     const c=q.customer||{};
     const area=q.room?Calc.area(q.room):'';
-    return [c.name||'',c.phone||'',c.email||'',c.suburb||c.address||'','QLD',q.notes||'',jobText(q),q.pkgSnapshot?.name||'',area,q.total??'',q.number||'',q.createdAt||''];
+    const ref=q.referral||{};
+    return [c.name||'',c.phone||'',c.email||'',c.suburb||c.address||'','QLD',q.notes||'',jobText(q),q.pkgSnapshot?.name||'',area,q.total??'',q.number||'',q.createdAt||'',ref.code||'',ref.usedCode||''];
   });
   return [headers,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
 }
@@ -813,6 +830,8 @@ function nicoBody(q){
     `Package: ${q.pkgSnapshot?.name||''}`,
     `Floor area: ${(+area||0).toFixed(2)} m²`,
     `Price: ${total>0?`from ${fmt(total)} incl. GST, subject to site measure`:'floor size not set'}`,
+    `Referral code: ${(q.referral&&q.referral.code)||''}`,
+    `Referred by code: ${(q.referral&&q.referral.usedCode)||''}`,
     `Notes: ${q.notes||''}`,
     `Photos on this device: ${(q.photos||[]).length}`
   ].join('\n');
@@ -906,7 +925,8 @@ function update(){
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
   renderLeadSummary();
-  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
+  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. This is not a discount.`:''}</div>`;
+  renderReferralPanel();
   updateBrand();
   $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
   if(window.Estimate) Estimate.refreshFigures();
@@ -1061,6 +1081,8 @@ async function saveQuote(){
   const t=Calc.totals(quote,settings);
   if(window.Planner) quote.design=Planner.getDesign();
   const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
+  syncOne(rec,Store.get(K.quotes,[]).filter(x=>x.id!==rec.id).concat(rec));
+  quote.referral=structuredClone(rec.referral);
   try{await Backend.submitLead(rec)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
   update();
   $('save-msg').textContent='Saved '+quote.number+' on this phone. Nothing is sent until Nico reviews it.';
@@ -1141,6 +1163,7 @@ function renderPrint(){
    <p>${esc(settings.warranty||DEFAULT_WARRANTY)}</p>
    ${quote.notes?`<h3>Notes</h3><p>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
    <div class="qd-banner"><strong>Book a free measure &amp; quote</strong><span>The price above is an estimate. A free site measure confirms it before any work is booked.</span></div>
+   <p class="qd-small">Referral code ${esc((quote.referral&&quote.referral.code)||'')}. This is not a discount. A $250 referral reward is considered only after a referred job is marked Won, and only if Nico approves it. Nothing is paid automatically.</p>
    <p class="qd-small">Quote ${esc(quote.number)} is valid for ${settings.validDays} days from ${fmtDate(created)}, until ${fmtDate(valid)}. Prices are in Australian dollars and include GST. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
 }
 
@@ -1148,7 +1171,8 @@ function renderSaved(){
   const list=Store.get(K.quotes,[]);
   $('saved-list').innerHTML=list.length?list.map(q=>{
     const c=q.customer||{}, suburb=c.suburb||c.address||'';
-    return `<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(c.name||'(no name)')}${suburb?` · ${esc(suburb)}`:''}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${q.total?fromPrice(q.total):''}</span></div>
+    const code=q.referral&&q.referral.code?` · ${esc(q.referral.code)}`:'';
+    return `<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(c.name||'(no name)')}${suburb?` · ${esc(suburb)}`:''}${code}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${q.total?fromPrice(q.total):''}</span></div>
     <div class="actions"><button class="btn sm" type="button" data-open="${q.id}">Open</button> <button class="btn sec sm" type="button" data-nico="${q.id}">Send to Nico</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`;
   }).join(''):'<p class="hint">No saved projects yet.</p>';
 }
@@ -1221,6 +1245,7 @@ function nextAction(q, score){
   const name=(q.customer&&String(q.customer.name||'').trim())||'the client';
   const stage=STAGES.includes(q.stage)?q.stage:'New';
   if(stage==='Lost') return 'No action. Keep the lead for your records.';
+  if(stage==='Won'&&q.referral&&q.referral.reward&&q.referral.reward.status==='pending') return `Approve or decline the $250 referral reward for ${name}. Nothing is paid until you approve it, and nothing is sent from here.`;
   if(stage==='Won') return `Confirm the start date with ${name}.`;
   if(stage==='Quoted') return `Follow up the quote with ${name}. The price is not final until you confirm it.`;
   if(stage==='Measure booked') return 'Measure the bathroom and confirm the size.';
@@ -1228,6 +1253,141 @@ function nextAction(q, score){
   if(score.fit===0) return `Call ${name} about the budget. This package may be above the range they gave.`;
   if(!(q.customer&&String(q.customer.phone||'').replace(/\D/g,'').length>=8)) return `Ask ${name} for a phone number.`;
   return `Call ${name} and book a free site measure.`;
+}
+const REFERRAL_REWARD=250;
+const REF_ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function normaliseCode(s){
+  const raw=String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(!raw) return '';
+  const body=raw.startsWith('GR')?raw.slice(2):raw;
+  return body?`GR-${body.slice(0,8)}`:'';
+}
+function codeOk(code){return /^GR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(code)}
+function makeReferralCode(taken){
+  for(let n=0;n<40;n++){
+    let body='';
+    for(let i=0;i<6;i++) body+=REF_ALPHABET[Math.floor(Math.random()*REF_ALPHABET.length)];
+    const code=`GR-${body}`;
+    if(!taken.has(code)) return code;
+  }
+  return `GR-${uid().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6).padEnd(6,'X')}`;
+}
+function syncOne(q,list){
+  const referral=q.referral&&typeof q.referral==='object'?q.referral:{};
+  q.referral=referral;
+  const others=(list||[]).filter(x=>x.id!==q.id);
+  const taken=new Set(others.map(x=>normaliseCode(x.referral&&x.referral.code)).filter(codeOk));
+  let code=normaliseCode(referral.code);
+  if(!codeOk(code)||taken.has(code)) code=makeReferralCode(taken);
+  referral.code=code;
+  const used=normaliseCode(referral.usedCode);
+  referral.usedCode=used;
+  const ref=used&&used!==code?others.find(x=>normaliseCode(x.referral&&x.referral.code)===used):null;
+  referral.referrerId=ref?ref.id:'';
+  const stage=STAGES.includes(q.stage)?q.stage:'New';
+  const eligible=stage==='Won'&&!!ref;
+  const reward=referral.reward&&typeof referral.reward==='object'?referral.reward:{amount:REFERRAL_REWARD,status:'',decidedAt:null,rewardCode:''};
+  if((reward.rewardCode||'')!==used){
+    reward.amount=REFERRAL_REWARD;
+    reward.status=eligible?'pending':'';
+    reward.decidedAt=null;
+    reward.rewardCode=used;
+    referral.rewardMessage=null;
+  }else if(eligible&&!reward.status){
+    reward.status='pending';
+    reward.amount=REFERRAL_REWARD;
+  }else if(!eligible&&reward.status==='pending'){
+    reward.status='';
+    reward.decidedAt=null;
+  }
+  reward.amount=REFERRAL_REWARD;
+  referral.reward=reward;
+  return referral;
+}
+function usedCodeHint(q,list){
+  const used=normaliseCode(q.referral&&q.referral.usedCode);
+  const own=normaliseCode(q.referral&&q.referral.code);
+  if(!used) return 'No code entered. The quote does not change if you leave this blank.';
+  if(used===own) return 'That is this client\'s own code. A reward is not offered for that.';
+  const ref=(list||[]).find(x=>x.id!==q.id&&normaliseCode(x.referral&&x.referral.code)===used);
+  if(!ref) return 'No saved lead has this code. Nothing is tracked until it matches one.';
+  const name=(ref.customer&&String(ref.customer.name||'').trim())||'a saved lead';
+  return `Matches ${name}. A $250 reward is only considered after this job is marked Won, and only if Nico approves it.`;
+}
+function renderReferralPanel(){
+  if(!quote||!$('ref-code')) return;
+  const list=Store.get(K.quotes,[]);
+  syncOne(quote,list.filter(x=>x.id!==quote.id).concat(quote));
+  $('ref-code').textContent=quote.referral.code;
+  const input=$('ref-used');
+  if(document.activeElement!==input) input.value=quote.referral.usedCode||'';
+  $('ref-used-msg').textContent=usedCodeHint(quote,list);
+}
+function rewardDrafts(job,referrer){
+  const name=(referrer.customer&&String(referrer.customer.name||'').trim())||'there';
+  const friend=(job.customer&&String(job.customer.name||'').trim())||'a client';
+  const code=referrer.referral&&referrer.referral.code||'';
+  const sms=`Hi ${name}, it's Nico from Gert's Reno. ${friend}'s bathroom has been marked Won. I have approved a $250 referral reward for your code ${code}. I will arrange the $250 with you. This is not a receipt, and it has not been paid.`;
+  const subject=`Referral reward for ${code}`;
+  const email=`Hi ${name},\n\n${friend}'s bathroom has been marked Won.\n\nI have approved a $250 referral reward for your code ${code}. I will arrange the $250 with you. This note is not a receipt, and nothing has been paid.\n\nGert's Reno`;
+  return {sms,subject,email};
+}
+function referralMessageBlock(job,referrer){
+  const d=rewardDrafts(job,referrer);
+  const prev=job.referral.rewardMessage||{};
+  const same=prev.sms===d.sms&&prev.email===d.email&&prev.subject===d.subject;
+  const approved=!!prev.approved&&same;
+  const id=esc(job.id);
+  const who=(referrer.customer&&String(referrer.customer.name||'').trim())||'the referrer';
+  const to=String((referrer.customer&&referrer.customer.email)||'').trim().replace(/[\r\n]/g,'');
+  const mail=approved?`mailto:${to}?subject=${encodeURIComponent(d.subject)}&body=${encodeURIComponent(d.email)}`:'';
+  const status=approved?'Wording approved on this phone. Copy or open the email draft. You still send it yourself, and the $250 is still not paid.':'Draft only. Approve the wording before copying. Nothing is sent automatically.';
+  return `<div class="follow review-draft" data-ref-draft="${id}">
+    <h3>Reward message</h3>
+    <p class="hint">This is for ${esc(who)}, who shared the code. Approving the wording does not pay the $250 and does not send the message.</p>
+    <label for="ref-sms-${id}">SMS</label>
+    <textarea id="ref-sms-${id}" readonly>${esc(d.sms)}</textarea>
+    <label for="ref-subject-${id}">Subject</label>
+    <input id="ref-subject-${id}" readonly value="${esc(d.subject)}">
+    <label for="ref-email-${id}">Email</label>
+    <textarea id="ref-email-${id}" readonly>${esc(d.email)}</textarea>
+    <div class="checkline"><input id="ref-msg-${id}" data-ref-msg="${id}" type="checkbox"${approved?' checked':''}><label for="ref-msg-${id}">I approve this wording</label></div>
+    <div class="actions">
+      <button class="btn sm" type="button" data-ref-copy="sms" data-ref-id="${id}"${approved?'':' disabled'}>Copy SMS</button>
+      <button class="btn sm sec" type="button" data-ref-copy="email" data-ref-id="${id}"${approved?'':' disabled'}>Copy email</button>
+      <a class="btn sm sec" data-ref-mail="${id}"${approved?` href="${esc(mail)}"`:' hidden'}>Open email draft</a>
+    </div>
+    <p class="hint" data-ref-status="${id}">${status}</p>
+  </div>`;
+}
+function referralBlock(q,list){
+  const ref=q.referral||{};
+  const id=esc(q.id);
+  const used=normaliseCode(ref.usedCode);
+  const own=normaliseCode(ref.code);
+  const referrer=used&&used!==own?(list||[]).find(x=>x.id!==q.id&&normaliseCode(x.referral&&x.referral.code)===used):null;
+  const users=(list||[]).filter(x=>x.id!==q.id&&normaliseCode(x.referral&&x.referral.usedCode)===own);
+  const userLine=users.length?users.map(x=>{
+    const name=(x.customer&&String(x.customer.name||'').trim())||'A lead';
+    const stage=STAGES.includes(x.stage)?x.stage:'New';
+    return `${esc(name)} · ${esc(stage)}`;
+  }).join('<br>'):'Nobody has used this code yet.';
+  let reward='';
+  const stage=STAGES.includes(q.stage)?q.stage:'New';
+  if(referrer&&stage!=='Won'){
+    const name=(referrer.customer&&String(referrer.customer.name||'').trim())||'the referrer';
+    reward=`<p class="hint">Referred by ${esc(name)}. A $250 reward is only considered after this job is marked Won, and only if you approve it.</p>`;
+  }else if(referrer&&stage==='Won'){
+    const name=(referrer.customer&&String(referrer.customer.name||'').trim())||'the referrer';
+    const status=ref.reward&&ref.reward.status;
+    const note=status==='approved'
+      ?'You approved this reward. It has not been paid, and no message has been sent unless you copied one.'
+      :status==='declined'
+        ?'You declined this reward. Nothing is owed and nothing is sent.'
+        :'Waiting for your approval. Nothing is owed until you approve it.';
+    reward=`<div class="ref-reward"><p><strong>$250 referral reward</strong> for ${esc(name)}. This is not taken off the quote, and it is not paid from here.</p><p class="hint">${note}</p><div class="actions"><button class="btn sm" type="button" data-ref-reward="approve" data-ref-id="${id}">Approve reward</button><button class="btn sec sm" type="button" data-ref-reward="decline" data-ref-id="${id}">Decline reward</button></div>${status==='approved'?referralMessageBlock(q,referrer):''}</div>`;
+  }
+  return `<div class="ref-track"><p>Code <strong class="ref-code">${esc(own)}</strong> <button class="btn sec sm" type="button" data-ref-codecopy="${id}">Copy</button></p><p class="hint" data-ref-code-status="${id}"></p><label for="ref-used-${id}">Code they used</label><input id="ref-used-${id}" data-ref-used data-ref-id="${id}" value="${esc(used)}" autocomplete="off" spellcheck="false" autocapitalize="characters"><p class="hint">${esc(usedCodeHint(q,list))}</p><p class="hint">Used this code:<br>${userLine}</p>${reward}</div>`;
 }
 function renderPipeline(){
   const pin=String(settings.ownerPin||'').trim();
@@ -1248,6 +1408,18 @@ function renderPipeline(){
   }
   lock.hidden=true; board.hidden=false;
   const list=Store.get(K.quotes,[]);
+  const before=list.map(q=>JSON.stringify(q.referral||null)).join('|');
+  list.forEach(q=>syncOne(q,list));
+  const after=list.map(q=>JSON.stringify(q.referral||null)).join('|');
+  if(before!==after){
+    Store.set(K.quotes,list);
+    if(quote){
+      const mine=list.find(x=>x.id===quote.id);
+      if(mine) quote.referral=structuredClone(mine.referral);
+    }
+  }
+  const waiting=list.filter(q=>q.referral&&q.referral.reward&&q.referral.reward.status==='pending').length;
+  if($('pipe-ref')) $('pipe-ref').textContent=waiting?`${waiting} referral reward${waiting===1?'':'s'} waiting for approval. Nothing is paid or sent from this page.`:'No referral reward is waiting. Nothing is paid or sent from this page.';
   $('pipe-chips').innerHTML=['All',...STAGES].map(s=>`<button type="button" class="chip${pipeFilter===s?' on':''}" data-stage="${esc(s)}">${esc(s)}</button>`).join('');
   const rows=list.filter(q=>pipeFilter==='All'||(STAGES.includes(q.stage)?q.stage:'New')===pipeFilter);
   $('pipe-list').innerHTML=rows.length?rows.map(q=>{
@@ -1256,7 +1428,7 @@ function renderPipeline(){
     const stage=STAGES.includes(q.stage)?q.stage:'New';
     const price=q.estimate&&q.estimate.priceText?q.estimate.priceText:(+q.total?`from ${fmt(q.total)} incl. GST, subject to site measure`:'Size not priced');
     const opts=STAGES.map(s=>`<option${s===stage?' selected':''}>${esc(s)}</option>`).join('');
-    return `<article class="pipe"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div><label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${stage==='Won'?reviewBlock(q):''}</article>`;
+    return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${stage==='Won'?reviewBlock(q):''}</article>`;
   }).join(''):'<p class="hint">No leads in this stage.</p>';
 }
 function galleryPath(p){
@@ -1372,6 +1544,11 @@ $('fu-copy-sms').onclick=()=>{if(quote&&quote.followup&&quote.followup.approved)
 $('fu-copy-email').onclick=()=>{if(quote&&quote.followup&&quote.followup.approved) copyFollow(`Subject: ${quote.followup.subject}\n\n${quote.followup.email}`,'Email copied. Paste it into your mail app. Nothing was sent.')};
 $('btn-nico').onclick=async()=>{if(await saveQuote()) nicoMailto(quote)};
 $('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
+$('ref-copy').onclick=async()=>{
+  if(!quote||!quote.referral||!quote.referral.code) return;
+  const ok=await copyText(quote.referral.code);
+  $('ref-copy-status').textContent=ok?'Code copied. Nothing was sent.':'Could not copy the code. Nothing was sent.';
+};
 $('btn-csv').onclick=exportLeadsCsv;
 $('pipe-unlock').onclick=()=>{
   const typed=$('pipe-pin').value.trim();
@@ -1395,6 +1572,31 @@ function recFor(id){
 }
 $('pipe-list').addEventListener('change',async e=>{
   if(!ownerOpen) return;
+  if(e.target.dataset.refMsg){
+    const rec=recFor(e.target.dataset.refMsg);
+    if(!rec||!rec.referral||!rec.referral.reward||rec.referral.reward.status!=='approved') return;
+    const list=Store.get(K.quotes,[]);
+    const referrer=list.find(x=>x.id===rec.referral.referrerId);
+    if(!referrer) return;
+    const d=rewardDrafts(rec,referrer);
+    rec.referral.rewardMessage={...d,approved:!!e.target.checked,approvedAt:e.target.checked?new Date().toISOString():null};
+    if(quote&&quote.id===rec.id) quote.referral=structuredClone(rec.referral);
+    try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that draft on this phone. Nothing was sent.'}
+    renderPipeline();
+    return;
+  }
+  if(e.target.hasAttribute('data-ref-used')){
+    const rec=recFor(e.target.dataset.refId);
+    if(!rec) return;
+    rec.referral=rec.referral||{};
+    rec.referral.usedCode=e.target.value;
+    const list=Store.get(K.quotes,[]).map(x=>x.id===rec.id?rec:x);
+    syncOne(rec,list);
+    if(quote&&quote.id===rec.id) quote.referral=structuredClone(rec.referral);
+    try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that code on this phone. Nothing was sent.'}
+    renderPipeline();
+    return;
+  }
   if(e.target.dataset.rvApprove){
     const rec=recFor(e.target.dataset.rvApprove);
     if(!rec) return;
@@ -1415,11 +1617,56 @@ $('pipe-list').addEventListener('change',async e=>{
   try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that stage on this phone.'}
   renderPipeline();
   if(rec.stage==='Won'){
-    const card=document.querySelector(`[data-review="${rec.id}"]`);
+    const card=document.querySelector(`[data-lead="${rec.id}"]`);
     if(card) card.scrollIntoView({block:'center'});
   }
 });
 $('pipe-list').addEventListener('click',async e=>{
+  const rewardBtn=e.target.closest('[data-ref-reward]');
+  if(rewardBtn){
+    const rec=recFor(rewardBtn.dataset.refId);
+    if(!rec||!ownerOpen) return;
+    const list=Store.get(K.quotes,[]).map(x=>x.id===rec.id?rec:x);
+    syncOne(rec,list);
+    const stage=STAGES.includes(rec.stage)?rec.stage:'New';
+    if(stage!=='Won'||!rec.referral.referrerId) return;
+    const status=rewardBtn.dataset.refReward==='approve'?'approved':'declined';
+    rec.referral.reward.status=status;
+    rec.referral.reward.decidedAt=new Date().toISOString();
+    rec.referral.reward.amount=REFERRAL_REWARD;
+    if(status!=='approved') rec.referral.rewardMessage=null;
+    if(quote&&quote.id===rec.id) quote.referral=structuredClone(rec.referral);
+    try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that decision on this phone. Nothing was sent.'}
+    renderPipeline();
+    return;
+  }
+  const codeBtn=e.target.closest('[data-ref-codecopy]');
+  if(codeBtn){
+    const rec=recFor(codeBtn.dataset.refCodecopy);
+    if(!rec||!rec.referral) return;
+    const ok=await copyText(rec.referral.code);
+    const status=document.querySelector(`[data-ref-code-status="${rec.id}"]`);
+    if(status) status.textContent=ok?'Code copied. Nothing was sent.':'Could not copy the code. Nothing was sent.';
+    return;
+  }
+  const refCopy=e.target.closest('[data-ref-copy]');
+  if(refCopy){
+    if(refCopy.disabled) return;
+    const rec=recFor(refCopy.dataset.refId);
+    if(!rec||!rec.referral||!rec.referral.rewardMessage||!rec.referral.rewardMessage.approved) return;
+    const referrer=Store.get(K.quotes,[]).find(x=>x.id===rec.referral.referrerId);
+    if(!referrer) return;
+    const d=rewardDrafts(rec,referrer);
+    const prev=rec.referral.rewardMessage;
+    if(prev.sms!==d.sms||prev.email!==d.email||prev.subject!==d.subject) return;
+    const text=refCopy.dataset.refCopy==='sms'?d.sms:`Subject: ${d.subject}\n\n${d.email}`;
+    const ok=await copyText(text);
+    const status=document.querySelector(`[data-ref-status="${rec.id}"]`);
+    if(status) status.textContent=ok
+      ?(refCopy.dataset.refCopy==='sms'?'SMS copied. Paste it into your phone. Nothing was sent, and the $250 has not been paid.':'Email copied. Paste it into your mail app. Nothing was sent, and the $250 has not been paid.')
+      :'Could not copy. Select the draft and copy it yourself. Nothing was sent.';
+    return;
+  }
   const btn=e.target.closest('[data-rv-copy]');
   if(!btn||btn.disabled) return;
   const rec=recFor(btn.dataset.rvId);
@@ -1792,7 +2039,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(!ok){quote.intake.complete=false; push('assistant','I could not save this on the phone. Check the details and try again.'); render(); return}
     const why=quote.estimate&&quote.estimate.explanation;
     if(why) push('assistant', why);
-    push('assistant', `Saved ${quote.number} on this phone for ${quote.customer.name}. Nico reviews it before any price is final and before anything is sent.`);
+    push('assistant', `Saved ${quote.number} on this phone for ${quote.customer.name}. Their referral code is ${quote.referral&&quote.referral.code||''}. A $250 thank-you is only considered after a referred job is marked Won, and only if Nico approves it. Nothing is paid or sent automatically. Nico reviews the quote before any price is final.`);
     render();
   }
   function resetChat(){
@@ -1804,6 +2051,12 @@ Fill a field only when the client has stated it, using their words. Set done to 
     quote.room={mode:'lw',length:'',width:'',area:'',notchL:'',notchW:'',notchCorner:'ne'};
     quote.estimate=null;
     quote.stage='New';
+    if(quote.referral){
+      quote.referral.usedCode='';
+      quote.referral.referrerId='';
+      quote.referral.reward=null;
+      quote.referral.rewardMessage=null;
+    }
     pushQuoteToInputs();
     if(window.PhotoCheck) PhotoCheck.clearBound();
     ensureIntake();
