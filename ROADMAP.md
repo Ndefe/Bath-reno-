@@ -12,8 +12,22 @@
 - Free AI photo-style renders from the planner (Pollinations). The picture can be saved or added to the printed quote. An optional API key is stored only in this browser for a future paid provider
 - First-person walk-through in the planner, at eye height from the doorway. A phone uses a joystick and drag-to-look. A desktop uses WASD or arrows and mouse look. Walls and fixtures block movement
 
+## CHANGELOG
+
+### 2026-10-21
+
+- Lead capture on every quote: name, phone, email and suburb are required; notes and photos are optional. Each lead and its design and quote are stored on this device.
+- Projects list to reopen, edit or delete a saved lead. Leads export as CSV with field names suited to Tradify, Fergus or Ascora.
+- Send to Nico opens a mail draft with the quote summary. An optional form endpoint (Formspree or Web3Forms) can be set in Settings and stays off until a URL is saved.
+
 ## Next
 
-- Professional PDF quote
-- Better 3D modeller: room shape, doors and windows, wall-by-wall tiles, drag and snap, and no overlaps
-- Saving and sharing client projects
+- Show every price as "from $X incl. GST", with a Budget/Compact package under $20k, and drop Oneflare references
+- Business details: name and logo, ABN and QBCC licence placeholders, waterproofing note, deposit terms, warranty, and a free measure call to action
+- Professional branded PDF quote: itemised scope, inclusions and exclusions, validity, deposit and progress payments
+- Modeller upgrades: doors, windows and L-shaped rooms
+- Instant estimator with photo upload and measure booking
+- Client project tracker
+- Before/after gallery with a Google review prompt
+- Referral codes ($250 per completed job)
+- Accessible / NDIS package

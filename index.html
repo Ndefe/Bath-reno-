@@ -39,6 +39,12 @@ td,th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left;vertic
 td.n,th.n{text-align:right;white-space:nowrap}
 tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .list-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.photo-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.photo-list figure{margin:0;position:relative}
+.photo-list img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block;background:#eef2f5}
+.photo-list button{position:absolute;top:2px;right:2px;min-height:28px;padding:2px 6px}
+#lead-err:empty{display:none}
+#lead-err{color:var(--danger)}
 /* Printable quote */
 .quote-doc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}
 .qd-head{display:flex;justify-content:space-between;gap:12px;border-bottom:3px solid var(--acc);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap}
@@ -144,7 +150,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <nav>
     <button data-view="quote" class="active">Quote</button>
     <button data-view="planner">Planner</button>
-    <button data-view="saved">Saved</button>
+    <button data-view="saved">Projects</button>
     <button data-view="settings">Settings</button>
   </nav>
 </header>
@@ -153,10 +159,6 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <section class="view active" id="view-quote">
     <div class="grid">
       <div>
-        <div class="card"><h2>Customer</h2>
-          <div class="row"><div><label>Name</label><input id="q-name"></div><div><label>Phone</label><input id="q-phone" type="tel"></div></div>
-          <div class="row"><div><label>Email</label><input id="q-email" type="email"></div><div><label>Address</label><input id="q-address"></div></div>
-        </div>
         <div class="card"><h2>Bathroom</h2>
           <div class="seg"><label><input type="radio" name="dimMode" value="lw" checked> Length × width</label><label><input type="radio" name="dimMode" value="m2"> Enter m² directly</label></div>
           <div class="row3" id="dim-lw"><div><label>Length (m)</label><input id="q-len" type="number" step="0.01" min="0"></div><div><label>Width (m)</label><input id="q-wid" type="number" step="0.01" min="0"></div><div><label>Area (m²)</label><input id="q-area-calc" readonly></div></div>
@@ -171,14 +173,23 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div id="custom-extras"></div>
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
-        <div class="card"><h2>Notes</h2><textarea id="q-notes" placeholder="Shown on the quote"></textarea></div>
+        <div class="card" id="lead-card"><h2>Your details</h2>
+          <p class="hint">Name, phone, email and suburb are required to save this project. Notes and photos are optional. Saved on this device.</p>
+          <div class="row"><div><label for="q-name">Name</label><input id="q-name" name="customer_name" autocomplete="name"></div><div><label for="q-phone">Phone</label><input id="q-phone" name="phone" type="tel" autocomplete="tel"></div></div>
+          <div class="row"><div><label for="q-email">Email</label><input id="q-email" name="email" type="email" autocomplete="email"></div><div><label for="q-suburb">Suburb</label><input id="q-suburb" name="suburb" autocomplete="address-level2"></div></div>
+          <label for="q-notes">Notes</label><textarea id="q-notes" name="notes" placeholder="Access, timing, what they want"></textarea>
+          <label for="q-photos">Photos</label><input id="q-photos" name="photos" type="file" accept="image/*" multiple>
+          <div id="q-photo-list" class="photo-list"></div>
+          <p class="hint" id="lead-err" role="alert"></p>
+        </div>
       </div>
       <div>
         <div class="card" style="position:sticky;top:10px"><h2>Quote summary</h2>
           <div id="summary"><p class="hint">Loading catalogue…</p></div>
           <div class="actions">
-            <button class="btn" id="btn-save">Save quote</button>
+            <button class="btn" id="btn-save">Save project</button>
             <button class="btn sec" id="btn-print">Print / Save as PDF</button>
+            <button class="btn sec" id="btn-nico">Send to Nico</button>
             <button class="btn sec" id="btn-new">New quote</button>
           </div>
           <div class="hint" id="save-msg"></div>
@@ -237,14 +248,18 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <span></span><button class="btn sec sm" data-mv="0,1">▼</button><span></span>
         </div>
         <div class="actions"><button class="btn del sm" id="pl-del">Delete item</button><button class="btn del sm" id="pl-clear">Clear all</button></div>
-        <div class="hint" style="margin-top:8px">Fixture sizes follow the package. The design is saved with the quote when you press "Save quote".</div>
+        <div class="hint" style="margin-top:8px">Fixture sizes follow the package. The design is saved with the project when you press "Save project".</div>
       </div>
       </div>
     </div>
   </section>
 
   <!-- SAVED VIEW -->
-  <section class="view" id="view-saved"><div class="card"><h2>Saved quotes</h2><div id="saved-list"></div></div></section>
+  <section class="view" id="view-saved"><div class="card"><h2>Projects</h2>
+    <p class="hint">Each saved lead keeps its quote and design on this device. The CSV uses customer_name, phone, email and suburb so it can be imported into Tradify, Fergus or Ascora.</p>
+    <div class="actions"><button class="btn sec" type="button" id="btn-csv">Export leads CSV</button></div>
+    <div id="saved-list"></div>
+  </div></section>
 
   <!-- SETTINGS VIEW -->
   <section class="view" id="view-settings">
@@ -255,6 +270,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <label for="s-render-key">AI render API key (optional)</label>
       <input id="s-render-key" type="password" autocomplete="off" spellcheck="false">
       <p class="hint">Stored only in this browser. Pollinations does not use a key. A future paid provider would.</p>
+      <label for="s-nico">Send to Nico (email)</label>
+      <input id="s-nico" type="email" autocomplete="off" placeholder="name@example.com">
+      <label for="s-lead-url">Lead form endpoint (optional)</label>
+      <input id="s-lead-url" type="url" inputmode="url" autocomplete="off" placeholder="https://formspree.io/f/… or Web3Forms">
+      <label for="s-lead-key">Form access key (optional)</label>
+      <input id="s-lead-key" type="password" autocomplete="off" spellcheck="false">
+      <p class="hint">Off unless a URL is saved. A Web3Forms access key is sent only to that endpoint. Leads are always kept on this device.</p>
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
@@ -385,7 +407,8 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 
 function nextQuoteNumber(){const c=(Store.get(K.counter,0)||0)+1;Store.set(K.counter,c);return 'Q-'+ymd(new Date())+'-'+String(c).padStart(3,'0')}
 function newQuote(){
-  return {id:uid(),number:null,createdAt:new Date().toISOString(),customer:{name:'',phone:'',email:'',address:''},
+  return {id:uid(),number:null,createdAt:new Date().toISOString(),
+    customer:{name:'',phone:'',email:'',suburb:'',address:''},photos:[],
     room:{mode:'lw',length:'',width:'',area:''},design:null,packageId:settings.packages[0]?.id||'',picks:[],extras:[],notes:''};
 }
 
@@ -424,7 +447,14 @@ function loadQuoteToForm(q){
   quote=q;
   quote.picks=quote.picks||[];
   quote.extras=quote.extras||[];
-  $('q-name').value=q.customer.name;$('q-phone').value=q.customer.phone;$('q-email').value=q.customer.email;$('q-address').value=q.customer.address;
+  quote.photos=Array.isArray(quote.photos)?quote.photos:[];
+  const c=quote.customer=quote.customer||{};
+  c.suburb=c.suburb||c.address||'';
+  c.address=c.suburb;
+  $('q-name').value=c.name||'';$('q-phone').value=c.phone||'';$('q-email').value=c.email||'';$('q-suburb').value=c.suburb;
+  $('q-photos').value='';
+  showLeadErr('');
+  renderPhotos();
   document.querySelector(`input[name=dimMode][value=${q.room.mode}]`).checked=true;
   $('q-len').value=q.room.length;$('q-wid').value=q.room.width;$('q-area').value=q.room.area;$('q-notes').value=q.notes;
   shownPkg=null;
@@ -433,9 +463,128 @@ function loadQuoteToForm(q){
   if(window.Planner) Planner.loadFromQuote(q);
 }
 function readForm(){
-  quote.customer={name:$('q-name').value,phone:$('q-phone').value,email:$('q-email').value,address:$('q-address').value};
+  const suburb=$('q-suburb').value;
+  quote.customer={name:$('q-name').value,phone:$('q-phone').value,email:$('q-email').value,suburb,address:suburb};
+  quote.photos=quote.photos||[];
   quote.room={mode:document.querySelector('input[name=dimMode]:checked').value,length:$('q-len').value,width:$('q-wid').value,area:$('q-area').value};
   quote.packageId=$('q-pkg').value;quote.notes=$('q-notes').value;
+}
+function showLeadErr(msg){$('lead-err').textContent=msg||''}
+function leadProblems(){
+  const c=quote.customer||{};
+  const problems=[];
+  if(!String(c.name||'').trim()) problems.push('Name is required.');
+  if(String(c.phone||'').replace(/\D/g,'').length<8) problems.push('Phone needs at least 8 digits.');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email||'').trim())) problems.push('A valid email is required.');
+  if(!String(c.suburb||'').trim()) problems.push('Suburb is required.');
+  return problems;
+}
+function renderPhotos(){
+  const photos=quote&&quote.photos||[];
+  $('q-photo-list').innerHTML=photos.map(p=>`<figure><img src="${p.dataUrl}" alt="${esc(p.name||'Site photo')}"><button class="btn del sm" type="button" data-rmphoto="${esc(p.id)}" aria-label="Remove photo">✕</button></figure>`).join('');
+}
+function shrinkPhoto(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      const max=1200, scale=Math.min(1,max/Math.max(img.width,img.height,1));
+      const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      resolve({id:uid(),name:file.name||'photo.jpg',dataUrl:canvas.toDataURL('image/jpeg',0.7)});
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('photo'))};
+    img.src=url;
+  });
+}
+function dataUrlToBlob(dataUrl){
+  const m=String(dataUrl||'').match(/^data:([^;,]+)?(;base64)?,(.+)$/);
+  if(!m) return null;
+  const type=m[1]||'application/octet-stream';
+  if(m[2]){
+    const bin=atob(m[3]);
+    const arr=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    return new Blob([arr],{type});
+  }
+  return new Blob([decodeURIComponent(m[3])],{type});
+}
+function jobText(q){
+  const area=q.room?Calc.area(q.room):0;
+  const pkg=q.pkgSnapshot?.name||'';
+  return [pkg&&`${pkg} bathroom`, `${(+area||0).toFixed(2)} m²`].filter(Boolean).join(', ');
+}
+function csvCell(v){
+  const s=String(v??'');
+  return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function leadsCsv(list){
+  const headers=['customer_name','phone','email','suburb','state','notes','job_description','package','floor_area_m2','quote_total','quote_number','created_at'];
+  const rows=(list||[]).map(q=>{
+    const c=q.customer||{};
+    const area=q.room?Calc.area(q.room):'';
+    return [c.name||'',c.phone||'',c.email||'',c.suburb||c.address||'','QLD',q.notes||'',jobText(q),q.pkgSnapshot?.name||'',area,q.total??'',q.number||'',q.createdAt||''];
+  });
+  return [headers,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
+}
+function exportLeadsCsv(){
+  const csv=leadsCsv(Store.get(K.quotes,[]));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='leads.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function nicoBody(q){
+  const c=q.customer||{};
+  const area=q.room?Calc.area(q.room):0;
+  const total=q.total!=null?q.total:Calc.totals(q,settings).total;
+  return [
+    `Name: ${c.name||''}`,
+    `Phone: ${c.phone||''}`,
+    `Email: ${c.email||''}`,
+    `Suburb: ${c.suburb||c.address||''}`,
+    `Package: ${q.pkgSnapshot?.name||''}`,
+    `Floor area: ${(+area||0).toFixed(2)} m²`,
+    `Price: from ${fmt(total)} incl. GST`,
+    `Notes: ${q.notes||''}`,
+    `Photos on this device: ${(q.photos||[]).length}`
+  ].join('\n');
+}
+function nicoMailto(q){
+  const email=(settings.nicoEmail||'').trim();
+  const c=q.customer||{};
+  const subject=`Quote ${q.number||''} · ${c.name||'Lead'} · ${c.suburb||c.address||''}`.replace(/\s+/g,' ').trim();
+  window.location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(nicoBody(q))}`;
+}
+async function postLead(rec,t){
+  const url=(settings.leadEndpoint||'').trim();
+  if(!url) return 'local';
+  const fd=new FormData();
+  const c=rec.customer||{};
+  fd.append('customer_name',c.name||'');
+  fd.append('name',c.name||'');
+  fd.append('phone',c.phone||'');
+  fd.append('email',c.email||'');
+  fd.append('suburb',c.suburb||'');
+  fd.append('state','QLD');
+  fd.append('notes',rec.notes||'');
+  fd.append('job_description',jobText(rec));
+  fd.append('package',rec.pkgSnapshot?.name||'');
+  fd.append('floor_area_m2',String(t.area));
+  fd.append('quote_total',String(t.total));
+  fd.append('quote_number',rec.number||'');
+  const key=(settings.leadAccessKey||'').trim();
+  if(key) fd.append('access_key',key);
+  (rec.photos||[]).forEach((p,i)=>{
+    const blob=dataUrlToBlob(p.dataUrl);
+    if(blob) fd.append('photos',blob,p.name||`photo-${i+1}.jpg`);
+  });
+  const res=await fetch(url,{method:'POST',body:fd});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return 'sent';
 }
 function fillPkgSelect(){
   $('q-pkg').innerHTML=settings.packages.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${fmt(p.baseFee)} + ${fmt(p.rate)}/m²</option>`).join('');
@@ -503,14 +652,28 @@ function summaryTable(t){
   </table>`;
 }
 function ensureNumber(){if(!quote.number)quote.number=nextQuoteNumber()}
-function saveQuote(){
-  readForm();ensureNumber();
+async function saveQuote(){
+  readForm();
+  const problems=leadProblems();
+  if(problems.length){showLeadErr(problems.join(' '));$('save-msg').textContent='';return false}
+  showLeadErr('');
+  ensureNumber();
   const list=Store.get(K.quotes,[]);const t=Calc.totals(quote,settings);
   if(window.Planner) quote.design=Planner.getDesign();
   const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
   const i=list.findIndex(x=>x.id===quote.id);if(i>=0)list[i]=rec;else list.unshift(rec);
-  try{Store.set(K.quotes,list)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove the AI render and try again.';return}
-  update();$('save-msg').textContent='Saved '+quote.number;
+  try{Store.set(K.quotes,list)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
+  update();
+  $('save-msg').textContent='Saved '+quote.number+' on this device.';
+  if((settings.leadEndpoint||'').trim()){
+    try{
+      await postLead(rec,t);
+      $('save-msg').textContent='Saved '+quote.number+' and sent to the form endpoint.';
+    }catch{
+      $('save-msg').textContent='Saved '+quote.number+' on this device. The form endpoint did not accept it.';
+    }
+  }
+  return true;
 }
 
 function renderFigure(q){
@@ -543,13 +706,19 @@ function renderPrint(){
 
 function renderSaved(){
   const list=Store.get(K.quotes,[]);
-  $('saved-list').innerHTML=list.length?list.map(q=>`<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(q.customer.name||'(no name)')}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${fmt(q.total)}</span></div>
-  <div><button class="btn sm" type="button" data-open="${q.id}">Open</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`).join(''):'<p class="hint">No saved quotes yet.</p>';
+  $('saved-list').innerHTML=list.length?list.map(q=>{
+    const c=q.customer||{}, suburb=c.suburb||c.address||'';
+    return `<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(c.name||'(no name)')}${suburb?` · ${esc(suburb)}`:''}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${fmt(q.total)}</span></div>
+    <div class="actions"><button class="btn sm" type="button" data-open="${q.id}">Open</button> <button class="btn sec sm" type="button" data-nico="${q.id}">Send to Nico</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`;
+  }).join(''):'<p class="hint">No saved projects yet.</p>';
 }
 
 function renderSettings(){
   $('s-biz').value=settings.bizName;$('s-contact').value=settings.contact;$('s-valid').value=settings.validDays;
   $('s-render-key').value=settings.renderApiKey||'';
+  $('s-nico').value=settings.nicoEmail||'';
+  $('s-lead-url').value=settings.leadEndpoint||'';
+  $('s-lead-key').value=settings.leadAccessKey||'';
   const looks=Object.entries(window.LOOKS||{});
   $('pkg-list').innerHTML=settings.packages.map((p,i)=>`<div class="pkg">
    <div class="row"><div><label>Name</label><input data-p="${i}" data-f="name" value="${esc(p.name)}"></div>
@@ -562,6 +731,9 @@ function renderSettings(){
 function readSettings(){
   settings.bizName=$('s-biz').value;settings.contact=$('s-contact').value;settings.validDays=Math.max(1,+$('s-valid').value||30);
   settings.renderApiKey=($('s-render-key').value||'').trim();
+  settings.nicoEmail=($('s-nico').value||'').trim();
+  settings.leadEndpoint=($('s-lead-url').value||'').trim();
+  settings.leadAccessKey=($('s-lead-key').value||'').trim();
   if(!settings.renderProvider) settings.renderProvider='pollinations';
 }
 
@@ -598,13 +770,37 @@ $('view-quote').addEventListener('change',e=>{
 });
 $('add-extra').onclick=()=>{quote.extras.push({desc:'',amount:''});renderCustom();update()};
 $('custom-extras').onclick=e=>{const r=e.target.dataset.rm;if(r!==undefined){quote.extras.splice(+r,1);renderCustom();update()}};
-$('btn-save').onclick=saveQuote;
+$('btn-save').onclick=()=>saveQuote();
 $('btn-print').onclick=()=>{renderPrint();window.print()};
+$('btn-nico').onclick=async()=>{if(await saveQuote()) nicoMailto(quote)};
 $('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
+$('btn-csv').onclick=exportLeadsCsv;
+$('q-photos').addEventListener('change',async e=>{
+  const files=[...e.target.files||[]];
+  e.target.value='';
+  if(!files.length||!quote) return;
+  quote.photos=quote.photos||[];
+  const room=Math.max(0,4-quote.photos.length);
+  if(!room){showLeadErr('You can attach up to 4 photos.');return}
+  const take=files.slice(0,room);
+  showLeadErr(files.length>room?'Only 4 photos are kept. Extra files were left out.':'');
+  for(const file of take){
+    try{quote.photos.push(await shrinkPhoto(file))}
+    catch{showLeadErr('One photo could not be read.')}
+  }
+  renderPhotos();
+});
+$('q-photo-list').onclick=e=>{
+  const id=e.target.dataset.rmphoto;
+  if(!id||!quote) return;
+  quote.photos=(quote.photos||[]).filter(p=>p.id!==id);
+  renderPhotos();
+};
 $('saved-list').onclick=e=>{
-  const o=e.target.dataset.open,d=e.target.dataset.delq,list=Store.get(K.quotes,[]);
-  if(o){const q=list.find(x=>x.id===o);loadQuoteToForm(structuredClone(q));document.querySelector('nav button[data-view=quote]').click()}
-  if(d&&confirm('Delete this quote?')){Store.set(K.quotes,list.filter(x=>x.id!==d));renderSaved()}
+  const o=e.target.dataset.open,d=e.target.dataset.delq,n=e.target.dataset.nico,list=Store.get(K.quotes,[]);
+  if(o){const q=list.find(x=>x.id===o);if(q){loadQuoteToForm(structuredClone(q));document.querySelector('nav button[data-view=quote]').click()}}
+  if(n){const q=list.find(x=>x.id===n);if(q) nicoMailto(q)}
+  if(d&&confirm('Delete this project?')){Store.set(K.quotes,list.filter(x=>x.id!==d));renderSaved()}
 };
 $('pkg-list').addEventListener('change',e=>{const i=e.target.dataset.p;if(i!==undefined&&e.target.dataset.f==='look') settings.packages[i].look=e.target.value});
 $('pkg-list').addEventListener('input',e=>{
@@ -615,7 +811,7 @@ $('pkg-list').addEventListener('input',e=>{
 $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
 $('s-save').onclick=()=>{readSettings();Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
-$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const renderApiKey=settings.renderApiKey||'',renderProvider=settings.renderProvider||'pollinations';settings=structuredClone(defaults);settings.renderApiKey=renderApiKey;settings.renderProvider=renderProvider;Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
+$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep={renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 window.addEventListener('beforeprint',()=>{if(catalogue&&quote) renderPrint()});
 
 /* Image render providers. Only Pollinations is wired up. It is free and does not use the API key.
@@ -675,7 +871,7 @@ async function boot(){
   loadQuoteToForm(newQuote());
   if($('view-planner').classList.contains('active')) Planner.show();
 }
-window.BQ={Calc,Store,boot,get settings(){return settings},get quote(){return quote},get catalogue(){return catalogue}};
+window.BQ={Calc,Store,boot,leadsCsv,nicoBody,get settings(){return settings},get quote(){return quote},get catalogue(){return catalogue}};
 </script>
 <!-- three.js r147 (MIT) + OrbitControls, inlined for offline file:// use -->
 <script>/**
@@ -2499,7 +2695,7 @@ const Planner=(()=>{
     setTimeout(resize,0);
   }
   function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
-  function getDesign(){return BQ.quote.design||design}
+  function getDesign(){ensureDesign();return design}
   $('pl-walk').onclick=enterWalk;
   $('pl-walk-exit').onclick=exitWalk;
   $('pl-walk-reset').onclick=lookHere;
