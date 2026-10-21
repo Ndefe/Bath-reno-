@@ -16,10 +16,25 @@ header.app h1{font-size:18px;margin:0}
 .book{width:100%;margin:0 0 12px}
 #s-logo-preview{display:block;margin-top:8px;max-height:64px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
 .qd-logo{height:42px;width:auto;max-width:140px;object-fit:contain}
-nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin-left:4px;cursor:pointer;font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:4px}
+nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin:0;cursor:pointer;font-size:14px}
 nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 main{max-width:1150px;margin:0 auto;padding:16px}
 .view{display:none}.view.active{display:block}
+#view-assist.active{display:flex;flex-direction:column}
+.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:calc(100dvh - 132px);margin-bottom:0}
+.chat-log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
+.bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
+.bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
+.bubble.wait{opacity:.7}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font:inherit;cursor:pointer;min-height:40px}
+.chat-bar{display:flex;gap:8px;align-items:center}
+.chat-bar input{flex:1;min-width:0;font-size:16px;min-height:44px}
+.chat-bar .btn{min-height:44px}
+#chat-err:empty{display:none}
+#chat-err{color:var(--danger)}
 .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
@@ -157,7 +172,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
 </head>
-<body class="on-quote">
+<body>
 <header class="app">
   <div class="brand-lockup">
     <img id="brand-logo" alt="" hidden>
@@ -167,15 +182,33 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     </div>
   </div>
   <nav>
-    <button data-view="quote" class="active">Quote</button>
+    <button data-view="assist" class="active">Start</button>
+    <button data-view="quote">Quote</button>
     <button data-view="planner">Planner</button>
     <button data-view="saved">Projects</button>
     <button data-view="settings">Settings</button>
   </nav>
 </header>
 <main>
+  <section class="view active" id="view-assist" aria-label="Intake assistant">
+    <div class="card chat-card">
+      <h2>Assistant</h2>
+      <p class="hint" id="assist-mode">Tell us about the bathroom in your own words. Nothing is sent until Nico reviews it.</p>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
+      <div id="chat-chips" class="chips"></div>
+      <div id="chat-photos" class="photo-list"></div>
+      <form id="chat-form" class="chat-bar">
+        <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
+        <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
+        <button class="btn sec" type="button" id="chat-photo">Photo</button>
+        <button class="btn" type="submit">Send</button>
+      </form>
+      <input id="chat-file" type="file" accept="image/*" multiple hidden>
+      <p class="hint" id="chat-err" role="alert"></p>
+    </div>
+  </section>
   <!-- QUOTE VIEW -->
-  <section class="view active" id="view-quote">
+  <section class="view" id="view-quote">
     <div class="grid">
       <div>
         <div class="card"><h2>Bathroom</h2>
@@ -192,14 +225,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div id="custom-extras"></div>
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
-        <button class="btn book" id="btn-book" type="button">Book a free measure &amp; quote</button>
-        <div class="card" id="lead-card"><h2>Your details</h2>
-          <p class="hint">Name, phone, email and suburb are required to save this project. Notes and photos are optional. Saved on this device.</p>
-          <div class="row"><div><label for="q-name">Name</label><input id="q-name" name="customer_name" autocomplete="name"></div><div><label for="q-phone">Phone</label><input id="q-phone" name="phone" type="tel" autocomplete="tel"></div></div>
-          <div class="row"><div><label for="q-email">Email</label><input id="q-email" name="email" type="email" autocomplete="email"></div><div><label for="q-suburb">Suburb</label><input id="q-suburb" name="suburb" autocomplete="address-level2"></div></div>
-          <label for="q-notes">Notes</label><textarea id="q-notes" name="notes" placeholder="Access, timing, what they want"></textarea>
-          <label for="q-photos">Photos</label><input id="q-photos" name="photos" type="file" accept="image/*" multiple>
-          <div id="q-photo-list" class="photo-list"></div>
+        <div class="card" id="lead-card"><h2>Client</h2>
+          <p class="hint">Name, phone, email, suburb, room and photos are collected in the assistant. Nothing is sent until Nico reviews it.</p>
+          <p id="lead-summary">No client details yet.</p>
+          <button class="btn book" id="btn-book" type="button">Open assistant</button>
           <p class="hint" id="lead-err" role="alert"></p>
         </div>
       </div>
@@ -310,7 +339,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <input id="s-lead-url" type="url" inputmode="url" autocomplete="off" placeholder="https://formspree.io/f/… or Web3Forms">
       <label for="s-lead-key">Form access key (optional)</label>
       <input id="s-lead-key" type="password" autocomplete="off" spellcheck="false">
-      <p class="hint">Off unless a URL is saved. A Web3Forms access key is sent only to that endpoint. Leads are always kept on this device.</p>
+      <p class="hint">Kept for a later approved send. A lead stays on this phone and is not posted on its own.</p>
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
@@ -449,7 +478,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 function nextQuoteNumber(){const c=(Store.get(K.counter,0)||0)+1;Store.set(K.counter,c);return 'Q-'+ymd(new Date())+'-'+String(c).padStart(3,'0')}
 function newQuote(){
   return {id:uid(),number:null,createdAt:new Date().toISOString(),
-    customer:{name:'',phone:'',email:'',suburb:'',address:''},photos:[],
+    customer:{name:'',phone:'',email:'',suburb:'',address:''},photos:[],stage:'New',intake:null,
     room:{mode:'lw',length:'',width:'',area:''},design:null,packageId:settings.packages[0]?.id||'',picks:[],extras:[],notes:''};
 }
 
@@ -492,23 +521,32 @@ function loadQuoteToForm(q){
   const c=quote.customer=quote.customer||{};
   c.suburb=c.suburb||c.address||'';
   c.address=c.suburb;
-  $('q-name').value=c.name||'';$('q-phone').value=c.phone||'';$('q-email').value=c.email||'';$('q-suburb').value=c.suburb;
-  $('q-photos').value='';
   showLeadErr('');
   renderPhotos();
+  renderLeadSummary();
   document.querySelector(`input[name=dimMode][value=${q.room.mode}]`).checked=true;
-  $('q-len').value=q.room.length;$('q-wid').value=q.room.width;$('q-area').value=q.room.area;$('q-notes').value=q.notes;
+  $('q-len').value=q.room.length;$('q-wid').value=q.room.width;$('q-area').value=q.room.area;
   shownPkg=null;
   fillPkgSelect();
   update();
   if(window.Planner) Planner.loadFromQuote(q);
+  if(window.Intake) Intake.sync();
 }
 function readForm(){
-  const suburb=$('q-suburb').value;
-  quote.customer={name:$('q-name').value,phone:$('q-phone').value,email:$('q-email').value,suburb,address:suburb};
+  const c=quote.customer||{};
+  c.suburb=c.suburb||c.address||'';
+  c.address=c.suburb;
+  quote.customer=c;
   quote.photos=quote.photos||[];
   quote.room={mode:document.querySelector('input[name=dimMode]:checked').value,length:$('q-len').value,width:$('q-wid').value,area:$('q-area').value};
-  quote.packageId=$('q-pkg').value;quote.notes=$('q-notes').value;
+  quote.packageId=$('q-pkg').value;
+}
+function renderLeadSummary(){
+  const el=$('lead-summary');
+  if(!el||!quote) return;
+  const c=quote.customer||{};
+  const bits=[c.name,c.phone,c.email,c.suburb].filter(Boolean);
+  el.textContent=bits.length?bits.join(' · '):'No client details yet. Use Start to talk to the assistant.';
 }
 function showLeadErr(msg){$('lead-err').textContent=msg||''}
 function leadProblems(){
@@ -521,8 +559,10 @@ function leadProblems(){
   return problems;
 }
 function renderPhotos(){
+  const host=$('chat-photos');
+  if(!host) return;
   const photos=quote&&quote.photos||[];
-  $('q-photo-list').innerHTML=photos.map(p=>`<figure><img src="${p.dataUrl}" alt="${esc(p.name||'Site photo')}"><button class="btn del sm" type="button" data-rmphoto="${esc(p.id)}" aria-label="Remove photo">✕</button></figure>`).join('');
+  host.innerHTML=photos.map(p=>`<figure><img src="${p.dataUrl}" alt="${esc(p.name||'Site photo')}"><button class="btn del sm" type="button" data-rmphoto="${esc(p.id)}" aria-label="Remove photo">✕</button></figure>`).join('');
 }
 function shrinkPhoto(file){
   return new Promise((resolve,reject)=>{
@@ -679,7 +719,8 @@ function update(){
   $('q-area-calc').value=t.area?t.area.toFixed(2):'';
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
-  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
+  renderLeadSummary();
+  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}</div>`;
   updateBrand();
   $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
 }
@@ -724,21 +765,13 @@ async function saveQuote(){
   if(problems.length){showLeadErr(problems.join(' '));$('save-msg').textContent='';return false}
   showLeadErr('');
   ensureNumber();
-  const list=Store.get(K.quotes,[]);const t=Calc.totals(quote,settings);
+  if(!quote.stage) quote.stage='New';
+  const t=Calc.totals(quote,settings);
   if(window.Planner) quote.design=Planner.getDesign();
   const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
-  const i=list.findIndex(x=>x.id===quote.id);if(i>=0)list[i]=rec;else list.unshift(rec);
-  try{Store.set(K.quotes,list)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
+  try{await Backend.submitLead(rec)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
   update();
-  $('save-msg').textContent='Saved '+quote.number+' on this device.';
-  if((settings.leadEndpoint||'').trim()){
-    try{
-      await postLead(rec,t);
-      $('save-msg').textContent='Saved '+quote.number+' and sent to the form endpoint.';
-    }catch{
-      $('save-msg').textContent='Saved '+quote.number+' on this device. The form endpoint did not accept it.';
-    }
-  }
+  $('save-msg').textContent='Saved '+quote.number+' on this phone. Nothing is sent until Nico reviews it.';
   return true;
 }
 
@@ -868,6 +901,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   document.body.classList.toggle('on-quote',b.dataset.view==='quote');
   if(b.dataset.view==='quote') update();
+  if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
   if(b.dataset.view==='planner') Planner.show();
   if(b.dataset.view==='settings') renderSettings();
@@ -901,27 +935,7 @@ $('btn-print').onclick=()=>{renderPrint();window.print()};
 $('btn-nico').onclick=async()=>{if(await saveQuote()) nicoMailto(quote)};
 $('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
 $('btn-csv').onclick=exportLeadsCsv;
-$('q-photos').addEventListener('change',async e=>{
-  const files=[...e.target.files||[]];
-  e.target.value='';
-  if(!files.length||!quote) return;
-  quote.photos=quote.photos||[];
-  const room=Math.max(0,4-quote.photos.length);
-  if(!room){showLeadErr('You can attach up to 4 photos.');return}
-  const take=files.slice(0,room);
-  showLeadErr(files.length>room?'Only 4 photos are kept. Extra files were left out.':'');
-  for(const file of take){
-    try{quote.photos.push(await shrinkPhoto(file))}
-    catch{showLeadErr('One photo could not be read.')}
-  }
-  renderPhotos();
-});
-$('q-photo-list').onclick=e=>{
-  const id=e.target.dataset.rmphoto;
-  if(!id||!quote) return;
-  quote.photos=(quote.photos||[]).filter(p=>p.id!==id);
-  renderPhotos();
-};
+$('btn-book').onclick=()=>document.querySelector('nav button[data-view=assist]').click();
 $('saved-list').onclick=e=>{
   const o=e.target.dataset.open,d=e.target.dataset.delq,n=e.target.dataset.nico,list=Store.get(K.quotes,[]);
   if(o){const q=list.find(x=>x.id===o);if(q){loadQuoteToForm(structuredClone(q));document.querySelector('nav button[data-view=quote]').click()}}
@@ -941,7 +955,6 @@ function keptBusiness(){
   return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
-$('btn-book').onclick=()=>{$('lead-card').scrollIntoView({behavior:'smooth',block:'start'});$('q-name').focus()};
 function shrinkLogo(file){
   return new Promise((resolve,reject)=>{
     const url=URL.createObjectURL(file);
@@ -1009,6 +1022,329 @@ const RenderService=(()=>{
   return api;
 })();
 window.RenderService=RenderService;
+
+/* Backend adapter. A Cloudflare Worker can replace these three methods later.
+   Nothing here sends email, SMS, or a form post. A person approves before a price is final or anything goes out. */
+const Backend={
+  async submitLead(lead){
+    const list=Store.get(K.quotes,[]);
+    const i=list.findIndex(x=>x.id===lead.id);
+    if(i>=0) list[i]=lead; else list.unshift(lead);
+    Store.set(K.quotes,list);
+    return {ok:true, via:'local', sent:false};
+  },
+  async analysePhotos(){
+    return {available:false, reason:'Vision is not connected. Enter the dimensions in the chat.'};
+  },
+  async notifyOwner(lead){
+    return {sent:false, channel:'draft', draft:nicoBody(lead)};
+  }
+};
+
+const TextLLM={
+  endpoint:'https://text.pollinations.ai/openai',
+  model:'openai',
+  timeoutMs:20000,
+  async complete(messages){
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),this.timeoutMs);
+    try{
+      const res=await fetch(this.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:this.model,messages,stream:false}),signal:ctrl.signal});
+      if(!res.ok) throw new Error('The text assistant returned an error ('+res.status+').');
+      const raw=await res.text();
+      let content=raw;
+      try{
+        const data=JSON.parse(raw);
+        content=data?.choices?.[0]?.message?.content||data?.choices?.[0]?.text||data?.content||'';
+      }catch{/* plain text body */}
+      content=String(content||'').trim();
+      if(!content) throw new Error('The text assistant returned an empty reply.');
+      return content;
+    }finally{clearTimeout(timer)}
+  }
+};
+
+const Intake=(()=>{
+  const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, or Marble Luxe), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
+Never give a renovation price, a deposit figure, an ABN, or a QBCC licence number. Never say a price is final. If they ask the cost, say Nico confirms an estimate after a free site measure.
+End every reply with one line:
+FIELDS: {"roomSize":"","style":"","budget":"","timeline":"","suburb":"","name":"","phone":"","email":"","done":false}
+Fill a field only when the client has stated it, using their words. Set done to true only when every field has a value. The lines before FIELDS: are the only words the client sees.`;
+  const GREETING='Hi, I\'m the assistant for Gert\'s Reno. I\'ll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button. This stays on your phone until Nico reviews it. Nothing is sent, and no price is final, until then.\n\nHow big is the bathroom? A length and width, or the floor area, is perfect.';
+  const STEPS=[
+    {id:'roomSize', ask:'How big is the bathroom? A length and width, or the floor area, is perfect.', invalid:'Tell me a size, even a rough one, or tap Not sure yet.', chips:['About 3-4 m2','About 6 m2','Not sure yet']},
+    {id:'style', ask:'Which look is closest?', invalid:'Choose a look, or describe it in a few words.', chips:['Budget Compact','Grey Modern','Beige Copper','Marble Luxe']},
+    {id:'budget', ask:'What budget range should we keep in mind?', invalid:'A budget range helps. A rough one is fine.', chips:['Under $20k','$20-30k','$30k or more','Not sure']},
+    {id:'timeline', ask:'When would you like the work done?', invalid:'When are you hoping to start?', chips:['As soon as we can','In a few months','Just looking']},
+    {id:'suburb', ask:'Which suburb is the bathroom in?', invalid:'I need the suburb to save the lead.', chips:[]},
+    {id:'name', ask:'What name should we put on the project?', invalid:'I need a name for the project.', chips:[]},
+    {id:'phone', ask:'What is the best phone number?', invalid:'I need a phone number with at least 8 digits.', chips:[]},
+    {id:'email', ask:'And an email address?', invalid:'I need an email address like name@example.com.', chips:[]},
+    {id:'photos', ask:'Add photos of the bathroom with the Photo button, or skip.', invalid:'', chips:['Skip photos']}
+  ];
+  const FIELD_KEYS=['roomSize','style','budget','timeline','suburb','name','phone','email'];
+  let bound=false;
+
+  function validPhone(s){return String(s||'').replace(/\D/g,'').length>=8}
+  function validEmail(s){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim())}
+  function parseAssistant(text){
+    const raw=String(text||'');
+    const idx=raw.lastIndexOf('FIELDS:');
+    let message=raw, fields=null;
+    if(idx>=0){
+      message=raw.slice(0,idx).trim();
+      const json=raw.slice(idx+7).trim();
+      const start=json.indexOf('{'), end=json.lastIndexOf('}');
+      if(start>=0&&end>start){try{fields=JSON.parse(json.slice(start,end+1))}catch{fields=null}}
+    }
+    return {message, fields};
+  }
+  function sanitizeAssistant(text){
+    const parts=String(text||'').replace(/FIELDS:[\s\S]*$/,'').trim().split(/(?<=[.!?])\s+/);
+    return parts.filter(part=>part && !/\$\s?\d/.test(part) && !/\bABN\s*\d/i.test(part)).join(' ').trim();
+  }
+  function matchPackage(style){
+    const s=String(style||'').toLowerCase();
+    if(/budget|compact/.test(s)) return 'budget-compact';
+    if(/beige|copper|brass/.test(s)) return 'beige-copper';
+    if(/marble|luxe/.test(s)) return 'marble-luxe';
+    if(/grey|gray|modern/.test(s)) return 'grey-modern';
+    return '';
+  }
+  function applyRoom(text){
+    const t=String(text||'').trim();
+    if(!t||/not sure/i.test(t)) return {mode:'m2',length:'',width:'',area:''};
+    const pair=t.match(/(\d+(?:\.\d+)?)\s*(?:x|×|by)\s*(\d+(?:\.\d+)?)/i);
+    if(pair) return {mode:'lw',length:pair[1],width:pair[2],area:''};
+    if(/3\s*-\s*4/.test(t)) return {mode:'m2',length:'',width:'',area:'4'};
+    const m2=t.match(/(\d+(?:\.\d+)?)\s*(?:m²|m2|sqm|square)/i);
+    if(m2) return {mode:'m2',length:'',width:'',area:m2[1]};
+    const n=t.match(/(\d+(?:\.\d+)?)/);
+    if(n&&+n[1]>0&&+n[1]<40) return {mode:'m2',length:'',width:'',area:n[1]};
+    return {mode:'m2',length:'',width:'',area:''};
+  }
+  function ensureIntake(){
+    if(!quote.intake||!quote.intake.fields){
+      const c=quote.customer||{};
+      const room=quote.room||{};
+      quote.intake={
+        messages:[],
+        fields:{
+          roomSize:room.area?`${room.area} m2`:(room.length?`${room.length} x ${room.width}`:''),
+          style:'', budget:'', timeline:'',
+          suburb:c.suburb||'', name:c.name||'', phone:c.phone||'', email:c.email||''
+        },
+        mode:'llm', photosDone:false, complete:false
+      };
+    }
+    return quote.intake;
+  }
+  function nextField(){
+    const f=quote.intake.fields;
+    for(const step of STEPS){
+      if(step.id==='photos') return quote.intake.photosDone?null:step;
+      if(step.id==='phone'){ if(!validPhone(f.phone)) return step; continue; }
+      if(step.id==='email'){ if(!validEmail(f.email)) return step; continue; }
+      if(!String(f[step.id]||'').trim()) return step;
+    }
+    return null;
+  }
+  function ready(){
+    const f=quote.intake.fields;
+    return !!(String(f.roomSize||'').trim()&&String(f.style||'').trim()&&String(f.budget||'').trim()&&String(f.timeline||'').trim()&&String(f.suburb||'').trim()&&String(f.name||'').trim()&&validPhone(f.phone)&&validEmail(f.email));
+  }
+  function push(role,content){quote.intake.messages.push({role,content})}
+  function mergeFields(fields){
+    if(!fields||typeof fields!=='object') return;
+    for(const key of FIELD_KEYS){
+      const value=String(fields[key]??'').trim();
+      if(value) quote.intake.fields[key]=value;
+    }
+  }
+  function applyFieldsToQuote(){
+    const f=quote.intake.fields;
+    const suburb=f.suburb.trim();
+    quote.customer={name:f.name.trim(),phone:f.phone.trim(),email:f.email.trim(),suburb,address:suburb};
+    const room=applyRoom(f.roomSize);
+    if(room) quote.room=room;
+    const pkg=matchPackage(f.style);
+    if(pkg&&settings.packages.some(p=>p.id===pkg)) quote.packageId=pkg;
+    quote.notes=[f.roomSize&&`Room: ${f.roomSize}`,f.style&&`Style: ${f.style}`,f.budget&&`Budget: ${f.budget}`,f.timeline&&`Timeline: ${f.timeline}`,`Photos: ${(quote.photos||[]).length}`].filter(Boolean).join('\n');
+    if(!quote.stage) quote.stage='New';
+    quote.intake.complete=true;
+  }
+  function pushQuoteToInputs(){
+    const r=quote.room||{mode:'lw',length:'',width:'',area:''};
+    const mode=r.mode==='m2'?'m2':'lw';
+    document.querySelector(`input[name=dimMode][value=${mode}]`).checked=true;
+    $('q-len').value=r.length||''; $('q-wid').value=r.width||''; $('q-area').value=r.area||'';
+    if(quote.packageId&&[...$('q-pkg').options].some(o=>o.value===quote.packageId)) $('q-pkg').value=quote.packageId;
+  }
+  function ask(step){
+    if(!step) return finish();
+    push('assistant', step.ask);
+    render();
+  }
+  function afterAnswer(){
+    if(ready()&&quote.intake.photosDone) return finish();
+    const step=nextField();
+    if(!step) return finish();
+    const last=[...quote.intake.messages].reverse().find(m=>m.role==='assistant');
+    const justAsked=quote.intake.mode==='llm'&&last&&/\?/.test(last.content)&&quote.intake.messages.at(-1).role==='assistant';
+    if(justAsked&&step.id!=='photos'){render();return}
+    ask(step);
+  }
+  function scriptApply(text, step){
+    step=step||nextField();
+    if(!step) return finish();
+    if(step.id==='photos'){
+      if(/skip|no photo|none|done|no thanks|save project/i.test(text)){quote.intake.photosDone=true; return finish()}
+      push('assistant','Use the Photo button, or tap Skip photos.');
+      render();
+      return;
+    }
+    const ok=step.id==='phone'?validPhone(text):step.id==='email'?validEmail(text):!!String(text).trim();
+    if(!ok){push('assistant', step.invalid); render(); return}
+    quote.intake.fields[step.id]=text.trim();
+    return afterAnswer();
+  }
+  function scriptTurn(text){
+    const step=nextField();
+    push('user', text);
+    if(!step){
+      push('assistant','This project is already saved on this phone. Tap Open project, or Start again.');
+      render();
+      return;
+    }
+    scriptApply(text, step);
+  }
+  async function llmTurn(text){
+    const asked=nextField();
+    push('user', text);
+    quote.intake.pending=true;
+    render();
+    try{
+      const reply=await TextLLM.complete(historyForModel());
+      quote.intake.pending=false;
+      const parsed=parseAssistant(reply);
+      mergeFields(parsed.fields);
+      const clean=sanitizeAssistant(parsed.message);
+      if(clean) push('assistant', clean);
+      await afterAnswer();
+    }catch{
+      quote.intake.pending=false;
+      quote.intake.mode='script';
+      push('assistant','I can\'t reach the text assistant, so I\'ll ask one question at a time.');
+      scriptApply(text, asked);
+    }
+  }
+  function historyForModel(){
+    const msgs=[{role:'system',content:SYSTEM}];
+    for(const m of quote.intake.messages.filter(m=>m.role==='user'||m.role==='assistant').slice(-12)) msgs.push({role:m.role,content:m.content});
+    return msgs;
+  }
+  function onSend(text){
+    text=String(text||'').trim();
+    if(!text||!quote||quote.intake.pending||quote.intake.finishing) return;
+    const step=nextField();
+    if(quote.intake.mode==='script'||quote.intake.complete||(step&&step.id==='photos')) scriptTurn(text);
+    else llmTurn(text);
+  }
+  async function addFiles(files){
+    quote.photos=quote.photos||[];
+    const room=Math.max(0,4-quote.photos.length);
+    if(!room){$('chat-err').textContent='You can attach up to 4 photos.';return}
+    const list=[...files];
+    const take=list.slice(0,room);
+    $('chat-err').textContent=list.length>room?'Only 4 photos are kept.':'';
+    let n=0;
+    for(const file of take){
+      try{quote.photos.push(await shrinkPhoto(file)); n++}
+      catch{$('chat-err').textContent='One photo could not be read.'}
+    }
+    if(n) push('assistant', n===1?'Photo added. It stays on this phone.':`${n} photos added. They stay on this phone.`);
+    render();
+  }
+  async function finish(){
+    if(quote.intake.finishing) return;
+    quote.intake.finishing=true;
+    applyFieldsToQuote();
+    pushQuoteToInputs();
+    const ok=await saveQuote();
+    quote.intake.finishing=false;
+    if(!ok){quote.intake.complete=false; push('assistant','I could not save this on the phone. Check the details and try again.'); render(); return}
+    push('assistant', `Saved ${quote.number} on this phone for ${quote.customer.name}. Nico reviews it before any price is final and before anything is sent.`);
+    render();
+  }
+  function resetChat(){
+    quote.intake=null;
+    quote.customer={name:'',phone:'',email:'',suburb:'',address:''};
+    quote.notes='';
+    quote.photos=[];
+    quote.stage='New';
+    ensureIntake();
+    quote.intake.messages.push({role:'assistant',content:GREETING});
+    render();
+  }
+  function render(){
+    if(!quote) return;
+    const intake=ensureIntake();
+    const log=$('chat-log');
+    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
+    log.scrollTop=log.scrollHeight;
+    const chips=$('chat-chips');
+    if(intake.complete){
+      chips.innerHTML='<button type="button" class="chip" data-act="open">Open project</button><button type="button" class="chip" data-act="reset">Start again</button>';
+    }else{
+      const step=nextField();
+      chips.innerHTML=(step?.chips||[]).map(label=>`<button type="button" class="chip" data-act="send" data-value="${esc(label)}">${esc(label)}</button>`).join('');
+    }
+    $('assist-mode').textContent=intake.mode==='script'
+      ?'Asking the questions directly. The text assistant is unavailable. Nothing is sent until Nico reviews it.'
+      :'You can type in your own words. Nothing is sent until Nico reviews it.';
+    const send=$('chat-form').querySelector('button[type=submit]');
+    send.disabled=!!intake.pending;
+    renderPhotos();
+  }
+  function sync(){
+    if(!quote) return;
+    bind();
+    const intake=ensureIntake();
+    if(!intake.messages.length){
+      const step=nextField();
+      intake.messages.push({role:'assistant', content:!step||step.id==='roomSize'?GREETING:(step.ask)});
+    }
+    render();
+  }
+  function bind(){
+    if(bound) return;
+    bound=true;
+    $('chat-form').addEventListener('submit',e=>{e.preventDefault(); const text=$('chat-text').value; $('chat-text').value=''; onSend(text)});
+    $('chat-chips').addEventListener('click',e=>{
+      const btn=e.target.closest('[data-act]');
+      if(!btn) return;
+      if(btn.dataset.act==='send') onSend(btn.dataset.value);
+      if(btn.dataset.act==='open') document.querySelector('nav button[data-view=quote]').click();
+      if(btn.dataset.act==='reset') resetChat();
+    });
+    $('chat-photo').onclick=()=>$('chat-file').click();
+    $('chat-file').addEventListener('change',async e=>{
+      const files=[...e.target.files||[]];
+      e.target.value='';
+      if(files.length) await addFiles(files);
+    });
+    $('chat-photos').addEventListener('click',e=>{
+      const id=e.target.dataset.rmphoto;
+      if(!id||!quote) return;
+      quote.photos=(quote.photos||[]).filter(p=>p.id!==id);
+      render();
+    });
+  }
+  return {sync, parseAssistant, sanitizeAssistant, matchPackage, applyRoom};
+})();
+window.Intake=Intake;
+window.Backend=Backend;
+window.TextLLM=TextLLM;
 
 async function boot(){
   try{
