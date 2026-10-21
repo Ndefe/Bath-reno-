@@ -7,7 +7,8 @@
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0e7c86;--acc2:#e9f5f6;--line:#dde3ea;--danger:#c0392b}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;min-height:100dvh;display:flex;flex-direction:column}
+body.on-assist{height:100dvh;overflow:hidden}
 header.app{background:var(--ink);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 header.app h1{font-size:18px;margin:0}
 .brand-lockup{display:flex;align-items:center;gap:10px;min-width:0}
@@ -19,11 +20,11 @@ header.app h1{font-size:18px;margin:0}
 nav{display:flex;flex-wrap:wrap;gap:4px}
 nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin:0;cursor:pointer;font-size:14px}
 nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
-main{max-width:1150px;margin:0 auto;padding:16px}
+main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
 .view{display:none}.view.active{display:block}
-#view-assist.active{display:flex;flex-direction:column}
-.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:calc(100dvh - 132px);margin-bottom:0}
-.chat-log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+#view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0}
+.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:hidden;margin-bottom:0}
+.chat-log{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
@@ -35,6 +36,11 @@ main{max-width:1150px;margin:0 auto;padding:16px}
 .chat-bar .btn{min-height:44px}
 #chat-err:empty{display:none}
 #chat-err{color:var(--danger)}
+.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:46dvh;overflow:auto;flex:none}
+.chat-bar,.chips,.photo-list{flex:none}
+.photo-check h3{margin:0 0 6px;font-size:15px}
+.checks label{display:flex;gap:8px;align-items:center;color:var(--ink);margin:6px 0}
+.checks input{width:auto}
 .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
@@ -172,7 +178,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
 </head>
-<body>
+<body class="on-assist">
 <header class="app">
   <div class="brand-lockup">
     <img id="brand-logo" alt="" hidden>
@@ -197,6 +203,25 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
       <div id="chat-chips" class="chips"></div>
       <div id="chat-photos" class="photo-list"></div>
+      <div id="photo-check" class="photo-check" hidden>
+        <h3>Check the bathroom</h3>
+        <p class="hint" id="photo-vision">Vision is not connected. Enter the dimensions yourself.</p>
+        <div class="row3">
+          <div><label for="an-len">Length (m)</label><input id="an-len" inputmode="decimal" autocomplete="off"></div>
+          <div><label for="an-wid">Width (m)</label><input id="an-wid" inputmode="decimal" autocomplete="off"></div>
+          <div><label for="an-area">Area (m²)</label><input id="an-area" inputmode="decimal" autocomplete="off"></div>
+        </div>
+        <div class="checks">
+          <label><input id="an-retile" type="checkbox"> Retile</label>
+          <label><input id="an-relocate" type="checkbox"> Relocate fixtures</label>
+          <label><input id="an-waterproof" type="checkbox"> Waterproof</label>
+        </div>
+        <div class="actions">
+          <button class="btn" id="an-confirm" type="button">Confirm details</button>
+          <button class="btn sec" id="an-correct" type="button">Correct</button>
+        </div>
+        <p class="hint" id="an-status"></p>
+      </div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
         <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
@@ -228,6 +253,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div class="card" id="lead-card"><h2>Client</h2>
           <p class="hint">Name, phone, email, suburb, room and photos are collected in the assistant. Nothing is sent until Nico reviews it.</p>
           <p id="lead-summary">No client details yet.</p>
+          <p id="analysis-summary" class="hint"></p>
           <button class="btn book" id="btn-book" type="button">Open assistant</button>
           <p class="hint" id="lead-err" role="alert"></p>
         </div>
@@ -547,6 +573,24 @@ function renderLeadSummary(){
   const c=quote.customer||{};
   const bits=[c.name,c.phone,c.email,c.suburb].filter(Boolean);
   el.textContent=bits.length?bits.join(' · '):'No client details yet. Use Start to talk to the assistant.';
+  renderAnalysisSummary();
+}
+function renderAnalysisSummary(){
+  const el=$('analysis-summary');
+  if(!el||!quote) return;
+  const a=quote.analysis;
+  if(!a){
+    el.textContent='Photo vision is not connected. Dimensions are entered by you.';
+    return;
+  }
+  const d=a.dimensions||{};
+  const size=(+d.length>0&&+d.width>0)?`${d.length} m × ${d.width} m`:(String(d.area||'').trim()?`${d.area} m²`:'Size not entered');
+  const flags=[];
+  if(a.flags&&a.flags.retile) flags.push('retile');
+  if(a.flags&&a.flags.relocate) flags.push('relocate fixtures');
+  if(a.flags&&a.flags.waterproof) flags.push('waterproof');
+  const vision=a.available?'A vision estimate is there for you to check.':'Photo vision is not connected.';
+  el.textContent=`${size} · ${flags.length?flags.join(', '):'no condition flags'} · ${a.confirmed?'confirmed by you':'not confirmed yet'}. ${vision}`;
 }
 function showLeadErr(msg){$('lead-err').textContent=msg||''}
 function leadProblems(){
@@ -900,6 +944,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   document.body.classList.toggle('on-quote',b.dataset.view==='quote');
+  document.body.classList.toggle('on-assist',b.dataset.view==='assist');
   if(b.dataset.view==='quote') update();
   if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
@@ -1033,8 +1078,18 @@ const Backend={
     Store.set(K.quotes,list);
     return {ok:true, via:'local', sent:false};
   },
-  async analysePhotos(){
-    return {available:false, reason:'Vision is not connected. Enter the dimensions in the chat.'};
+  async analysePhotos(photos){
+    const provider=window.PhotoVision?PhotoVision.current():null;
+    const count=Array.isArray(photos)?photos.length:0;
+    if(!provider||provider.available===false){
+      return {available:false, provider:provider&&provider.id||null, reason:(provider&&provider.reason)||'Vision is not connected. Enter the dimensions yourself.', dimensions:null, flags:null, photos:count};
+    }
+    try{
+      const result=await provider.analyse(photos||[]);
+      return {available:true, provider:provider.id, dimensions:result&&result.dimensions||null, flags:result&&result.flags||null, photos:count};
+    }catch{
+      return {available:false, provider:provider.id, reason:'Vision could not read the photos. Enter the dimensions yourself.', dimensions:null, flags:null, photos:count};
+    }
   },
   async notifyOwner(lead){
     return {sent:false, channel:'draft', draft:nicoBody(lead)};
@@ -1080,7 +1135,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     {id:'name', ask:'What name should we put on the project?', invalid:'I need a name for the project.', chips:[]},
     {id:'phone', ask:'What is the best phone number?', invalid:'I need a phone number with at least 8 digits.', chips:[]},
     {id:'email', ask:'And an email address?', invalid:'I need an email address like name@example.com.', chips:[]},
-    {id:'photos', ask:'Add photos of the bathroom with the Photo button, or skip.', invalid:'', chips:['Skip photos']}
+    {id:'photos', ask:'Add photos with the Photo button if you have them, then check the size and condition below. Skip photos if you have none.', invalid:'', chips:['Skip photos']}
   ];
   const FIELD_KEYS=['roomSize','style','budget','timeline','suburb','name','phone','email'];
   let bound=false;
@@ -1265,10 +1320,19 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(n) push('assistant', n===1?'Photo added. It stays on this phone.':`${n} photos added. They stay on this phone.`);
     render();
   }
+  function phase(){
+    if(!quote||!quote.intake) return 'chat';
+    if(quote.intake.complete) return 'done';
+    const step=nextField();
+    return step?step.id:'chat';
+  }
   async function finish(){
     if(quote.intake.finishing) return;
     quote.intake.finishing=true;
+    if(window.PhotoCheck) PhotoCheck.capture();
+    const kept=quote.analysis&&quote.analysis.confirmed?{...quote.room}:null;
     applyFieldsToQuote();
+    if(kept) quote.room=kept;
     pushQuoteToInputs();
     const ok=await saveQuote();
     quote.intake.finishing=false;
@@ -1278,10 +1342,14 @@ Fill a field only when the client has stated it, using their words. Set done to 
   }
   function resetChat(){
     quote.intake=null;
+    quote.analysis=null;
     quote.customer={name:'',phone:'',email:'',suburb:'',address:''};
     quote.notes='';
     quote.photos=[];
+    quote.room={mode:'lw',length:'',width:'',area:''};
     quote.stage='New';
+    pushQuoteToInputs();
+    if(window.PhotoCheck) PhotoCheck.clearBound();
     ensureIntake();
     quote.intake.messages.push({role:'assistant',content:GREETING});
     render();
@@ -1305,6 +1373,8 @@ Fill a field only when the client has stated it, using their words. Set done to 
     const send=$('chat-form').querySelector('button[type=submit]');
     send.disabled=!!intake.pending;
     renderPhotos();
+    renderAnalysisSummary();
+    if(window.PhotoCheck) PhotoCheck.sync();
   }
   function sync(){
     if(!quote) return;
@@ -1340,11 +1410,189 @@ Fill a field only when the client has stated it, using their words. Set done to 
       render();
     });
   }
-  return {sync, parseAssistant, sanitizeAssistant, matchPackage, applyRoom};
+  return {sync, phase, parseAssistant, sanitizeAssistant, matchPackage, applyRoom};
 })();
 window.Intake=Intake;
 window.Backend=Backend;
 window.TextLLM=TextLLM;
+
+/* Vision providers plug in here. None is registered: the free text model cannot see photos. */
+const PhotoVision={
+  providers:Object.create(null),
+  selected:null,
+  register(provider){
+    if(!provider||!provider.id||typeof provider.analyse!=='function') throw new Error('A vision provider needs an id and analyse().');
+    this.providers[provider.id]=provider;
+  },
+  use(id){this.selected=id&&this.providers[id]?this.providers[id]:null},
+  current(){return this.selected}
+};
+window.PhotoVision=PhotoVision;
+
+const PhotoCheck=(()=>{
+  let bound=false, visionKey='';
+  function blank(){
+    return {available:false, source:'client', provider:null, dimensions:{length:'',width:'',area:''}, flags:{retile:false,relocate:false,waterproof:false}, confirmed:false, flagsTouched:false};
+  }
+  function ensureAnalysis(){
+    if(!quote.analysis){
+      const fromText=quote.intake&&quote.intake.fields?Intake.applyRoom(quote.intake.fields.roomSize):null;
+      const room=quote.room||{};
+      const src=fromText&&(fromText.length||fromText.area)?fromText:room;
+      quote.analysis=blank();
+      quote.analysis.dimensions={length:src.length||'', width:src.width||'', area:src.area||''};
+    }
+    const a=quote.analysis;
+    a.dimensions=a.dimensions||{length:'',width:'',area:''};
+    a.flags=a.flags||{retile:false,relocate:false,waterproof:false};
+    return a;
+  }
+  function fillInputs(){
+    const panel=$('photo-check');
+    if(!panel||!quote) return;
+    if(panel.dataset.bound===String(quote.id||'')) return;
+    const a=ensureAnalysis();
+    $('an-len').value=a.dimensions.length||'';
+    $('an-wid').value=a.dimensions.width||'';
+    $('an-area').value=a.dimensions.area||'';
+    $('an-retile').checked=!!a.flags.retile;
+    $('an-relocate').checked=!!a.flags.relocate;
+    $('an-waterproof').checked=!!a.flags.waterproof;
+    panel.dataset.bound=String(quote.id||'');
+    writeStatus();
+  }
+  function readInputs(){
+    const a=ensureAnalysis();
+    a.dimensions={length:String($('an-len').value||'').trim(), width:String($('an-wid').value||'').trim(), area:String($('an-area').value||'').trim()};
+    a.flags={retile:$('an-retile').checked, relocate:$('an-relocate').checked, waterproof:$('an-waterproof').checked};
+    a.source='client';
+    return a;
+  }
+  function writeStatus(){
+    const el=$('an-status');
+    if(!el||!quote||!quote.analysis) return;
+    el.textContent=quote.analysis.confirmed
+      ?'Confirmed by you. Vision has not measured the photos.'
+      :'Enter the size, tick what applies, then confirm. Vision has not measured the photos.';
+  }
+  function pushRoom(){
+    const r=quote.room||{mode:'lw',length:'',width:'',area:''};
+    const mode=r.mode==='m2'?'m2':'lw';
+    document.querySelector(`input[name=dimMode][value=${mode}]`).checked=true;
+    $('q-len').value=r.length||'';
+    $('q-wid').value=r.width||'';
+    $('q-area').value=r.area||'';
+  }
+  function confirm(){
+    const a=readInputs();
+    const len=+a.dimensions.length, wid=+a.dimensions.width, area=+a.dimensions.area;
+    const hasLW=len>0&&wid>0, hasArea=area>0;
+    if(!hasLW&&!hasArea){
+      a.confirmed=false;
+      $('an-status').textContent='Enter a length and width, or an area, then confirm.';
+      renderAnalysisSummary();
+      return false;
+    }
+    if(hasLW){
+      a.dimensions.area=String(Math.round(len*wid*100)/100);
+      $('an-area').value=a.dimensions.area;
+      quote.room={mode:'lw', length:String(len), width:String(wid), area:''};
+      if(quote.intake&&quote.intake.fields) quote.intake.fields.roomSize=`${len} x ${wid}`;
+    }else{
+      quote.room={mode:'m2', length:'', width:'', area:String(area)};
+      if(quote.intake&&quote.intake.fields) quote.intake.fields.roomSize=`${area} m2`;
+    }
+    a.confirmed=true;
+    a.source='client';
+    pushRoom();
+    writeStatus();
+    renderAnalysisSummary();
+    if(catalogue) update();
+    return true;
+  }
+  function correct(){
+    const a=ensureAnalysis();
+    a.confirmed=false;
+    $('an-status').textContent='Correct the size or the ticks, then confirm again.';
+    renderAnalysisSummary();
+  }
+  function markChanged(){
+    if(!quote||!quote.analysis) return;
+    quote.analysis.confirmed=false;
+    $('an-status').textContent='Changed. Confirm again so the project uses these details.';
+    renderAnalysisSummary();
+  }
+  function onFlag(){
+    if(!quote||!quote.analysis) return;
+    quote.analysis.flagsTouched=true;
+    markChanged();
+  }
+  async function refreshVision(){
+    if(!quote) return;
+    const provider=PhotoVision.current();
+    const key=(quote.photos||[]).map(p=>p.id).join(',')+'|'+(provider&&provider.id||'');
+    if(key===visionKey) return;
+    visionKey=key;
+    const result=await Backend.analysePhotos(quote.photos||[]);
+    if(!quote||key!==visionKey) return;
+    const a=ensureAnalysis();
+    a.available=!!result.available;
+    a.provider=result.provider||null;
+    const hint=$('photo-vision');
+    if(hint) hint.textContent=result.available
+      ?'A vision estimate is filled in below where a box was empty. Check it, then confirm or correct it. It is not a site measure.'
+      :(result.reason||'Vision is not connected. Enter the dimensions yourself.');
+    if(result.available&&!a.confirmed&&result.dimensions){
+      for(const k of ['length','width','area']){
+        if(!String(a.dimensions[k]||'').trim()&&result.dimensions[k]!=null&&String(result.dimensions[k]).trim()!==''){
+          a.dimensions[k]=String(result.dimensions[k]);
+          const input=$('an-'+({length:'len',width:'wid',area:'area'}[k]));
+          if(input&&!String(input.value||'').trim()) input.value=a.dimensions[k];
+        }
+      }
+    }
+    if(result.available&&!a.confirmed&&!a.flagsTouched&&result.flags){
+      a.flags={retile:!!result.flags.retile, relocate:!!result.flags.relocate, waterproof:!!result.flags.waterproof};
+      $('an-retile').checked=a.flags.retile;
+      $('an-relocate').checked=a.flags.relocate;
+      $('an-waterproof').checked=a.flags.waterproof;
+    }
+    if(!result.available) writeStatus();
+    renderAnalysisSummary();
+  }
+  function show(){
+    const panel=$('photo-check');
+    if(!panel||!quote) return;
+    const on=Intake.phase()==='photos'||Intake.phase()==='done';
+    panel.hidden=!on;
+    if(!on) return;
+    fillInputs();
+    refreshVision();
+  }
+  function capture(){
+    const panel=$('photo-check');
+    if(!panel||panel.hidden||!quote) return;
+    const was=quote.analysis&&quote.analysis.confirmed;
+    readInputs();
+    if(quote.analysis) quote.analysis.confirmed=!!was;
+  }
+  function clearBound(){
+    visionKey='';
+    const panel=$('photo-check');
+    if(panel) panel.dataset.bound='';
+  }
+  function bind(){
+    if(bound) return;
+    bound=true;
+    $('an-confirm').onclick=()=>confirm();
+    $('an-correct').onclick=()=>correct();
+    ['an-len','an-wid','an-area'].forEach(id=>$(id).addEventListener('input', markChanged));
+    ['an-retile','an-relocate','an-waterproof'].forEach(id=>$(id).addEventListener('change', onFlag));
+  }
+  function sync(){bind(); show()}
+  return {sync, confirm, capture, clearBound, ensureAnalysis};
+})();
+window.PhotoCheck=PhotoCheck;
 
 async function boot(){
   try{
