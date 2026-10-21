@@ -34,6 +34,17 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .pipe{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
 .pipe .score{font-weight:700;margin:6px 0}
+.review-draft{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
+.review-draft h3{font-size:15px;margin:0 0 4px}
+.review-draft textarea{min-height:88px;font-size:16px}
+.gal-job h2{margin-bottom:4px}
+.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ba-before{clip-path:inset(0 calc(100% - var(--pos, 50%)) 0 0)}
+.ba-bar{position:absolute;top:0;bottom:0;left:var(--pos, 50%);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
+.ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.ba-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px}
+.ba-missing{margin:8px 0 0}
 .chat-bar{display:flex;gap:8px;align-items:center}
 .chat-bar input{flex:1;min-width:0;font-size:16px;min-height:44px}
 .chat-bar .btn{min-height:44px}
@@ -178,7 +189,7 @@ select{max-width:100%}
 header.app{position:sticky;top:0;z-index:20}
 @media(max-width:520px){
   header.app{padding:10px 12px}header.app h1{font-size:15px}
-  nav{display:flex;width:100%;gap:4px}nav button{flex:1;margin:0;padding:8px 4px}
+  nav{display:flex;width:100%;gap:4px}nav button{flex:1 1 auto;margin:0;padding:8px 8px;font-size:13px}
   .row3{grid-template-columns:1fr 1fr 1fr}
   main{padding:10px}
   .pl-stage{height:52vh;min-height:300px}
@@ -212,6 +223,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <button data-view="quote">Quote</button>
     <button data-view="planner">Planner</button>
     <button data-view="saved">Projects</button>
+    <button data-view="gallery">Gallery</button>
     <button data-view="pipeline">Pipeline</button>
     <button data-view="settings">Settings</button>
   </nav>
@@ -399,6 +411,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div id="saved-list"></div>
   </div></section>
 
+  <section class="view" id="view-gallery" aria-label="Before and after gallery">
+    <div id="gallery-root"></div>
+  </section>
+
   <section class="view" id="view-pipeline" aria-label="Owner pipeline">
     <div class="card" id="pipe-lock">
       <h2>Owner pipeline</h2>
@@ -445,6 +461,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <label for="s-pin">Owner PIN</label>
       <input id="s-pin" type="password" inputmode="numeric" autocomplete="off" spellcheck="false">
       <p class="hint">Unlocks the pipeline on this phone. It is not a password for the leads, and it is stored only in this browser.</p>
+      <label for="s-google-review">Google review link</label>
+      <input id="s-google-review" type="url" inputmode="url" autocomplete="off" placeholder="https://">
+      <p class="hint">Leave this blank until you paste the link from your Google Business profile. When a lead is marked Won, the pipeline can draft a review request. Nothing is sent automatically. This app does not show star ratings or testimonials.</p>
       <label for="s-nico">Send to Nico (email)</label>
       <input id="s-nico" type="email" autocomplete="off" placeholder="name@example.com">
       <label for="s-lead-url">Lead form endpoint (optional)</label>
@@ -484,7 +503,7 @@ let catalogue=null, settings, quote, defaults, shownPkg=null;
 function buildDefaults(cat){
   return {
     bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email', validDays:30,
-    abn:'', qbcc:'', logo:'',
+    abn:'', qbcc:'', logo:'', googleReviewUrl:'',
     depositUnderPct:10, depositOverPct:5,
     progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
     packages:cat.packages.map(p=>({
@@ -943,6 +962,60 @@ async function copyFollow(text, okMsg){
   }
   $('fu-status').textContent=ok?okMsg:'Could not copy. Select the draft and copy it yourself. Nothing was sent.';
 }
+const REVIEW_MISSING='[Google review link not added yet - add it in Settings]';
+function reviewDrafts(q){
+  const c=q.customer||{};
+  const name=(c.name||'').trim()||'there';
+  const link=String(settings.googleReviewUrl||'').trim();
+  const spot=link||REVIEW_MISSING;
+  const sms=`Hi ${name}, it's Nico from Gert's Reno. Thanks for having us renovate the bathroom. If you were happy with the work, you can leave a Google review here: ${spot}`;
+  const subject='Google review, if you were happy with the bathroom';
+  const email=`Hi ${name},\n\nThanks for having Gert's Reno renovate the bathroom.\n\nIf you were happy with the work, you can leave a Google review here:\n${spot}\n\nNo worries if not.\n\nGert's Reno`;
+  return {sms,subject,email,missing:!link};
+}
+function reviewBlock(q){
+  const d=reviewDrafts(q);
+  const prev=q.reviewRequest||{};
+  const same=prev.sms===d.sms&&prev.email===d.email&&prev.subject===d.subject;
+  const approved=!!prev.approved&&same;
+  const id=esc(q.id);
+  const to=String((q.customer&&q.customer.email)||'').trim().replace(/[\r\n]/g,'');
+  const mail=approved?`mailto:${to}?subject=${encodeURIComponent(d.subject)}&body=${encodeURIComponent(d.email)}`:'';
+  const hint=d.missing
+    ?'The Google review link is blank. The draft marks that spot. Add the link in Settings before you send this. Nothing is sent automatically.'
+    :'Draft only. Approve the wording before copying or emailing. Nothing is sent automatically.';
+  const status=approved
+    ?'Wording approved on this phone. Copy or open the email draft. You still send it yourself.'
+    :'Draft only. Nothing is sent automatically.';
+  return `<div class="follow review-draft" data-review="${id}">
+    <h3>Review request</h3>
+    <p class="hint">${hint}</p>
+    <label for="rv-sms-${id}">SMS</label>
+    <textarea id="rv-sms-${id}" readonly>${esc(d.sms)}</textarea>
+    <label for="rv-subject-${id}">Subject</label>
+    <input id="rv-subject-${id}" readonly value="${esc(d.subject)}">
+    <label for="rv-email-${id}">Email</label>
+    <textarea id="rv-email-${id}" readonly>${esc(d.email)}</textarea>
+    <div class="checkline"><input id="rv-approve-${id}" data-rv-approve="${id}" type="checkbox"${approved?' checked':''}><label for="rv-approve-${id}">I approve this wording</label></div>
+    <div class="actions">
+      <button class="btn sm" type="button" data-rv-copy="sms" data-rv-id="${id}"${approved?'':' disabled'}>Copy SMS</button>
+      <button class="btn sm sec" type="button" data-rv-copy="email" data-rv-id="${id}"${approved?'':' disabled'}>Copy email</button>
+      <a class="btn sm sec" data-rv-mail="${id}"${approved?` href="${esc(mail)}"`:' hidden'}>Open email draft</a>
+    </div>
+    <p class="hint" data-rv-status="${id}">${status}</p>
+  </div>`;
+}
+async function copyText(text){
+  try{await navigator.clipboard.writeText(text);return true}
+  catch{
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();
+    let ok=false;
+    try{ok=!!document.execCommand('copy')}catch{ok=false}
+    ta.remove();
+    return ok;
+  }
+}
 function legalBits(){
   const abn=String(settings.abn||'').trim();
   const qbcc=String(settings.qbcc||'').trim();
@@ -1090,6 +1163,7 @@ function renderSettings(){
   else{preview.removeAttribute('src');preview.hidden=true;preview.alt=''}
   $('s-render-key').value=settings.renderApiKey||'';
   $('s-pin').value=settings.ownerPin||'';
+  $('s-google-review').value=settings.googleReviewUrl||'';
   $('s-nico').value=settings.nicoEmail||'';
   $('s-lead-url').value=settings.leadEndpoint||'';
   $('s-lead-key').value=settings.leadAccessKey||'';
@@ -1111,6 +1185,7 @@ function readSettings(){
   settings.warranty=$('s-warranty').value||DEFAULT_WARRANTY;
   settings.renderApiKey=($('s-render-key').value||'').trim();
   settings.ownerPin=($('s-pin').value||'').trim();
+  settings.googleReviewUrl=($('s-google-review').value||'').trim();
   settings.nicoEmail=($('s-nico').value||'').trim();
   settings.leadEndpoint=($('s-lead-url').value||'').trim();
   settings.leadAccessKey=($('s-lead-key').value||'').trim();
@@ -1181,9 +1256,65 @@ function renderPipeline(){
     const stage=STAGES.includes(q.stage)?q.stage:'New';
     const price=q.estimate&&q.estimate.priceText?q.estimate.priceText:(+q.total?`from ${fmt(q.total)} incl. GST, subject to site measure`:'Size not priced');
     const opts=STAGES.map(s=>`<option${s===stage?' selected':''}>${esc(s)}</option>`).join('');
-    return `<article class="pipe"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div><label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select></article>`;
+    return `<article class="pipe"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div><label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${stage==='Won'?reviewBlock(q):''}</article>`;
   }).join(''):'<p class="hint">No leads in this stage.</p>';
 }
+function galleryPath(p){
+  const s=String(p||'').trim();
+  return /^gallery\/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpe?g|png|webp)$/i.test(s)?s:'';
+}
+function galleryCard(job){
+  const suburb=String(job&&job.suburb||'').trim()||'Suburb not set';
+  const pkgName=String(job&&(job.package||job.packageName)||'').trim()||'Package not set';
+  const note=String(job&&job.note||'').trim();
+  const before=galleryPath(job&&job.before);
+  const after=galleryPath(job&&job.after);
+  const photos=before&&after
+    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
+    :`<p class="hint ba-missing">This job needs a before photo and an after photo in the gallery folder.</p>`;
+  return `<article class="card gal-job"><h2>${esc(suburb)}</h2><p class="hint">${esc(pkgName)}</p>${note?`<p>${esc(note)}</p>`:''}${photos}</article>`;
+}
+const Gallery={
+  async show(){
+    const root=$('gallery-root');
+    if(!root) return;
+    root.innerHTML='<div class="card"><h2>Gallery</h2><p class="hint">Loading the job list.</p></div>';
+    try{
+      const res=await fetch('gallery.json',{cache:'no-store'});
+      if(!res.ok) throw new Error(String(res.status));
+      this.render(await res.json());
+    }catch{
+      root.innerHTML='<div class="card"><h2>Gallery</h2><p>First jobs coming soon.</p><p class="hint">The job list could not be read. Completed bathrooms will appear here once real before and after photos are added.</p></div>';
+    }
+  },
+  render(data){
+    const root=$('gallery-root');
+    if(!root) return;
+    const jobs=Array.isArray(data&&data.jobs)?data.jobs.filter(j=>j&&typeof j==='object'):[];
+    if(!jobs.length){
+      root.innerHTML='<div class="card"><h2>Gallery</h2><p>First jobs coming soon.</p><p class="hint">Completed bathrooms will appear here with a before and after photo, the suburb, and the package used. There are no finished jobs to show yet.</p></div>';
+      return;
+    }
+    root.innerHTML=jobs.map(galleryCard).join('');
+  }
+};
+window.Gallery=Gallery;
+$('gallery-root').addEventListener('input',e=>{
+  if(!e.target.dataset||e.target.dataset.ba==null) return;
+  const ba=e.target.closest('.ba');
+  if(ba) ba.style.setProperty('--pos',`${e.target.value}%`);
+});
+$('gallery-root').addEventListener('error',e=>{
+  const img=e.target;
+  if(!img||img.tagName!=='IMG') return;
+  const ba=img.closest('.ba');
+  if(!ba||ba.dataset.broken) return;
+  ba.dataset.broken='1';
+  const note=document.createElement('p');
+  note.className='hint ba-missing';
+  note.textContent='A photo file for this job is missing from the gallery folder.';
+  ba.replaceWith(note);
+},true);
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
@@ -1192,6 +1323,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='quote') update();
   if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
+  if(b.dataset.view==='gallery'&&window.Gallery) Gallery.show();
   if(b.dataset.view==='pipeline') renderPipeline();
   if(b.dataset.view==='planner') Planner.show();
   if(b.dataset.view==='settings') renderSettings();
@@ -1258,16 +1390,49 @@ $('pipe-chips').addEventListener('click',e=>{
   pipeFilter=b.dataset.stage;
   renderPipeline();
 });
+function recFor(id){
+  return Store.get(K.quotes,[]).find(x=>x.id===id)||null;
+}
 $('pipe-list').addEventListener('change',async e=>{
+  if(!ownerOpen) return;
+  if(e.target.dataset.rvApprove){
+    const rec=recFor(e.target.dataset.rvApprove);
+    if(!rec) return;
+    const d=reviewDrafts(rec);
+    rec.reviewRequest={sms:d.sms,subject:d.subject,email:d.email,approved:!!e.target.checked,approvedAt:e.target.checked?new Date().toISOString():null};
+    if(quote&&quote.id===rec.id) quote.reviewRequest=structuredClone(rec.reviewRequest);
+    try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that draft on this phone. Nothing was sent.'}
+    renderPipeline();
+    return;
+  }
   const id=e.target.dataset.pipe;
-  if(!id||!ownerOpen) return;
-  const list=Store.get(K.quotes,[]);
-  const rec=list.find(x=>x.id===id);
+  if(!id) return;
+  const rec=recFor(id);
   if(!rec) return;
   rec.stage=e.target.value;
   if(quote&&quote.id===id) quote.stage=rec.stage;
+  if(rec.stage==='Won'&&pipeFilter!=='All'&&pipeFilter!=='Won') pipeFilter='All';
   try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that stage on this phone.'}
   renderPipeline();
+  if(rec.stage==='Won'){
+    const card=document.querySelector(`[data-review="${rec.id}"]`);
+    if(card) card.scrollIntoView({block:'center'});
+  }
+});
+$('pipe-list').addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-rv-copy]');
+  if(!btn||btn.disabled) return;
+  const rec=recFor(btn.dataset.rvId);
+  if(!rec||!rec.reviewRequest||!rec.reviewRequest.approved) return;
+  const d=reviewDrafts(rec);
+  const same=rec.reviewRequest.sms===d.sms&&rec.reviewRequest.email===d.email&&rec.reviewRequest.subject===d.subject;
+  if(!same) return;
+  const text=btn.dataset.rvCopy==='sms'?d.sms:`Subject: ${d.subject}\n\n${d.email}`;
+  const ok=await copyText(text);
+  const status=document.querySelector(`[data-rv-status="${rec.id}"]`);
+  if(status) status.textContent=ok
+    ?(btn.dataset.rvCopy==='sms'?'SMS copied. Paste it into your phone. Nothing was sent.':'Email copied. Paste it into your mail app. Nothing was sent.')
+    :'Could not copy. Select the draft and copy it yourself. Nothing was sent.';
 });
 $('btn-book').onclick=()=>document.querySelector('nav button[data-view=assist]').click();
 $('saved-list').onclick=e=>{
@@ -1286,7 +1451,7 @@ $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settin
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
 $('s-save').onclick=()=>{const prev=settings.ownerPin||'';readSettings();if((settings.ownerPin||'')!==prev) ownerOpen=false;Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
@@ -1998,6 +2163,7 @@ async function boot(){
     if(settings.depositOverPct==null) settings.depositOverPct=5;
     if(!settings.progressPayments) settings.progressPayments=DEFAULT_PROGRESS;
     if(!settings.warranty) settings.warranty=DEFAULT_WARRANTY;
+    if(settings.googleReviewUrl==null) settings.googleReviewUrl='';
   }
   loadQuoteToForm(newQuote());
   if($('view-planner').classList.contains('active')) Planner.show();
