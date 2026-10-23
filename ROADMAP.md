@@ -29,6 +29,7 @@ These rules sit above the feature list. They do not change the site.
 - A draft marketing kit: a local QR code, a one-page A4 flyer, eight social captions, and two outreach notes. Nothing is sent
 - A 15-minute Google Business Profile checklist, with the description and service list written out
 - Share buttons, an add-to-home-screen prompt, and a smaller first load. The 3D planner loads only when it is opened
+- The chat reserves its space on first paint. Button text meets 4.5:1 contrast. Product photos are smaller and lazy-loaded. Suburb pages link a favicon
 - A client can request a free site measure after seeing an estimate. Nico sets the days and times. The request is saved on the lead as Measure requested. Nothing is booked or sent on its own
 - The assistant answers cost, inclusions, waterproofing, and timing from facts on this site before it calls the text model. It does not invent a week-by-week program
 - On a phone, the opening question has the tall part of the chat, so "How big is the bathroom?" is fully on screen at 360×740 and 375×667. When Check the bathroom is open, the log stays at least 120px and the form keeps the rest of the screen. The estimate sits under the form in that scroll, so it does not cover Confirm details or the Waterproof tick. Typing a length and width updates the area straight away, and Confirm applies that size to the room and the total. An area with no length or width prices from that area. The planner draws a default shape and does not change the area
@@ -48,6 +49,7 @@ These rules sit above the feature list. They do not change the site.
 - Chat privacy. The greeting no longer says "Nothing is sent". It says chat text and AI render prompts go to Pollinations, a free third-party AI service, and asks people not to type a phone number, email or street address. The same note sits above the chat and on the AI render card.
 - Public prices. The catalogue served on the site keeps sell rates only. Supplier prices, cost assumptions, and the margin are not in that file. A large-format wall, such as Marble Luxe 600×1200, uses the higher tiling sell rate. Names on the site do not include supplier RRPs. A margin box in Settings stays closed and blank, and a number typed there stays on that phone. It does not change a from-price. GitHub Pages uploads the site files into `_site`, including `favicon.ico`, and leaves out `docs/`, `ROADMAP.md`, `tools/`, and `marketing/`.
 - Owner PIN wording. Settings and the pipeline say the PIN is a convenience lock only, not security, and that nothing sensitive should be stored in this app.
+- Layout and images. The chat keeps its height so the first paint does not jump. Buttons use a darker teal so the text contrast is at least 4.5:1. Product photos are smaller and load lazily. A favicon is linked from the suburb pages.
 - A referral code typed on the quote is saved on this device as you type. Reloading keeps that code and the quote's own code. Buttons are at least 44px tall.
 - Lead delivery. A quote and a site-measure request are saved in this browser only. The page says so, and offers Copy request and Download request as plain text with the client's details, the estimate, and the requested measure time. Send to Nico is hidden when no email is saved. The old form post runs only if a Cloudflare Worker flag is turned on in saved settings, and that flag is off. Referral codes are stored on this device, are not regenerated on the next visit, and the quote no longer presents $250 as if the code works on another phone.
 - The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
@@ -106,4 +108,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The layout and image fixes are a separate draft. They are not part of this branch.
+- The planner touch fixes, the planner flow, and the suburb favicon draft are separate drafts. They are not part of this branch.
