@@ -2728,7 +2728,8 @@ Fill a field only when the client has stated it, using their words. Set done to 
     const intake=ensureIntake();
     const log=$('chat-log');
     log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
-    const pinLog=()=>{log.scrollTop=log.scrollHeight};
+    const showTop=!intake.pending && !intake.messages.some(m=>m.role==='user');
+    const pinLog=()=>{log.scrollTop=showTop?0:log.scrollHeight};
     pinLog();
     requestAnimationFrame(pinLog);
     const chips=$('chat-chips');
@@ -2982,8 +2983,12 @@ window.PhotoCheck=PhotoCheck;
 
 /* The figure always comes from the package base fee and rate per m². The text model may only explain it. */
 const Estimate={
-  priceLine(total){
-    return total>0?`from ${fmt(total)} incl. GST, subject to site measure`:'Enter the floor size to price this package';
+  priceLine(t){
+    const total=t&&typeof t==='object'?+t.total:+t;
+    if(!(total>0)) return 'Enter the floor size to price this package';
+    const later=!!(t&&typeof t==='object'&&(t.lines||[]).some(e=>e.quoteLater));
+    const base=`from ${fmt(total)} incl. GST`;
+    return later?`${base} plus items to confirm, subject to site measure`:`${base}, subject to site measure`;
   },
   ceiling(text){
     const s=String(text||'').toLowerCase();
@@ -3018,7 +3023,7 @@ const Estimate={
       total:t.total,
       baseFee:t.baseFee,
       rate:t.rate,
-      priceText:this.priceLine(t.total),
+      priceText:this.priceLine(t),
       explanation:explanation||this.scripted(t),
       source:'calc',
       explanationSource:explanationSource||'script',
