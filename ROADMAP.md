@@ -18,6 +18,7 @@
 - A page for each Brisbane suburb the site quotes, with its own title and description, LocalBusiness details, a sitemap and robots.txt
 - A draft marketing kit: a local QR code, a one-page A4 flyer, eight social captions, and two outreach notes. Nothing is sent
 - A 15-minute Google Business Profile checklist, with the description and service list written out
+- Share buttons, an add-to-home-screen prompt, and a smaller first load. The 3D planner loads only when it is opened
 
 ## CHANGELOG
 
@@ -28,6 +29,10 @@
 - `sitemap.xml` and `robots.txt` list the quote builder and the suburb pages.
 - Marketing drafts for Nico to approve: a QR code made on this computer for https://ndefe.github.io/Bath-reno-/, a printable A4 flyer, eight weekly Facebook and Instagram captions, and outreach drafts for real estate agents and for OTs and support coordinators. Captions do not claim finished jobs. Nothing is posted or sent.
 - Google Business Profile checklist for Nico at `docs/google-business-profile.html`. It is a list to follow by hand. It does not create the profile, send anything, or start ads. The description and services are written. ABN, phone and reviews are left for Nico to add only when they are real.
+- Share buttons on the header and the quote. They open the device share sheet, or copy https://ndefe.github.io/Bath-reno-/ if the sheet is not available. Nothing is sent on its own. No Facebook or Instagram scripts are loaded.
+- Add to home screen uses `manifest.webmanifest` and a simple icon. Chrome and Edge can show an Add button when the browser allows it. On iPhone the prompt says to tap Share, then Add to Home Screen. It can be dismissed, and that choice stays on this phone.
+- A small service worker caches this site only. It does not cache the AI render service or any other website. If it fails to install, the page still works.
+- three.js, OrbitControls and the planner load when the planner is opened, so the first page is smaller.
 - Accessible Care package in the catalogue, the intake look list, the estimate, the planner, the quote and the PDF. The from price is $27,500 + $620 per m², so 5 m² is from $30,600 incl. GST, subject to a free site measure.
 - Products are the Reece and National Tiles items checked on 23 Oct 2026. No other package's prices changed.
 - Slab set-down and door widening show as extras with "Price to confirm". They are not in the from price. The three $600 allowances are labelled as allowances to confirm.
@@ -62,4 +67,4 @@
 
 ## Next
 
-- Share and speed is a separate draft. It is not part of this branch.
+- Further features can follow once this branch is reviewed.
