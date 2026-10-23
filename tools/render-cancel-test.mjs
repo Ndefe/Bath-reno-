@@ -137,6 +137,63 @@ try {
   report(pinch.runs.every(d => Math.abs(d - 6.04) < 0.05), 'pinch-close x3 ends at 6.04 ' + JSON.stringify(pinch.runs));
   report(!pinch.padCoversCentre && pinch.left === 'CANVAS' && pinch.right === 'CANVAS', 'centre +/-100 hits the canvas ' + JSON.stringify(pinch));
   report(pinch.walk === 'pl-walk', 'walk stays tappable');
+  const widths = [[360, 667], [375, 667], [390, 844], [412, 915]];
+  for (const [width, height] of widths) {
+    await page.setViewport({width, height, hasTouch:true, isMobile:true, deviceScaleFactor:1});
+    await page.evaluate(() => document.getElementById('pl-stage').scrollIntoView({block:'center'}));
+    await new Promise(r => setTimeout(r, 200));
+    const pad = await page.evaluate(() => {
+      const view = {w: window.innerWidth, h: window.innerHeight};
+      const padEl = document.getElementById('pl-float');
+      const padRect = padEl.getBoundingClientRect();
+      const canvas = document.querySelector('#pl-canvas canvas').getBoundingClientRect();
+      const ccx = canvas.left + canvas.width / 2;
+      const ccy = canvas.top + canvas.height / 2;
+      const buttons = [...padEl.querySelectorAll('button')].map(b => {
+        const r = b.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        const hit = document.elementFromPoint(x, y);
+        return {
+          id: b.id || b.getAttribute('aria-label'),
+          x: Math.round(r.left),
+          right: Math.round(r.right),
+          h: Math.round(r.height),
+          inView: r.left >= -1 && r.right <= view.w + 1 && r.top >= -1 && r.bottom <= view.h + 1,
+          tall: r.height >= 43.5,
+          hit: !!(hit && (hit === b || b.contains(hit)))
+        };
+      });
+      const tops = new Set(buttons.map(b => {
+        const el = document.getElementById(b.id) || [...padEl.querySelectorAll('button')].find(n => (n.id || n.getAttribute('aria-label')) === b.id);
+        return Math.round(el.getBoundingClientRect().top);
+      }));
+      const tools = ['pl-plan', 'pl-walk', 'pl-client'].map(id => {
+        const el = document.getElementById(id);
+        const r = el.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        const hit = document.elementFromPoint(x, y);
+        return {id, hit: hit && hit.id, covered: x >= padRect.left && x <= padRect.right && y >= padRect.top && y <= padRect.bottom};
+      });
+      return {
+        buttons,
+        rows: tops.size,
+        scrolls: padEl.scrollWidth > padEl.clientWidth + 1,
+        centreCovered: [ccx - 100, ccx + 100].some(x => x >= padRect.left && x <= padRect.right && ccy >= padRect.top && ccy <= padRect.bottom),
+        panel: document.getElementById('pl-del').textContent + '|' + document.getElementById('pl-clear').textContent,
+        tools
+      };
+    });
+    const wanted = ['Nudge up', 'Nudge left', 'pl-rot-fab', 'Nudge right', 'Nudge down', 'pl-flip', 'pl-dup', 'pl-fab-del', 'pl-fab-clear'];
+    const byId = Object.fromEntries(pad.buttons.map(b => [b.id, b]));
+    const missing = wanted.filter(id => !byId[id]);
+    const bad = pad.buttons.filter(b => !b.inView || !b.tall || !b.hit);
+    const toolsOk = pad.tools.every(t => t.hit === t.id && !t.covered);
+    report(missing.length === 0 && bad.length === 0 && pad.rows === 2 && !pad.scrolls && !pad.centreCovered && toolsOk && pad.panel === 'Delete item|Clear all',
+      'pad buttons reachable at ' + width + ' ' + JSON.stringify({rows: pad.rows, scrolls: pad.scrolls, centreCovered: pad.centreCovered, panel: pad.panel, tools: pad.tools, bad, missing}));
+  }
+  await page.setViewport({width:375, height:667, hasTouch:true, isMobile:true, deviceScaleFactor:1});
   report(pinch.timeoutMs === 60000 && pinch.hasCancel === 'function', 'timeout is 60000 and cancel exists');
   const ignored = logs.filter(line => /Ignored attempt to cancel a touchmove|pointercancel/i.test(line));
   report(ignored.length === 0, 'no touch-cancel noise ' + ignored.slice(0, 3).join(' | '));
