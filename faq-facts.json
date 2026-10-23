@@ -19,5 +19,9 @@
   ],
   "progress": "Deposit before work starts, 40% at waterproofing sign-off, and the balance on completion.",
   "timeline": "This site has no week-by-week program. The only timing choices it asks for are: as soon as we can, in a few months, or just looking. Nico confirms timing after a free site measure.",
+  "licence": "Licence details are shown on the quote once confirmed.",
+  "reviews": "We're a new business, so no reviews yet.",
+  "ndis": "We're not NDIS-registered; our Accessible Care package suits self-managed and plan-managed participants.",
+  "tracker": "The job tracker is a snapshot link Nico copies from the pipeline. It is not a live login, it has no phone number or email, and nothing is sent.",
   "missing": "The facts file on this site did not load. I will not guess. Nothing was sent."
 }

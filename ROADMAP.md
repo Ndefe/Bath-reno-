@@ -39,6 +39,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
+- Chat replies that mention a licence, QBCC, NDIS registration, reviews, ratings, a guarantee, or a dollar amount are replaced with the answer stored on this site. A question about a licence, reviews, NDIS, or the job tracker is answered during intake, and the intake question is asked again.
 - Phone chat layout. The opening question is fully on screen at 360×740 and 375×667. With Check the bathroom open, the log stays visible (at least 120px at 360×740, 375×667, 390×844 and 412×915) and the form keeps the remaining height. The estimate is not sticky and does not cover Confirm details. Length and width update the area as you type, and Confirm writes that size onto the room and the total. An area-only size, such as 6 m², prices from that area. The planner uses a default shape and does not change the area.
 - Standing rules written at the top of this roadmap. No contact outside the team. Do not ask Nico for approval to contact people; when outreach is ready, tell him plainly and he takes over. No spending, no sign-ups, and nothing merged without his yes. Free tools only. Notes only. The site is unchanged.
 - Site measure requests. After an estimate is on screen, the client picks a day and a time from the list in Settings. The lead is saved through the existing save adapter, with a local fallback, and the status is Measure requested. Nico sees the request and a draft in the pipeline. Nothing is sent.

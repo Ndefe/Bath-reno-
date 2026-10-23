@@ -2166,8 +2166,18 @@ const Faq=(()=>{
     {id:'cost', re:/\b(costs?|prices?|pricing|how much|deposit)\b/i},
     {id:'included', re:/\b(included|inclusions)\b|\bwhat(?:'s| is) included\b|\bwhat do you include\b/i},
     {id:'waterproof', re:/waterproof/i},
-    {id:'timeline', re:/week[\s-]*by[\s-]*week|\bhow long\b|\btimeline\b|\bhow many weeks\b|\bwhat to expect\b/i}
+    {id:'timeline', re:/week[\s-]*by[\s-]*week|\bhow long\b|\btimeline\b|\bhow many weeks\b|\bwhat to expect\b/i},
+    {id:'licence', re:/\blicen[cs]e|\blicen[cs]ed\b|\bqbcc\b/i},
+    {id:'reviews', re:/\breviews?\b|\btestimonials?\b|\bratings?\b|\bstar ratings?\b/i},
+    {id:'ndis', re:/\bndis\b/i},
+    {id:'tracker', re:/\btracker\b|\bjob stages?\b|\bwhere is my job\b/i}
   ];
+  const LOCAL={
+    licence:'Licence details are shown on the quote once confirmed.',
+    reviews:"We're a new business, so no reviews yet.",
+    ndis:"We're not NDIS-registered; our Accessible Care package suits self-managed and plan-managed participants.",
+    tracker:'The job tracker is a snapshot link Nico copies from the pipeline. It is not a live login, it has no phone number or email, and nothing is sent.'
+  };
   let facts=null;
   function load(data){facts=data&&typeof data==='object'?data:null}
   function match(text){
@@ -2205,18 +2215,38 @@ const Faq=(()=>{
     const progress=settings.progressPayments||facts.progress;
     return [facts.timeline, progress?`Payment stages on the quote: ${progress}`:'', facts.notFinal].filter(Boolean).join('\n\n');
   }
+  function localLine(id){
+    const fromFacts=facts&&facts[id];
+    return String(fromFacts||LOCAL[id]||'').trim();
+  }
   function answer(ids, text){
-    if(!facts) return 'The facts file on this site did not load. I will not guess. Nothing was sent.';
     const parts=[];
-    if(ids.includes('cost')) parts.push(cost(text));
-    if(ids.includes('included')) parts.push(included());
-    if(ids.includes('waterproof')) parts.push(waterproof());
-    if(ids.includes('timeline')) parts.push(timeline());
+    ['licence','reviews','ndis','tracker'].forEach(id=>{if(ids.includes(id)) parts.push(localLine(id))});
+    const needsFacts=ids.some(id=>id==='cost'||id==='included'||id==='waterproof'||id==='timeline');
+    if(needsFacts&&!facts) parts.push('The facts file on this site did not load. I will not guess. Nothing was sent.');
+    else if(facts){
+      if(ids.includes('cost')) parts.push(cost(text));
+      if(ids.includes('included')) parts.push(included());
+      if(ids.includes('waterproof')) parts.push(waterproof());
+      if(ids.includes('timeline')) parts.push(timeline());
+    }
     return parts.filter(Boolean).join('\n\n')||'The facts file on this site did not load. I will not guess. Nothing was sent.';
   }
   return {load, match, answer, get loaded(){return !!facts}};
 })();
 window.Faq=Faq;
+
+function replyUnsafe(text){
+  return /\blicen[cs]e|\bqbcc\b|\bndis\b|\breviews?\b|\bratings?\b|\btestimonials?\b|\bguarantee|\bstar ratings?\b|\$\s?\d/i.test(String(text||''));
+}
+function guardedReply(shown, userText){
+  const raw=String(shown||'').trim();
+  if(!replyUnsafe(raw)) return {blocked:false, text:raw};
+  const ids=window.Faq?Faq.match(`${userText||''}\n${raw}`):[];
+  const local=ids.length&&window.Faq?Faq.answer(ids, userText):'';
+  return {blocked:true, text:local||'I can only repeat what is stored on this site. I will not state a licence number, an NDIS registration, reviews, a guarantee, or a price that did not come from the quote.'};
+}
+window.ReplyGuard={unsafe:replyUnsafe, guard:guardedReply};
 
 const Intake=(()=>{
   const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, Marble Luxe, or Accessible Care), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
@@ -2379,10 +2409,18 @@ Fill a field only when the client has stated it, using their words. Set done to 
       const reply=await TextLLM.complete(historyForModel());
       quote.intake.pending=false;
       const parsed=parseAssistant(reply);
-      mergeFields(parsed.fields);
-      const clean=sanitizeAssistant(parsed.message);
-      if(clean) push('assistant', clean);
-      await afterAnswer();
+      const guarded=guardedReply(parsed.message, text);
+      if(guarded.blocked){
+        if(guarded.text) push('assistant', guarded.text);
+        const step=nextField();
+        if(step) push('assistant', step.ask);
+        render();
+      }else{
+        mergeFields(parsed.fields);
+        const clean=sanitizeAssistant(guarded.text);
+        if(clean) push('assistant', clean);
+        await afterAnswer();
+      }
     }catch{
       quote.intake.pending=false;
       quote.intake.mode='script';
@@ -2796,7 +2834,7 @@ const Estimate={
         {role:'user',content:this.facts(t)}
       ]);
       const clean=Intake.sanitizeAssistant(reply).replace(/FIELDS:[\s\S]*$/,'').trim();
-      if(clean && !/\$/.test(clean) && !/%/.test(clean) && !/\bdollars?\b/i.test(clean) && !/\bABN\b/i.test(clean) && !/\bQBCC\b/i.test(clean) && !/"total"\s*:/.test(clean)){
+      if(clean && !replyUnsafe(clean) && !/\$/.test(clean) && !/%/.test(clean) && !/\bdollars?\b/i.test(clean) && !/\bABN\b/i.test(clean) && !/\bQBCC\b/i.test(clean) && !/"total"\s*:/.test(clean)){
         explanation=clean;
         source='llm';
       }
