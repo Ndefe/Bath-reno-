@@ -39,7 +39,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
-- The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. Regenerating the suburb pages keeps that wording.
+- The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
 - The Pages publish step copies favicon.ico into the site, so the icon is published on its own.
 - Add to home screen sits in the page from the first paint on an iPhone, one short line under the header, and can be dismissed. The business name and ABN line are already in the header, so the page does not jump when the script fills them in. That choice stays on this phone. It does not cover the header, the chat box, Send, or the quote bar.
 - The quote table fits a 360px-wide phone, including after an extra is added. View quote is at least 44px tall and stays fully visible in the bottom bar.
