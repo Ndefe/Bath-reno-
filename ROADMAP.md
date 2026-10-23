@@ -34,11 +34,13 @@ These rules sit above the feature list. They do not change the site.
 - A client job tracker. Nico sets each stage by hand in the pipeline. The shareable link is a snapshot of those stages and does not include a phone number or email
 - A warranty and process page, and a Meet Gert's Reno section. The photo and story stay as placeholders until Nico adds the real ones in Settings
 - The pipeline flags a saved quote with no reply after 3 days and offers a draft nudge. Nico approves it before it is copied or opened. Nothing is sent on its own
+- A lead and a site-measure request are saved on this device only. The client can copy or download the request. Send to Nico stays hidden until an email is saved here. A referral code stays the same on this device and is not a promise of $250
 
 ## CHANGELOG
 
 ### 2026-10-23
 
+- Lead delivery. A quote and a site-measure request are saved in this browser only. The page says so, and offers Copy request and Download request as plain text with the client's details, the estimate, and the requested measure time. Send to Nico is hidden when no email is saved. The old form post runs only if a Cloudflare Worker flag is turned on in saved settings, and that flag is off. Referral codes are stored on this device, are not regenerated on the next visit, and the quote no longer presents $250 as if the code works on another phone.
 - The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
 - The Pages publish step copies favicon.ico into the site, so the icon is published on its own.
 - Add to home screen sits in the page from the first paint on an iPhone, one short line under the header, and can be dismissed. The business name and ABN line are already in the header, so the page does not jump when the script fills them in. That choice stays on this phone. It does not cover the header, the chat box, Send, or the quote bar.
@@ -95,4 +97,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The lead-delivery wording, the chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
+- The chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.

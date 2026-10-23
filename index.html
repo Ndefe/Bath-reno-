@@ -396,7 +396,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <p>Your code is <strong class="ref-code" id="ref-code"></strong></p>
           <button class="btn sec sm" type="button" id="ref-copy">Copy code</button>
           <p class="hint" id="ref-copy-status" role="status"></p>
-          <p class="hint">Share this code. A $250 thank-you is considered only after a referred job is marked Won, and only if Nico approves it. It is not taken off this quote. Nothing is paid or sent automatically.</p>
+          <p class="hint">This code is stored on this device and stays the same when you come back. It only matches another lead saved in this same browser. It does not match a code on another phone. A $250 thank-you is not promised, and it is not taken off this quote.</p>
           <label for="ref-used">Code from someone else (optional)</label>
           <input id="ref-used" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="GR-">
           <p class="hint" id="ref-used-msg"></p>
@@ -417,7 +417,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
             <a class="btn sec" id="fu-mailto" hidden>Email draft</a>
             <button class="btn" type="button" id="fu-pdf">Print / Save as PDF</button>
           </div>
-          <p class="hint">Nico's lead summary is Send to Nico, or Export CSV on Projects. Neither sends by itself.</p>
+          <p class="hint">Copy request and Download request make a plain-text note of the details, the estimate, and any requested measure time. Nothing is sent from this page.</p>
           <p class="hint" id="fu-status" role="status"></p>
         </div>
       </div>
@@ -429,9 +429,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
             <button class="btn" id="btn-save">Save project</button>
             <button class="btn sec" id="btn-print">Print / Save as PDF</button>
             <button class="btn sec" type="button" id="btn-share-quote">Share</button>
-            <button class="btn sec" id="btn-nico">Send to Nico</button>
+            <button class="btn sec" type="button" id="btn-copy-request">Copy request</button>
+            <button class="btn sec" type="button" id="btn-download-request">Download request</button>
+            <button class="btn sec" id="btn-nico" hidden>Send to Nico</button>
             <button class="btn sec" id="btn-new">New quote</button>
           </div>
+          <p class="hint" id="nico-note">No email is saved on this device, so Send to Nico is not available. Copy or download the request. It stays here until you send it yourself.</p>
           <div class="hint" id="save-msg"></div>
         </div>
       </div>
@@ -584,11 +587,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="hint">Leave this blank until you paste the link from your Google Business profile. When a lead is marked Won, the pipeline can draft a review request. Nothing is sent automatically. This app does not show star ratings or testimonials.</p>
       <label for="s-nico">Send to Nico (email)</label>
       <input id="s-nico" type="email" autocomplete="off" placeholder="name@example.com">
-      <label for="s-lead-url">Lead form endpoint (optional)</label>
-      <input id="s-lead-url" type="url" inputmode="url" autocomplete="off" placeholder="https://formspree.io/f/… or Web3Forms">
-      <label for="s-lead-key">Form access key (optional)</label>
-      <input id="s-lead-key" type="password" autocomplete="off" spellcheck="false">
-      <p class="hint">Kept for a later approved send. A lead stays on this phone and is not posted on its own.</p>
+      <p class="hint">Leave this blank and Send to Nico stays hidden. A lead is saved on this device only. Nothing is posted. A Cloudflare Worker post stays off unless workerPost is set to true in this browser's saved settings, which it is not.</p>
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
@@ -608,7 +607,7 @@ const TZ='Australia/Brisbane', GST_RATE=0.10, MARGIN=0.27;
 const WATERPROOF='Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)';
 const DEFAULT_WARRANTY='Workmanship is covered by the Queensland statutory warranty where it applies (6 years for structural work, 1 year for other work). Manufacturer warranties apply to the products. QBCC home warranty insurance is arranged when the contract requires it. Confirm the warranty that applies to this job with QBCC.';
 const DEFAULT_PROGRESS='Deposit before work starts, 40% at waterproofing sign-off, and the balance on completion.';
-const K={settings:'bq.settings.v2',quotes:'bq.quotes.v1',counter:'bq.counter.v1'};
+const K={settings:'bq.settings.v2',quotes:'bq.quotes.v1',counter:'bq.counter.v1',draft:'bq.draft.v1'};
 const ROLE={
   floor:'Floor tile',wall:'Wall tile',feature:'Feature tile',
   vanity:'Vanity',basin_mixer:'Basin mixer',shower_mixer:'Shower mixer',shower_rail:'Shower rail',
@@ -962,14 +961,57 @@ function nicoBody(q){
     ]:[])
   ].join('\n');
 }
+function nicoReady(){return !!(settings&&String(settings.nicoEmail||'').trim())}
 function nicoMailto(q){
-  const email=(settings.nicoEmail||'').trim();
+  const email=String(settings&&settings.nicoEmail||'').trim();
+  if(!email||!q) return false;
   const c=q.customer||{};
   const subject=`Quote ${q.number||''} · ${c.name||'Lead'} · ${c.suburb||c.address||''}`.replace(/\s+/g,' ').trim();
   window.location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(nicoBody(q))}`;
+  return true;
 }
+function requestText(q){
+  const c=q.customer||{};
+  const t=Calc.totals(q,settings);
+  const pkg=(settings.packages||[]).find(p=>p.id===q.packageId);
+  const pkgName=(q.pkgSnapshot&&q.pkgSnapshot.name)||(pkg&&pkg.name)||'';
+  const when=q.measure&&q.measure.date?(window.Measure&&Measure.whenText?Measure.whenText(q.measure):`${q.measure.date} ${q.measure.time||''}`.trim()):'No time requested yet';
+  const price=t.total>0?`${fromPrice(t.total)}, subject to a site measure`:'Floor size not set';
+  return [
+    "Gert's Reno request",
+    'Saved on this device only. Nothing has been sent.',
+    '',
+    `Name: ${c.name||''}`,
+    `Phone: ${c.phone||''}`,
+    `Email: ${c.email||''}`,
+    `Suburb: ${c.suburb||c.address||''}`,
+    `Package: ${pkgName}`,
+    `Floor area: ${(+t.area||0).toFixed(2)} m²`,
+    `Estimate: ${price}`,
+    `Requested measure time: ${when}`,
+    `Status: ${(q.measure&&q.measure.status)||'Not requested'}`,
+    `Quote number: ${q.number||'(not saved yet)'}`,
+    `Referral code: ${(q.referral&&q.referral.code)||''}`,
+    `Notes: ${q.notes||''}`
+  ].join('\n');
+}
+async function copyRequest(q){
+  if(!q) return false;
+  return copyText(requestText(q));
+}
+function downloadRequest(q){
+  if(!q) return;
+  const name=`request-${(q.number||'draft').replace(/[^\w.-]+/g,'')}.txt`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([requestText(q)],{type:'text/plain;charset=utf-8'}));
+  a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+/* Off unless this browser's saved settings set workerPost to true and a workerUrl. The public form does not set either. */
 async function postLead(rec,t){
-  const url=(settings.leadEndpoint||'').trim();
+  if(!settings||settings.workerPost!==true) return 'local';
+  const url=String(settings.workerUrl||'').trim();
   if(!url) return 'local';
   const fd=new FormData();
   const c=rec.customer||{};
@@ -1052,7 +1094,8 @@ function update(){
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
   renderLeadSummary();
-  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. This is not a discount.`:''}</div>`;
+  $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. Stored on this device. It only matches this browser, and it is not a discount.`:''}</div>`;
+  refreshDelivery();
   renderReferralPanel();
   updateBrand();
   $('m-total-v').textContent=totalLabel(t);
@@ -1383,7 +1426,7 @@ function renderPrint(){
    <p>${esc(settings.warranty||DEFAULT_WARRANTY)}</p>
    ${quote.notes?`<h3>Notes</h3><p>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
    <div class="qd-banner"><strong>Book a free measure &amp; quote</strong><span>The price above is an estimate. A free site measure confirms it before any work is booked.</span></div>
-   <p class="qd-small">Referral code ${esc((quote.referral&&quote.referral.code)||'')}. This is not a discount. A $250 referral reward is considered only after a referred job is marked Won, and only if Nico approves it. Nothing is paid automatically.</p>
+   <p class="qd-small">Referral code ${esc((quote.referral&&quote.referral.code)||'')}. Stored on this device. It only matches another lead in this same browser, and it is not a discount. A $250 thank-you is not promised.</p>
    <p class="qd-small">Quote ${esc(quote.number)} is valid for ${settings.validDays} days from ${fmtDate(created)}, until ${fmtDate(valid)}. Prices are in Australian dollars and include GST. Products checked ${esc(catalogue.date_checked||'')}.</p></div>`;
 }
 
@@ -1392,8 +1435,9 @@ function renderSaved(){
   $('saved-list').innerHTML=list.length?list.map(q=>{
     const c=q.customer||{}, suburb=c.suburb||c.address||'';
     const code=q.referral&&q.referral.code?` · ${esc(q.referral.code)}`:'';
+    const nicoBtn=nicoReady()?`<button class="btn sec sm" type="button" data-nico="${q.id}">Send to Nico</button> `:'';
     return `<div class="list-item"><div><strong>${esc(q.number)}</strong> · ${esc(c.name||'(no name)')}${suburb?` · ${esc(suburb)}`:''}${code}<br><span class="hint">${fmtDate(new Date(q.createdAt))} · ${esc(q.pkgSnapshot?.name||'')} · ${q.total?fromPrice(q.total):''}</span></div>
-    <div class="actions"><button class="btn sm" type="button" data-open="${q.id}">Open</button> <button class="btn sec sm" type="button" data-nico="${q.id}">Send to Nico</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`;
+    <div class="actions"><button class="btn sm" type="button" data-open="${q.id}">Open</button> ${nicoBtn}<button class="btn sec sm" type="button" data-copy-request="${q.id}">Copy request</button> <button class="btn sec sm" type="button" data-download-request="${q.id}">Download request</button> <button class="btn del sm" type="button" data-delq="${q.id}">Delete</button></div></div>`;
   }).join(''):'<p class="hint">No saved projects yet.</p>';
 }
 
@@ -1415,8 +1459,6 @@ function renderSettings(){
   $('s-pin').value=settings.ownerPin||'';
   $('s-google-review').value=settings.googleReviewUrl||'';
   $('s-nico').value=settings.nicoEmail||'';
-  $('s-lead-url').value=settings.leadEndpoint||'';
-  $('s-lead-key').value=settings.leadAccessKey||'';
   const looks=Object.entries(window.LOOKS||{});
   $('pkg-list').innerHTML=settings.packages.map((p,i)=>`<div class="pkg">
    <div class="row"><div><label>Name</label><input data-p="${i}" data-f="name" value="${esc(p.name)}"></div>
@@ -1439,8 +1481,6 @@ function readSettings(){
   settings.ownerPin=($('s-pin').value||'').trim();
   settings.googleReviewUrl=($('s-google-review').value||'').trim();
   settings.nicoEmail=($('s-nico').value||'').trim();
-  settings.leadEndpoint=($('s-lead-url').value||'').trim();
-  settings.leadAccessKey=($('s-lead-key').value||'').trim();
   if(!settings.renderProvider) settings.renderProvider='pollinations';
 }
 
@@ -1512,6 +1552,7 @@ function syncOne(q,list){
   let code=normaliseCode(referral.code);
   if(!codeOk(code)||taken.has(code)) code=makeReferralCode(taken);
   referral.code=code;
+  if(quote&&q.id===quote.id) Store.set(K.draft,{id:q.id,code});
   const used=normaliseCode(referral.usedCode);
   referral.usedCode=used;
   const ref=used&&used!==code?others.find(x=>normaliseCode(x.referral&&x.referral.code)===used):null;
@@ -1539,12 +1580,12 @@ function syncOne(q,list){
 function usedCodeHint(q,list){
   const used=normaliseCode(q.referral&&q.referral.usedCode);
   const own=normaliseCode(q.referral&&q.referral.code);
-  if(!used) return 'No code entered. The quote does not change if you leave this blank.';
-  if(used===own) return 'That is this client\'s own code. A reward is not offered for that.';
+  if(!used) return 'No code entered. The quote does not change if you leave this blank. A code only matches a lead saved in this same browser.';
+  if(used===own) return 'That is this quote\'s own code. It does not count as a referral.';
   const ref=(list||[]).find(x=>x.id!==q.id&&normaliseCode(x.referral&&x.referral.code)===used);
-  if(!ref) return 'No saved lead has this code. Nothing is tracked until it matches one.';
+  if(!ref) return 'No lead saved in this browser has that code. Codes do not match across phones.';
   const name=(ref.customer&&String(ref.customer.name||'').trim())||'a saved lead';
-  return `Matches ${name}. A $250 reward is only considered after this job is marked Won, and only if Nico approves it.`;
+  return `Matches ${name} on this device. A $250 thank-you is not promised. It can be considered only after this job is marked Won, and only if Nico approves it here.`;
 }
 function renderReferralPanel(){
   if(!quote||!$('ref-code')) return;
@@ -1819,8 +1860,32 @@ $('fu-approve').addEventListener('change',()=>{
 });
 $('fu-copy-sms').onclick=()=>{if(quote&&quote.followup&&quote.followup.approved) copyFollow(quote.followup.sms,'SMS copied. Paste it into your phone. Nothing was sent.')};
 $('fu-copy-email').onclick=()=>{if(quote&&quote.followup&&quote.followup.approved) copyFollow(`Subject: ${quote.followup.subject}\n\n${quote.followup.email}`,'Email copied. Paste it into your mail app. Nothing was sent.')};
-$('btn-nico').onclick=async()=>{if(await saveQuote()) nicoMailto(quote)};
-$('btn-new').onclick=()=>{loadQuoteToForm(newQuote());$('save-msg').textContent=''};
+function refreshDelivery(){
+  const on=nicoReady();
+  if($('btn-nico')) $('btn-nico').hidden=!on;
+  if($('nico-note')) $('nico-note').hidden=on;
+}
+$('btn-copy-request').onclick=async()=>{
+  if(!quote) return;
+  readForm();
+  const ok=await copyRequest(quote);
+  $('save-msg').textContent=ok?'Request copied. It is still only on this device. Nothing was sent.':'Could not copy. Use Download request. Nothing was sent.';
+};
+$('btn-download-request').onclick=()=>{
+  if(!quote) return;
+  readForm();
+  downloadRequest(quote);
+  $('save-msg').textContent='Request downloaded. It is still only on this device. Nothing was sent.';
+};
+$('btn-nico').onclick=async()=>{if(!nicoReady())return;if(await saveQuote()) nicoMailto(quote)};
+$('btn-new').onclick=()=>{
+  const q=newQuote();
+  const taken=new Set(Store.get(K.quotes,[]).map(x=>normaliseCode(x.referral&&x.referral.code)).filter(codeOk));
+  q.referral.code=makeReferralCode(taken);
+  Store.set(K.draft,{id:q.id,code:q.referral.code});
+  loadQuoteToForm(q);
+  $('save-msg').textContent='New quote on this device. This referral code is stored here and stays the same if you come back.';
+};
 $('ref-copy').onclick=async()=>{
   if(!quote||!quote.referral||!quote.referral.code) return;
   const ok=await copyText(quote.referral.code);
@@ -2034,7 +2099,10 @@ $('btn-book').onclick=()=>document.querySelector('nav button[data-view=assist]')
 $('saved-list').onclick=e=>{
   const o=e.target.dataset.open,d=e.target.dataset.delq,n=e.target.dataset.nico,list=Store.get(K.quotes,[]);
   if(o){const q=list.find(x=>x.id===o);if(q){loadQuoteToForm(structuredClone(q));document.querySelector('nav button[data-view=quote]').click()}}
-  if(n){const q=list.find(x=>x.id===n);if(q) nicoMailto(q)}
+  if(n){const q=list.find(x=>x.id===n);if(q&&nicoReady()) nicoMailto(q)}
+  const copyId=e.target.dataset.copyRequest, downId=e.target.dataset.downloadRequest;
+  if(copyId){const q=list.find(x=>x.id===copyId);if(q) copyRequest(q)}
+  if(downId){const q=list.find(x=>x.id===downId);if(q) downloadRequest(q)}
   if(d&&confirm('Delete this project?')){Store.set(K.quotes,list.filter(x=>x.id!==d));renderSaved()}
 };
 $('pkg-list').addEventListener('change',e=>{const i=e.target.dataset.p;if(i!==undefined&&e.target.dataset.f==='look') settings.packages[i].look=e.target.value});
@@ -2055,7 +2123,7 @@ $('avail-slots').addEventListener('click',e=>{
   renderAvailability();
 });
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
@@ -2143,6 +2211,9 @@ const Backend={
     const i=list.findIndex(x=>x.id===lead.id);
     if(i>=0) list[i]=lead; else list.unshift(lead);
     Store.set(K.quotes,list);
+    if(settings&&settings.workerPost===true){
+      try{await postLead(lead, Calc.totals(lead, settings))}catch{/* the copy on this device remains */}
+    }
     return {ok:true, via:'local', sent:false};
   },
   async analysePhotos(photos){
@@ -2593,7 +2664,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(!ok){quote.intake.complete=false; push('assistant','I could not save this on the phone. Check the details and try again.'); render(); return}
     const why=quote.estimate&&quote.estimate.explanation;
     if(why) push('assistant', why);
-    push('assistant', `Saved ${quote.number} on this phone for ${quote.customer.name}. Their referral code is ${quote.referral&&quote.referral.code||''}. A $250 thank-you is only considered after a referred job is marked Won, and only if Nico approves it. Nothing is paid or sent automatically. Nico reviews the quote before any price is final.`);
+    push('assistant', `Saved ${quote.number} on this device only for ${quote.customer.name}. Their referral code is ${quote.referral&&quote.referral.code||''}. That code stays on this device and only matches another lead in this same browser. A $250 thank-you is not promised. Nico does not have this quote until you copy or download the request. The price is not final.`);
     render();
   }
   function resetChat(){
@@ -3020,8 +3091,8 @@ const Measure=(()=>{
     const saved=quote&&quote.measure&&quote.measure.status==='Measure requested'?quote.measure:null;
     const dateBtns=dates.length?dates.map(iso=>`<button type="button" class="chip${pick.date===iso?' on':''}" data-measure-date="${iso}">${esc(labelDate(iso))}</button>`).join(''):'<p class="hint">No days are ticked in Settings yet.</p>';
     const slotBtns=slots.length?slots.map(s=>`<button type="button" class="chip${pick.time===s?' on':''}" data-measure-slot="${esc(s)}">${esc(labelTime(s))}</button>`).join(''):'<p class="hint">No times are listed in Settings yet.</p>';
-    const savedLine=saved?`<p class="hint">Current request: ${esc(whenText(saved))}. Status: Measure requested. Not confirmed. Nothing was sent.</p>`:'';
-    return `${savedLine}<p class="hint">Pick a day and a time Nico has marked as available. This is a request, not a confirmed booking. Nothing is sent.</p><div class="chips">${dateBtns}</div><div class="chips">${slotBtns}</div><button class="btn" type="button" data-measure-go>Request this time</button><p class="hint measure-status" role="status">${esc(lastStatus)}</p>`;
+    const savedLine=saved?`<p class="hint">Current request: ${esc(whenText(saved))}. Status: Measure requested. Saved on this device only. Not confirmed. Nothing was sent.</p>`:'';
+    return `${savedLine}<p class="hint">Pick a day and a time from the list. This is a request, not a confirmed booking. It is saved on this device only. Nothing is sent.</p><div class="chips">${dateBtns}</div><div class="chips">${slotBtns}</div><button class="btn" type="button" data-measure-go>Request this time</button><div class="actions"><button class="btn sec" type="button" data-request-copy>Copy request</button><button class="btn sec" type="button" data-request-download>Download request</button></div><p class="hint">Copy or download includes your details, the estimate, and the requested measure time. Nico does not receive it from this page.</p><p class="hint measure-status" role="status">${esc(lastStatus)}</p>`;
   }
   async function persist(rec){
     try{await Backend.submitLead(rec);return 'adapter'}
@@ -3055,10 +3126,8 @@ const Measure=(()=>{
     rec.measure.ownerDraft=draft;
     rec.measure.sent=false;
     quote.measure=structuredClone(rec.measure);
-    const via=await persist(rec);
-    lastStatus=via==='local'
-      ?'Saved on this phone because the save adapter did not respond. Status: Measure requested. Nothing was sent.'
-      :'Request saved for Nico. Status: Measure requested. Nothing was sent. He confirms the time.';
+    await persist(rec);
+    lastStatus='Saved on this device only. Status: Measure requested. Nothing was sent. Copy or download the request if you want Nico to have it.';
     if($('save-msg')) $('save-msg').textContent=lastStatus;
     paint();
   }
@@ -3078,6 +3147,18 @@ const Measure=(()=>{
       const slot=e.target.closest('[data-measure-slot]');
       if(slot){pick.time=slot.dataset.measureSlot;paint();return}
       if(e.target.closest('[data-measure-go]')) request();
+      if(e.target.closest('[data-request-copy]')){
+        if(!quote) return;
+        readForm();
+        copyRequest(quote).then(ok=>{lastStatus=ok?'Request copied. It is still only on this device. Nothing was sent.':'Could not copy. Use Download request. Nothing was sent.';paint()});
+      }
+      if(e.target.closest('[data-request-download]')){
+        if(!quote) return;
+        readForm();
+        downloadRequest(quote);
+        lastStatus='Request downloaded. It is still only on this device. Nothing was sent.';
+        paint();
+      }
     });
   }
   function refresh(){bind();paint()}
@@ -3116,7 +3197,16 @@ async function boot(){
     if(settings.googleReviewUrl==null) settings.googleReviewUrl='';
     if(!settings.availability||!Array.isArray(settings.availability.days)||!Array.isArray(settings.availability.slots)) settings.availability={days:[1,2,3,4,5],slots:['09:00','11:00','13:00','15:00']};
   }
-  loadQuoteToForm(newQuote());
+  if(settings.workerPost!==true) settings.workerPost=false;
+  const draft=Store.get(K.draft,null);
+  const savedQuotes=Store.get(K.quotes,[]);
+  const drafted=draft&&draft.id?savedQuotes.find(x=>x.id===draft.id):null;
+  const opening=drafted?structuredClone(drafted):newQuote();
+  if(!drafted&&draft&&draft.id&&codeOk(normaliseCode(draft.code))){
+    opening.id=draft.id;
+    opening.referral.code=normaliseCode(draft.code);
+  }
+  loadQuoteToForm(opening);
   if($('view-planner').classList.contains('active')) ensurePlanner().then(()=>Planner.show()).catch(()=>{});
 }
 window.BQ={Calc,Store,boot,leadsCsv,nicoBody,get settings(){return settings},get quote(){return quote},get catalogue(){return catalogue}};
