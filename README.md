@@ -4,6 +4,8 @@ Gert's Reno bathroom quote builder and 3D planner. The price is a GST-inclusive 
 
 https://ndefe.github.io/Bath-reno-/
 
+The lead stays on this device until the customer copies or sends it. Chat text and render prompts go to Pollinations.
+
 See `ROADMAP.md` for what's done and what's next. How the prices were worked out is in `docs/pricing-notes.md`.
 
 ## Gallery

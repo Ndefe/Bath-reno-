@@ -39,6 +39,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
+- The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. Regenerating the suburb pages keeps that wording.
 - The Pages publish step copies favicon.ico into the site, so the icon is published on its own.
 - Add to home screen sits in the page from the first paint on an iPhone, one short line under the header, and can be dismissed. The business name and ABN line are already in the header, so the page does not jump when the script fills them in. That choice stays on this phone. It does not cover the header, the chat box, Send, or the quote bar.
 - The quote table fits a 360px-wide phone, including after an extra is added. View quote is at least 44px tall and stays fully visible in the bottom bar.
@@ -85,7 +86,7 @@ These rules sit above the feature list. They do not change the site.
 - Budget Compact package for a small bathroom, under $20,000 at about 3–4 m². It uses National Tiles Stone Code and Whoosh, and cheaper Reece fixtures already in the catalogue. Workings are in `docs/pricing-notes.md`.
 - Business name and logo in Settings, the header and the quote. ABN and QBCC licence number stay blank until they are typed, and the quote marks the empty spots. Deposit defaults are 10% under $20,000 and 5% from $20,000, labelled verify with QBCC. Warranty, progress payments, the waterproofing note, and a Book a free measure & quote button are on the quote.
 - Branded PDF quote with an itemised scope, inclusions, exclusions, a validity period, the deposit and progress payments, and the compliance and warranty notes.
-- AI intake assistant replaces the static client form. A mobile chat asks for room size, style, budget, timeline, suburb, name, phone and email, and accepts photos. It uses the free Pollinations text endpoint and falls back to scripted questions. The lead and project stay on this phone. Nothing is sent until Nico reviews it.
+- AI intake assistant replaces the static client form. A mobile chat asks for room size, style, budget, timeline, suburb, name, phone and email, and accepts photos. It uses the free Pollinations text endpoint and falls back to scripted questions. The lead stays on this device until the customer copies or sends it. Chat text and render prompts go to Pollinations.
 - Photo check on the intake: the client enters length, width or area, and ticks retile, relocate fixtures, or waterproof, then confirms or corrects. The vision call sits behind a provider interface and is not connected, because the free model cannot see photos.
 - AI estimate: the look maps to a package, and the figure is that package's base fee plus its rate per m². It is shown as "from $X incl. GST, subject to site measure". The text model writes the explanation only and cannot set the number. Nico confirms it before it is final.
 - AI design: the chosen package preloads the planner and the walk-through with that package's real products. Opening the planner starts a Pollinations render of that room. The picture is marked as an AI illustration.

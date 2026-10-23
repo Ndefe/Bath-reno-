@@ -16,7 +16,7 @@ Buyers can start a quote themselves:
 
 https://ndefe.github.io/Bath-reno-/
 
-I am not asking for a fee, and I am not claiming we have renovated homes for your agency. If a buyer wants a measure, they book it from the quote. Nothing is sent to me until I review the lead.
+I am not asking for a fee, and I am not claiming we have renovated homes for your agency. If a buyer wants a measure, they book it from the quote. The lead stays on their device until they copy or send it. Chat text and render prompts go to Pollinations. I do not receive the lead until they send it.
 
 If you want a printed one-page flyer later, I have a draft with a QR code to that page. I will only hand it out after I approve the wording.
 

@@ -16,7 +16,7 @@ https://ndefe.github.io/Bath-reno-/
 
 ## Week 2 — The site measure
 
-The online figure is the starting point. The free site measure checks the floor, the access and whether the layout can stay where it is. Moving a toilet or a shower waste is an extra, not part of the from-price. Nothing is booked from the website. Nico reviews the lead first.
+The online figure is the starting point. The free site measure checks the floor, the access and whether the layout can stay where it is. Moving a toilet or a shower waste is an extra, not part of the from-price. Nothing is booked from the website. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.
 
 https://ndefe.github.io/Bath-reno-/
 
@@ -46,7 +46,7 @@ https://ndefe.github.io/Bath-reno-/
 
 ## Week 7 — What to have ready
 
-If you start a quote, a length and width, or the floor area, is enough to see a from-price. Photos help, and you can skip them. Add your suburb, name, phone and email. It stays on your phone. Nothing is sent until Nico reviews it.
+If you start a quote, a length and width, or the floor area, is enough to see a from-price. Photos help, and you can skip them. Add your suburb, name, phone and email. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.
 
 https://ndefe.github.io/Bath-reno-/
 

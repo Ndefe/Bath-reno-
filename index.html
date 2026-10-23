@@ -381,7 +381,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
         <div class="card" id="lead-card"><h2>Client</h2>
-          <p class="hint">Name, phone, email, suburb, room and photos are collected in the assistant. Nothing is sent until Nico reviews it.</p>
+          <p class="hint">Name, phone, email, suburb, room and photos are collected in the assistant. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
           <p id="lead-summary">No client details yet.</p>
           <p id="analysis-summary" class="hint"></p>
           <button class="btn book" id="btn-book" type="button">Open assistant</button>
@@ -1286,7 +1286,7 @@ async function saveQuote(){
   quote.referral=structuredClone(rec.referral);
   try{await Backend.submitLead(rec)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
   update();
-  $('save-msg').textContent='Saved '+quote.number+' on this phone. Nothing is sent until Nico reviews it.';
+  $('save-msg').textContent='Saved '+quote.number+' on this device. The lead stays here until you copy or send it. Chat text and render prompts go to Pollinations.';
   return true;
 }
 

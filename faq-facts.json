@@ -1,6 +1,6 @@
 {
   "pricingModel": "The price is a GST-inclusive base fee plus a rate per square metre of floor. Baths and extras are separate. Every figure is from that amount, incl. GST, and is subject to a site measure.",
-  "notFinal": "Nothing is final until Nico confirms it after a free site measure. Nothing is sent.",
+  "notFinal": "Nothing is final until Nico confirms it after a free site measure. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.",
   "examples": [
     {"packageId": "budget-compact", "area": 3},
     {"packageId": "grey-modern", "area": 5},
