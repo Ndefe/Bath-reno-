@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warranty and Meet Gert's Reno</title>
+<meta name="description" content="The warranty and process already on a Gert's Reno quote, plus a placeholder for Nico's photo and story.">
+<link rel="canonical" href="https://ndefe.github.io/Bath-reno-/about.html">
+<meta name="theme-color" content="#1d2733">
+<link rel="icon" href="assets/icon-192.png" type="image/png">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0e7c86;--line:#dde3ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45}
+header{background:var(--ink);color:#fff;padding:14px 18px}
+header a{color:#fff;text-decoration:none}
+h1{font-size:18px;margin:0}
+main{max-width:720px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 12px}
+h2{font-size:20px;margin:0 0 8px}
+.hint{color:var(--mute);font-size:14px}
+ol{margin:8px 0 0;padding-left:1.2em}
+li{margin:0 0 8px}
+.ph{border:2px dashed var(--mute);border-radius:12px;padding:16px;background:#f7f8fa;margin:8px 0}
+.portrait{width:180px;max-width:100%;height:auto;border-radius:12px;display:block;margin:8px 0}
+#story{white-space:pre-wrap}
+a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header><h1><a href="index.html">Gert's Reno</a></h1></header>
+<main>
+  <div class="card">
+    <h2>Warranty and the process</h2>
+    <p>Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure.</p>
+    <ol id="process"></ol>
+    <p class="hint" id="legal"></p>
+  </div>
+  <div class="card">
+    <h2>Meet Gert's Reno</h2>
+    <p class="hint">The photo and story are saved in Settings on this phone, the same way as the logo. They are not uploaded. Another phone still shows the placeholders until they are saved there too.</p>
+    <div id="photo-slot"></div>
+    <div id="story"></div>
+  </div>
+</main>
+<script>
+const WATERPROOF='Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)';
+const CURTAIN='A curtain setup is waterproofed across the whole floor.';
+const DEFAULT_WARRANTY='Workmanship is covered by the Queensland statutory warranty where it applies (6 years for structural work, 1 year for other work). Manufacturer warranties apply to the products. QBCC home warranty insurance is arranged when the contract requires it. Confirm the warranty that applies to this job with QBCC.';
+const DEFAULT_PROGRESS='Deposit before work starts, 40% at waterproofing sign-off, and the balance on completion.';
+function savedSettings(){
+  try{
+    const raw=localStorage.getItem('bq.settings.v2');
+    const data=raw?JSON.parse(raw):null;
+    return data&&typeof data==='object'?data:null;
+  }catch{return null}
+}
+function cap(value, max, fallback){
+  const n=value==null||value===''?fallback:+value;
+  if(!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(0, n));
+}
+function addItem(list, text){
+  const li=document.createElement('li');
+  li.textContent=text;
+  list.append(li);
+}
+function show(){
+  const s=savedSettings()||{};
+  const under=cap(s.depositUnderPct, 10, 10);
+  const over=cap(s.depositOverPct, 5, 5);
+  const warranty=String(s.warranty||'').trim()||DEFAULT_WARRANTY;
+  const progress=String(s.progressPayments||'').trim()||DEFAULT_PROGRESS;
+  const abn=String(s.abn||'').trim()||'(add your ABN)';
+  const qbcc=String(s.qbcc||'').trim()||'(add your licence number)';
+  const list=document.getElementById('process');
+  list.textContent='';
+  addItem(list, 'The quote shows a from-price, incl. GST, subject to a site measure.');
+  addItem(list, 'The estimate is not final until Nico confirms it after a free site measure.');
+  addItem(list, `Deposit is ${under}% under $20,000 and ${over}% from $20,000. Verify with QBCC.`);
+  addItem(list, progress);
+  addItem(list, WATERPROOF+' '+CURTAIN);
+  addItem(list, warranty);
+  document.getElementById('legal').textContent=`ABN ${abn} · QBCC licence ${qbcc}`;
+  const photo=document.getElementById('photo-slot');
+  photo.textContent='';
+  const src=String(s.ownerPhoto||'');
+  if(src.startsWith('data:image/')){
+    const img=document.createElement('img');
+    img.className='portrait';
+    img.src=src;
+    img.alt='Photo added in Settings';
+    photo.append(img);
+  }else{
+    const box=document.createElement('div');
+    box.className='ph';
+    box.textContent='Photo placeholder — add Nico\'s real photo in Settings. No photo is shown until then.';
+    photo.append(box);
+  }
+  const story=String(s.ownerStory||'').trim().slice(0,2000);
+  const storyEl=document.getElementById('story');
+  if(story){
+    storyEl.className='';
+    storyEl.textContent=story;
+  }else{
+    storyEl.className='ph';
+    storyEl.textContent='Story placeholder. Nico has not added his story yet.';
+  }
+}
+show();
+</script>
+</body>
+</html>
