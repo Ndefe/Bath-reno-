@@ -76,6 +76,10 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 #chat-err{color:var(--danger)}
 .photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:46dvh;overflow:auto;flex:none}
 .chat-bar,.chips,.photo-list,.estimate{flex:none}
+#measure-box{max-height:36dvh;overflow:auto}
+#quote-measure[hidden],#measure-box[hidden]{display:none!important}
+.avail-slot{display:flex;gap:8px;align-items:center;margin:6px 0}
+.avail-slot input{flex:1}
 .estimate{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
 .estimate h3{margin:0 0 4px;font-size:15px}
 .estimate-price{font-size:18px;font-weight:700;margin:0 0 6px}
@@ -298,6 +302,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <p id="estimate-why"></p>
         <p class="hint">Not a final price. Nico confirms it after a free site measure. Nothing is sent.</p>
       </div>
+      <div id="measure-box" class="estimate" hidden>
+        <h3>Request a free site measure</h3>
+        <div class="measure-picker" data-measure="chat"></div>
+      </div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
         <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
@@ -338,6 +346,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <p id="analysis-summary" class="hint"></p>
           <button class="btn book" id="btn-book" type="button">Open assistant</button>
           <p class="hint" id="lead-err" role="alert"></p>
+        </div>
+        <div class="card" id="quote-measure" hidden>
+          <h2>Free site measure</h2>
+          <div class="measure-picker" data-measure="quote"></div>
         </div>
         <div class="card" id="referral-card">
           <h2>Referral code</h2>
@@ -504,6 +516,11 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <textarea id="s-warranty"></textarea>
       <p class="hint">Confirm the warranty wording with QBCC. Do not add review scores or claims.</p>
       <p class="hint" id="s-waterproof">Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)</p>
+      <h2 style="margin-top:16px">Site measure times</h2>
+      <p class="hint">Tick the days you can visit and the times you offer. A client can request one of these. You confirm it in the pipeline. Nothing is booked or sent on its own.</p>
+      <div id="avail-days" class="seg"></div>
+      <div id="avail-slots"></div>
+      <button class="btn sec sm" type="button" id="avail-add">Add a time</button>
       <div class="row"><div><label>Quote valid (days)</label><input id="s-valid" type="number" min="1"></div>
       <div><label>GST</label><p class="hint">Catalogue rates already include GST. The quote shows the GST included in the total.</p></div></div>
       <label for="s-render-key">AI render API key (optional)</label>
@@ -566,6 +583,7 @@ function buildDefaults(cat){
     abn:'', qbcc:'', logo:'', googleReviewUrl:'',
     depositUnderPct:10, depositOverPct:5,
     progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
+    availability:{days:[1,2,3,4,5],slots:['09:00','11:00','13:00','15:00']},
     packages:cat.packages.map(p=>({
       id:p.id,
       name:p.name.replace(/\s*\(suggested premium\)\s*/i,'').trim(),
@@ -884,7 +902,12 @@ function nicoBody(q){
     `Referral code: ${(q.referral&&q.referral.code)||''}`,
     `Referred by code: ${(q.referral&&q.referral.usedCode)||''}`,
     `Notes: ${q.notes||''}`,
-    `Photos on this device: ${(q.photos||[]).length}`
+    `Photos on this device: ${(q.photos||[]).length}`,
+    ...(q.measure&&q.measure.date?[
+      `Site measure request: ${q.measure.date} ${q.measure.time}`,
+      `Status: ${q.measure.status||'Measure requested'}`,
+      'Nothing has been sent. Nico confirms the time.'
+    ]:[])
   ].join('\n');
 }
 function nicoMailto(q){
@@ -983,6 +1006,7 @@ function update(){
   $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
   if(window.Estimate) Estimate.refreshFigures();
   renderFollowup();
+  if(window.Measure) Measure.refresh();
 }
 function followDrafts(q){
   const c=q.customer||{};
@@ -1262,6 +1286,7 @@ function renderSettings(){
   $('s-abn').value=settings.abn||'';$('s-qbcc').value=settings.qbcc||'';
   $('s-dep-under').value=settings.depositUnderPct??10;$('s-dep-over').value=settings.depositOverPct??5;
   $('s-progress').value=settings.progressPayments||DEFAULT_PROGRESS;$('s-warranty').value=settings.warranty||DEFAULT_WARRANTY;
+  renderAvailability();
   const preview=$('s-logo-preview');
   if(settings.logo){preview.src=settings.logo;preview.hidden=false;preview.alt='Logo preview'}
   else{preview.removeAttribute('src');preview.hidden=true;preview.alt=''}
@@ -1287,6 +1312,7 @@ function readSettings(){
   settings.depositOverPct=Math.min(5,Math.max(0,+$('s-dep-over').value||0));
   settings.progressPayments=$('s-progress').value||DEFAULT_PROGRESS;
   settings.warranty=$('s-warranty').value||DEFAULT_WARRANTY;
+  readAvailability();
   settings.renderApiKey=($('s-render-key').value||'').trim();
   settings.ownerPin=($('s-pin').value||'').trim();
   settings.googleReviewUrl=($('s-google-review').value||'').trim();
@@ -1296,7 +1322,7 @@ function readSettings(){
   if(!settings.renderProvider) settings.renderProvider='pollinations';
 }
 
-const STAGES=['New','Contacted','Measure booked','Quoted','Won','Lost'];
+const STAGES=['New','Contacted','Measure requested','Measure booked','Quoted','Won','Lost'];
 let ownerOpen=false, pipeFilter='All';
 function leadScore(q){
   const c=q.customer||{};
@@ -1328,6 +1354,10 @@ function nextAction(q, score){
   if(stage==='Won'&&q.referral&&q.referral.reward&&q.referral.reward.status==='pending') return `Approve or decline the $250 referral reward for ${name}. Nothing is paid until you approve it, and nothing is sent from here.`;
   if(stage==='Won') return `Confirm the start date with ${name}.`;
   if(stage==='Quoted') return `Follow up the quote with ${name}. The price is not final until you confirm it.`;
+  if(stage==='Measure requested'){
+    const when=q.measure&&q.measure.date&&window.Measure?` for ${Measure.whenText(q.measure)}`:'';
+    return `Confirm the free site measure with ${name}${when}. Nothing has been sent.`;
+  }
   if(stage==='Measure booked') return 'Measure the bathroom and confirm the size.';
   if(stage==='Contacted') return `Book the free site measure with ${name}.`;
   if(score.fit===0) return `Call ${name} about the budget. This package may be above the range they gave.`;
@@ -1508,7 +1538,10 @@ function renderPipeline(){
     const stage=STAGES.includes(q.stage)?q.stage:'New';
     const price=q.estimate&&q.estimate.priceText?q.estimate.priceText:(+q.total?`from ${fmt(q.total)} incl. GST, subject to site measure`:'Size not priced');
     const opts=STAGES.map(s=>`<option${s===stage?' selected':''}>${esc(s)}</option>`).join('');
-    return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${stage==='Won'?reviewBlock(q):''}</article>`;
+    const asked=q.measure&&q.measure.status==='Measure requested'&&q.measure.date;
+    const when=asked&&window.Measure?Measure.whenText(q.measure):'';
+    const measureHtml=asked?`<p class="hint">Measure requested: ${esc(when)}. Status: Measure requested. Not confirmed. Nothing was sent.</p>${q.measure.ownerDraft?`<label>Draft for Nico</label><textarea readonly>${esc(q.measure.ownerDraft)}</textarea><p class="hint">This draft is saved with the lead. Nothing was sent.</p>`:''}`:'';
+    return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${measureHtml}${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${stage==='Won'?reviewBlock(q):''}</article>`;
   }).join(''):'<p class="hint">No leads in this stage.</p>';
 }
 function galleryPath(p){
@@ -1777,8 +1810,16 @@ $('pkg-list').addEventListener('input',e=>{
 $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
 $('s-save').onclick=()=>{const prev=settings.ownerPin||'';readSettings();if((settings.ownerPin||'')!==prev) ownerOpen=false;Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
+$('avail-add').onclick=()=>{readAvailability();settings.availability.slots.push('09:00');renderAvailability()};
+$('avail-slots').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-slot-rm]');
+  if(!btn) return;
+  readAvailability();
+  settings.availability.slots.splice(+btn.dataset.slotRm,1);
+  renderAvailability();
+});
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',leadEndpoint:settings.leadEndpoint||'',leadAccessKey:settings.leadAccessKey||''};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
@@ -2469,9 +2510,130 @@ const Estimate={
       if(!est) host.textContent='';
       else host.textContent=`${est.priceText}. ${est.explanation} Not final until Nico confirms it.`;
     }
+    if(window.Measure) Measure.refresh();
   }
 };
 window.Estimate=Estimate;
+
+function renderAvailability(){
+  const root=$('avail-days');
+  if(!root) return;
+  const av=window.Measure?Measure.avail():{days:[1,2,3,4,5],slots:['09:00','11:00','13:00','15:00']};
+  const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  root.innerHTML=names.map((name,i)=>`<label><input type="checkbox" value="${i}"${av.days.includes(i)?' checked':''}> ${name}</label>`).join('');
+  $('avail-slots').innerHTML=av.slots.map((s,i)=>`<div class="avail-slot"><input type="time" data-slot-edit value="${esc(s)}" aria-label="Available time ${i+1}"><button type="button" class="btn del sm" data-slot-rm="${i}">Remove</button></div>`).join('');
+}
+function readAvailability(){
+  const root=$('avail-days');
+  if(!root) return;
+  const days=[...root.querySelectorAll('input:checked')].map(el=>+el.value).filter(n=>n>=0&&n<=6);
+  const slots=[...document.querySelectorAll('[data-slot-edit]')].map(el=>String(el.value||'').trim()).filter(s=>/^\d{2}:\d{2}$/.test(s));
+  settings.availability={days:[...new Set(days)],slots:[...new Set(slots)].sort()};
+}
+const Measure=(()=>{
+  let pick={date:'',time:''}, bound=false, lastStatus='';
+  function avail(){
+    const a=settings&&settings.availability;
+    const days=a&&Array.isArray(a.days)?a.days.map(Number).filter(n=>n>=0&&n<=6):[1,2,3,4,5];
+    const slots=a&&Array.isArray(a.slots)?a.slots.map(s=>String(s||'').trim()).filter(s=>/^\d{2}:\d{2}$/.test(s)):[];
+    return {days:[...new Set(days)],slots:[...new Set(slots)].sort()};
+  }
+  function isoAhead(daysAhead){
+    return new Intl.DateTimeFormat('en-CA',{timeZone:'Australia/Brisbane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()+daysAhead*86400000));
+  }
+  function weekday(iso){return new Date(iso+'T12:00:00+10:00').getUTCDay()}
+  function labelDate(iso){
+    return new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',weekday:'short',day:'numeric',month:'short'}).format(new Date(iso+'T12:00:00+10:00'));
+  }
+  function labelTime(hhmm){
+    return new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',hour:'numeric',minute:'2-digit'}).format(new Date('2026-01-01T'+hhmm+':00+10:00'));
+  }
+  function whenText(m){
+    if(!m||!m.date||!m.time) return '';
+    return labelDate(m.date)+', '+labelTime(m.time);
+  }
+  function upcoming(){
+    const {days}=avail();
+    const out=[];
+    for(let i=1;i<=28&&out.length<8;i++){
+      const iso=isoAhead(i);
+      if(days.includes(weekday(iso))) out.push(iso);
+    }
+    return out;
+  }
+  function priced(){
+    return !!(quote&&Calc.totals(quote,settings).total>0);
+  }
+  function pickerHtml(){
+    const {slots}=avail();
+    const dates=upcoming();
+    const saved=quote&&quote.measure&&quote.measure.status==='Measure requested'?quote.measure:null;
+    const dateBtns=dates.length?dates.map(iso=>`<button type="button" class="chip${pick.date===iso?' on':''}" data-measure-date="${iso}">${esc(labelDate(iso))}</button>`).join(''):'<p class="hint">No days are ticked in Settings yet.</p>';
+    const slotBtns=slots.length?slots.map(s=>`<button type="button" class="chip${pick.time===s?' on':''}" data-measure-slot="${esc(s)}">${esc(labelTime(s))}</button>`).join(''):'<p class="hint">No times are listed in Settings yet.</p>';
+    const savedLine=saved?`<p class="hint">Current request: ${esc(whenText(saved))}. Status: Measure requested. Not confirmed. Nothing was sent.</p>`:'';
+    return `${savedLine}<p class="hint">Pick a day and a time Nico has marked as available. This is a request, not a confirmed booking. Nothing is sent.</p><div class="chips">${dateBtns}</div><div class="chips">${slotBtns}</div><button class="btn" type="button" data-measure-go>Request this time</button><p class="hint measure-status" role="status">${esc(lastStatus)}</p>`;
+  }
+  async function persist(rec){
+    try{await Backend.submitLead(rec);return 'adapter'}
+    catch{
+      const list=Store.get(K.quotes,[]);
+      const i=list.findIndex(x=>x.id===rec.id);
+      if(i>=0) list[i]=rec; else list.unshift(rec);
+      Store.set(K.quotes,list);
+      return 'local';
+    }
+  }
+  async function request(){
+    if(!quote) return;
+    const {days,slots}=avail();
+    if(!pick.date||!pick.time){lastStatus='Choose a day and a time first. Nothing was sent.';paint();return}
+    if(!days.includes(weekday(pick.date))||!slots.includes(pick.time)){lastStatus='That time is not in the list Nico marked as available. Nothing was sent.';paint();return}
+    readForm();
+    const problems=leadProblems();
+    if(problems.length){lastStatus=problems.join(' ')+' Use Start to add the client details. Nothing was sent.';paint();return}
+    quote.measure={date:pick.date,time:pick.time,status:'Measure requested',requestedAt:new Date().toISOString(),sent:false,ownerDraft:''};
+    if(!quote.stage||quote.stage==='New'||quote.stage==='Contacted') quote.stage='Measure requested';
+    ensureNumber();
+    const t=Calc.totals(quote,settings);
+    if(window.Planner) quote.design=Planner.getDesign();
+    const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
+    syncOne(rec,Store.get(K.quotes,[]).filter(x=>x.id!==rec.id).concat(rec));
+    quote.referral=structuredClone(rec.referral);
+    let draft='';
+    try{const note=await Backend.notifyOwner(rec);draft=(note&&note.draft)||nicoBody(rec)}
+    catch{draft=nicoBody(rec)}
+    rec.measure.ownerDraft=draft;
+    rec.measure.sent=false;
+    quote.measure=structuredClone(rec.measure);
+    const via=await persist(rec);
+    lastStatus=via==='local'
+      ?'Saved on this phone because the save adapter did not respond. Status: Measure requested. Nothing was sent.'
+      :'Request saved for Nico. Status: Measure requested. Nothing was sent. He confirms the time.';
+    if($('save-msg')) $('save-msg').textContent=lastStatus;
+    paint();
+  }
+  function paint(){
+    document.querySelectorAll('.measure-picker').forEach(el=>{el.innerHTML=pickerHtml()});
+    const box=$('measure-box');
+    if(box) box.hidden=!(quote&&quote.estimate&&priced());
+    const card=$('quote-measure');
+    if(card) card.hidden=!priced();
+  }
+  function bind(){
+    if(bound) return;
+    bound=true;
+    document.addEventListener('click',e=>{
+      const date=e.target.closest('[data-measure-date]');
+      if(date){pick.date=date.dataset.measureDate;paint();return}
+      const slot=e.target.closest('[data-measure-slot]');
+      if(slot){pick.time=slot.dataset.measureSlot;paint();return}
+      if(e.target.closest('[data-measure-go]')) request();
+    });
+  }
+  function refresh(){bind();paint()}
+  return {refresh,avail,whenText,labelDate,labelTime};
+})();
+window.Measure=Measure;
 
 async function boot(){
   try{
@@ -2498,6 +2660,7 @@ async function boot(){
     if(!settings.progressPayments) settings.progressPayments=DEFAULT_PROGRESS;
     if(!settings.warranty) settings.warranty=DEFAULT_WARRANTY;
     if(settings.googleReviewUrl==null) settings.googleReviewUrl='';
+    if(!settings.availability||!Array.isArray(settings.availability.days)||!Array.isArray(settings.availability.slots)) settings.availability={days:[1,2,3,4,5],slots:['09:00','11:00','13:00','15:00']};
   }
   loadQuoteToForm(newQuote());
   if($('view-planner').classList.contains('active')) ensurePlanner().then(()=>Planner.show()).catch(()=>{});

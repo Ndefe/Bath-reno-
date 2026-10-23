@@ -19,11 +19,13 @@
 - A draft marketing kit: a local QR code, a one-page A4 flyer, eight social captions, and two outreach notes. Nothing is sent
 - A 15-minute Google Business Profile checklist, with the description and service list written out
 - Share buttons, an add-to-home-screen prompt, and a smaller first load. The 3D planner loads only when it is opened
+- A client can request a free site measure after seeing an estimate. Nico sets the days and times. The request is saved on the lead as Measure requested. Nothing is booked or sent on its own
 
 ## CHANGELOG
 
 ### 2026-10-23
 
+- Site measure requests. After an estimate is on screen, the client picks a day and a time from the list in Settings. The lead is saved through the existing save adapter, with a local fallback, and the status is Measure requested. Nico sees the request and a draft in the pipeline. Nothing is sent.
 - Suburb pages for 24 Brisbane suburbs, plus an index. Each page has its own title, meta description and copy. Prices are catalogue from-prices, incl. GST, subject to a site measure. No reviews or job counts are shown.
 - LocalBusiness JSON-LD names Gert's Reno and Brisbane. ABN and QBCC are left out of the markup because they are still blank. No phone number or email is invented.
 - `sitemap.xml` and `robots.txt` list the quote builder and the suburb pages.
@@ -67,4 +69,4 @@
 
 ## Next
 
-- Further features can follow once this branch is reviewed.
+- The FAQ answers, the job tracker, the trust section, and the follow-up reminders are separate drafts. They are not part of this branch.
