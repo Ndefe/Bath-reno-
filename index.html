@@ -176,9 +176,17 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
 .pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
-.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+.spin{width:18px;height:18px;border:0;flex:none;margin-top:1px;background:center/18px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%230e7c86' d='M12 2l1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7z'/%3E%3C/svg%3E");animation:bob .7s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+button,.chip{transition:transform .12s ease}
+@media (hover:hover) and (pointer:fine){button:hover,.chip:hover{transform:scale(1.04)}}
+button:active,.chip:active{transform:scale(0.96)}
+button:disabled,button:disabled:hover,button:disabled:active{transform:none}
+@media(prefers-reduced-motion:reduce){
+  .spin{animation:none}
+  button,.chip{transition:none}
+  button:hover,button:active,.chip:hover,.chip:active{transform:none}
+}
 #pl-render-img{width:100%;height:auto;border-radius:8px;display:block;background:#eef2f5}
 #pl-render-status.is-error{color:var(--danger)}
 #pl-render-status:empty{display:none}
@@ -996,6 +1004,33 @@ function syncExtraPrices(){
 function renderProducts(){
   $('pkg-products').innerHTML=productsHtml(quote.packageId);
 }
+const moneyAnim={};
+function paintMoney(nodes,key,amount,textFor){
+  const list=(Array.isArray(nodes)?nodes:[nodes]).filter(Boolean);
+  if(!list.length) return;
+  const to=Math.round((+amount||0)*100)/100;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prev=moneyAnim[key];
+  const from=prev&&typeof prev.vis==='number'?prev.vis:0;
+  if(prev&&prev.raf) cancelAnimationFrame(prev.raf);
+  const write=n=>{const text=textFor(n);list.forEach(el=>{if(el.isConnected) el.textContent=text})};
+  if(reduce||!(to>0)||from===to){
+    moneyAnim[key]={vis:to,raf:0};
+    write(to);
+    return;
+  }
+  write(from);
+  const t0=performance.now();
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/420);
+    const vis=p<1?Math.round((from+(to-from)*(1-Math.pow(1-p,3)))*100)/100:to;
+    moneyAnim[key].vis=vis;
+    write(vis);
+    if(p<1) moneyAnim[key].raf=requestAnimationFrame(step);
+  };
+  moneyAnim[key]={vis:from,raf:requestAnimationFrame(step)};
+}
+function quoteMoneyText(n){return n>0?fromPrice(n):'Enter the floor size'}
 function update(){
   if(!catalogue||!quote) return;
   readForm();
@@ -1022,7 +1057,7 @@ function update(){
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. This is not a discount.`:''}</div>`;
   renderReferralPanel();
   updateBrand();
-  $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
+  paintMoney([$('m-total-v'),$('sum-total')],'quote',t.total,quoteMoneyText);
   if(window.Estimate) Estimate.refreshFigures();
   renderFollowup();
   if(window.Measure) Measure.refresh();
@@ -2781,7 +2816,7 @@ const Estimate={
     if(box){
       box.hidden=!est;
       if(est){
-        $('estimate-price').textContent=est.priceText;
+        paintMoney($('estimate-price'),'est',est.total,n=>Estimate.priceLine(n));
         $('estimate-why').textContent=est.explanation||'';
       }
     }
