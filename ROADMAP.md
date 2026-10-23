@@ -1,5 +1,14 @@
 # Roadmap
 
+## Standing rules
+
+These rules sit above the feature list. They do not change the site.
+
+1. Never contact anyone outside the team. No emails, texts, posts, outreach, or messages to clients, agents, OTs, or anyone else. Outreach, flyers, captions, and nudges stay drafts only.
+2. Do not ask Nico for approval to contact people. When the business is ready for outreach, tell him plainly that it is time, and he takes over.
+3. No spending money, no sign-ups, and nothing merged without Nico's yes.
+4. Free tools only.
+
 ## Done
 
 - Bathroom quote builder and 3D planner, published at https://ndefe.github.io/Bath-reno-/
@@ -26,6 +35,7 @@
 
 ### 2026-10-23
 
+- Standing rules written at the top of this roadmap. No contact outside the team. Do not ask Nico for approval to contact people; when outreach is ready, tell him plainly and he takes over. No spending, no sign-ups, and nothing merged without his yes. Free tools only. Notes only. The site is unchanged.
 - Site measure requests. After an estimate is on screen, the client picks a day and a time from the list in Settings. The lead is saved through the existing save adapter, with a local fallback, and the status is Measure requested. Nico sees the request and a draft in the pipeline. Nothing is sent.
 - Instant answers in the assistant for cost, what is included, waterproofing, and timing. The wording comes from `faq-facts.json` and the live catalogue, before any call to the text model. Prices stay "from $X incl. GST, subject to a site measure". The deposit line says verify with QBCC. There is no week-by-week schedule. If the facts file does not load, the assistant does not guess and does not ask the text model.
 - Suburb pages for 24 Brisbane suburbs, plus an index. Each page has its own title, meta description and copy. Prices are catalogue from-prices, incl. GST, subject to a site measure. No reviews or job counts are shown.
