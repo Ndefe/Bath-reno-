@@ -591,6 +591,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
+      <details>
+        <summary>Margin on this device</summary>
+        <p class="hint">Hidden until you open it. Leave it blank. If you type a number, it stays on this phone only. It is not shown on the quote and it does not change the from-prices.</p>
+        <label for="s-margin">Gross margin, as a fraction</label>
+        <input id="s-margin" type="number" min="0" max="0.9" step="0.01" inputmode="decimal" placeholder="Not set">
+      </details>
       <div id="pkg-list"></div>
       <button class="btn sec sm" id="add-pkg">+ Add package</button>
     </div>
@@ -603,7 +609,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 <script>
 /* Quote builder. Prices, packages and extras come from catalogue.json.
    Sell price (inc GST) = base fee + rate per m² × floor area. Bath and extras are separate. */
-const TZ='Australia/Brisbane', GST_RATE=0.10, MARGIN=0.27;
+const TZ='Australia/Brisbane', GST_RATE=0.10;
 const WATERPROOF='Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)';
 const DEFAULT_WARRANTY='Workmanship is covered by the Queensland statutory warranty where it applies (6 years for structural work, 1 year for other work). Manufacturer warranties apply to the products. QBCC home warranty insurance is arranged when the contract requires it. Confirm the warranty that applies to this job with QBCC.';
 const DEFAULT_PROGRESS='Deposit before work starts, 40% at waterproofing sign-off, and the balance on completion.';
@@ -675,25 +681,22 @@ const Calc={
     return this.round(l*w);
   },
   wallM2(area){return area>0?Math.max(0,Math.round((4*Math.sqrt(area)*2.1-1.8)*100)/100):0},
-  /* Matches catalogue breakdown tile_labour (supply labour + adhesive/grout), rounded to the dollar. */
-  tilingLabourCost(area,pkgId){
-    const pkg=catPkg(pkgId), a=catalogue&&catalogue.cost_assumptions;
-    if(!pkg||!a||!(area>0)) return 0;
-    const floor=pkg.tiles.find(t=>t.role==='floor');
-    const wall=pkg.tiles.find(t=>t.role==='wall');
-    const feat=pkg.tiles.find(t=>t.role==='feature');
+  patternLay(ex,area,pkgId){
+    const rates=ex.patternSell&&(ex.patternSell[pkgId]||ex.patternSell.default);
+    if(!rates||!(area>0)) return 0;
     const walls=this.wallM2(area);
-    const featM2=Math.min(2.5,walls);
-    const wallStd=Math.max(0,walls-featM2);
-    const rateFor=(tile,role)=>role==='feature'?a.tile_labour_feature:(tile&&isLargeFormat(tile)?a.tile_labour_large:a.tile_labour);
-    const cost=(m2,tile,role)=>m2*(rateFor(tile,role)+a.adhesive_grout);
-    return Math.round(cost(area,floor,'floor')+cost(wallStd,wall,'wall')+cost(featM2,feat,'feature'));
+    const feat=Math.min(2.5,walls);
+    const wallStd=Math.max(0,walls-feat);
+    const step=25/73;
+    const units=sell=>Math.round((+sell||0)/step);
+    const allowance=units(rates.floor)*area+units(rates.wall)*wallStd+units(rates.feature)*feat;
+    return this.round(Math.round(allowance)*step);
   },
   priceExtra(ex,area,pkgId,qty){
     const q=Math.max(1,+qty||1);
+    if(ex.patternSell) return this.patternLay(ex,area,pkgId);
     if(ex.price==null) return 0;
     if(String(ex.id).startsWith('fttc_')) return area>0?this.round(ex.price*Math.sqrt(area/6)):0;
-    if(/%/.test(ex.unit||'')) return this.round(this.tilingLabourCost(area,pkgId)*(+ex.price/100)/(1-MARGIN));
     if(/m2|m²/i.test(ex.unit||'')){
       if(!(area>0)) return 0;
       const fixed=(String(ex.unit).match(/\$(\d+(?:\.\d+)?)/)||[])[1];
@@ -713,7 +716,7 @@ const Calc={
       const ex=(catalogue?.extras||[]).find(e=>e.id===pick.id);
       if(!ex||!extraApplies(ex,q.packageId)) continue;
       const qty=allowsQty(ex)?Math.max(1,+pick.qty||1):1;
-      const quoteLater=ex.price==null;
+      const quoteLater=ex.price==null&&!ex.patternSell;
       lines.push({id:ex.id,desc:this.lineDesc(ex,area,qty),amount:quoteLater?0:this.priceExtra(ex,area,q.packageId,qty),qty,quoteLater});
     }
     for(const e of q.extras||[]){
@@ -782,7 +785,7 @@ function publicContact(){
   return parts.join(' · ');
 }
 function extraHint(ex){
-  if(ex.price==null) return 'Price to confirm after a site measure. Not included in the from price.';
+  if(ex.price==null&&!ex.patternSell) return 'Price to confirm after a site measure. Not included in the from price.';
   if(String(ex.id).startsWith('fttc_')) return 'Scales with floor area from the 6 m² catalogue price';
   if(/%/.test(ex.unit||'')) return `${ex.price}% of tiling labour`;
   if(/m2|m²/i.test(ex.unit||'')) return ex.unit;
@@ -1054,7 +1057,7 @@ function renderExtras(){
     const on=!!pick, qty=pick?Math.max(1,+pick.qty||1):1;
     const amount=Calc.priceExtra(ex,area,quote.packageId,on?qty:1);
     const qtyBox=allowsQty(ex)?`<input class="qty" data-qty="${esc(ex.id)}" type="number" min="1" step="1" inputmode="numeric" value="${qty}" ${on?'':'hidden'} aria-label="Quantity for ${esc(ex.name)}">`:'';
-    const shown=ex.price==null?'Price to confirm':(amount?fromPrice(amount):'—');
+    const shown=ex.price==null&&!ex.patternSell?'Price to confirm':(amount?fromPrice(amount):'—');
     return `<div class="extra-opt"><label><input type="checkbox" data-xid="${esc(ex.id)}" ${on?'checked':''}><span class="grow"><span class="ename">${esc(ex.name)}</span><span class="hint">${esc(extraHint(ex))}</span></span></label>${qtyBox}<span class="price" data-xprice="${esc(ex.id)}">${shown}</span></div>`;
   }).join('');
   renderCustom();
@@ -1066,7 +1069,7 @@ function syncExtraPrices(){
     if(!ex) return;
     const pick=(quote.picks||[]).find(p=>p.id===ex.id);
     const amount=Calc.priceExtra(ex,area,quote.packageId,pick?pick.qty:1);
-    el.textContent=ex.price==null?'Price to confirm':(amount?fromPrice(amount):'—');
+    el.textContent=ex.price==null&&!ex.patternSell?'Price to confirm':(amount?fromPrice(amount):'—');
   });
 }
 function renderProducts(){
@@ -1444,6 +1447,7 @@ function renderSaved(){
 
 function renderSettings(){
   $('s-biz').value=settings.bizName;$('s-contact').value=settings.contact;$('s-valid').value=settings.validDays;
+  if($('s-margin')) $('s-margin').value=settings.margin==null||settings.margin===''?'':settings.margin;
   $('s-abn').value=settings.abn||'';$('s-qbcc').value=settings.qbcc||'';
   $('s-dep-under').value=settings.depositUnderPct??10;$('s-dep-over').value=settings.depositOverPct??5;
   $('s-progress').value=settings.progressPayments||DEFAULT_PROGRESS;$('s-warranty').value=settings.warranty||DEFAULT_WARRANTY;
@@ -1471,6 +1475,11 @@ function renderSettings(){
 }
 function readSettings(){
   settings.bizName=$('s-biz').value;settings.contact=$('s-contact').value;settings.validDays=Math.max(1,+$('s-valid').value||30);
+  if($('s-margin')){
+    const raw=String($('s-margin').value||'').trim();
+    const n=raw===''?null:Math.min(0.9, Math.max(0, +raw));
+    settings.margin=n==null||!Number.isFinite(n)?null:n;
+  }
   settings.abn=($('s-abn').value||'').trim();settings.qbcc=($('s-qbcc').value||'').trim();
   settings.depositUnderPct=Math.min(10,Math.max(0,+$('s-dep-under').value||0));
   settings.depositOverPct=Math.min(5,Math.max(0,+$('s-dep-over').value||0));
@@ -2138,7 +2147,7 @@ $('avail-slots').addEventListener('click',e=>{
   renderAvailability();
 });
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
