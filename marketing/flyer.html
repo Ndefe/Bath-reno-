@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draft flyer — Gert's Reno</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--ink:#1d2733;--acc:#0e7c86;--line:#dde3ea;--paper:#fff;--draft:#8a4b12;--draftbg:#fff6e8}
+*{box-sizing:border-box}
+body{margin:0;background:#e7ecef;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink)}
+.sheet{width:210mm;min-height:297mm;margin:16px auto;background:var(--paper);padding:14mm 16mm;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.draft{background:var(--draftbg);color:var(--draft);border:2px solid var(--draft);border-radius:8px;padding:8px 10px;font-weight:700;margin:0 0 12px}
+h1{font-size:32px;margin:0;color:var(--acc)}
+.tag{margin:4px 0 0;font-size:18px}
+.lead{font-size:20px;line-height:1.35;margin:14px 0}
+.layout{display:grid;grid-template-columns:1fr 62mm;gap:14px;align-items:center}
+.qr{width:58mm;height:58mm;display:block}
+.url{font-size:14px;word-break:break-all;margin:6px 0 0}
+ul{margin:8px 0;padding-left:18px}
+li{margin:5px 0}
+.price{font-weight:700}
+.note{font-size:13px;line-height:1.4}
+.foot{margin-top:16px;border-top:3px solid var(--acc);padding-top:10px;font-size:13px}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .sheet{margin:0;box-shadow:none;width:auto;min-height:100vh}
+}
+@media(max-width:700px){
+  .sheet{width:auto;min-height:0;margin:0;padding:16px}
+  .layout{grid-template-columns:1fr}
+  .qr{width:180px;height:180px}
+}
+</style>
+</head>
+<body>
+<article class="sheet">
+  <p class="draft">DRAFT for Nico to approve. Do not print, post or send this until the wording is approved. Nothing is sent from this page.</p>
+  <h1>Gert's Reno</h1>
+  <p class="tag">Bathroom renovations in Brisbane</p>
+  <p class="lead">See a from-price for your bathroom, then book a free site measure. The figure is not final until Nico confirms it.</p>
+  <div class="layout">
+    <div>
+      <p class="price">Budget Compact is from $19,260 incl. GST at 3 m², subject to a site measure.</p>
+      <ul>
+        <li>Grey Modern: from $26,050 incl. GST at 5 m², subject to a site measure.</li>
+        <li>Beige Copper: from $26,400 incl. GST at 5 m², subject to a site measure.</li>
+        <li>Marble Luxe: from $34,000 incl. GST at 5 m², subject to a site measure.</li>
+        <li>Accessible Care: from $30,600 incl. GST at 5 m², subject to a site measure. Gert's Reno is not an NDIS-registered provider.</li>
+      </ul>
+      <p class="note">A bath and extras are on top. Slab set-down and door widening are quoted after the measure. No reviews are shown, because finished jobs are not on the site yet.</p>
+    </div>
+    <div>
+      <img class="qr" src="qr.png" alt="QR code linking to the Gert's Reno quote page">
+      <p class="url">https://ndefe.github.io/Bath-reno-/</p>
+    </div>
+  </div>
+  <div class="foot">
+    <p>Start a quote at the link or scan the code. The quote stays on your phone until Nico reviews it.</p>
+    <p>ABN (add your ABN) · QBCC licence (add your licence number)</p>
+    <p>Brisbane QLD · Phone · Email</p>
+  </div>
+</article>
+</body>
+</html>
