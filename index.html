@@ -818,6 +818,7 @@ function loadQuoteToForm(q){
   writeRoomInputs(q.room||{});
   shownPkg=null;
   fillPkgSelect();
+  if($('ref-used')&&quote.referral&&document.activeElement!==$('ref-used')) $('ref-used').value=quote.referral.usedCode||'';
   update();
   if(window.Planner) Planner.loadFromQuote(q);
   if(window.Intake) Intake.sync();
@@ -1552,7 +1553,7 @@ function syncOne(q,list){
   let code=normaliseCode(referral.code);
   if(!codeOk(code)||taken.has(code)) code=makeReferralCode(taken);
   referral.code=code;
-  if(quote&&q.id===quote.id) Store.set(K.draft,{id:q.id,code});
+  if(quote&&q.id===quote.id) Store.set(K.draft,{id:q.id,code,usedCode:referral.usedCode||''});
   const used=normaliseCode(referral.usedCode);
   referral.usedCode=used;
   const ref=used&&used!==code?others.find(x=>normaliseCode(x.referral&&x.referral.code)===used):null;
@@ -1586,6 +1587,20 @@ function usedCodeHint(q,list){
   if(!ref) return 'No lead saved in this browser has that code. Codes do not match across phones.';
   const name=(ref.customer&&String(ref.customer.name||'').trim())||'a saved lead';
   return `Matches ${name} on this device. A $250 thank-you is not promised. It can be considered only after this job is marked Won, and only if Nico approves it here.`;
+}
+function persistUsedCode(){
+  if(!quote||!$('ref-used')) return;
+  quote.referral=quote.referral||{code:'',usedCode:'',referrerId:'',reward:null,rewardMessage:null};
+  quote.referral.usedCode=$('ref-used').value;
+  const list=Store.get(K.quotes,[]);
+  const i=list.findIndex(x=>x.id===quote.id);
+  if(i>=0){
+    list[i].referral=structuredClone(quote.referral);
+    syncOne(list[i],list);
+    quote.referral=structuredClone(list[i].referral);
+    Store.set(K.quotes,list);
+  }else syncOne(quote,list.concat(quote));
+  if($('ref-used-msg')) $('ref-used-msg').textContent=usedCodeHint(quote,Store.get(K.quotes,[]));
 }
 function renderReferralPanel(){
   if(!quote||!$('ref-code')) return;
@@ -3205,6 +3220,11 @@ async function boot(){
   if(!drafted&&draft&&draft.id&&codeOk(normaliseCode(draft.code))){
     opening.id=draft.id;
     opening.referral.code=normaliseCode(draft.code);
+    opening.referral.usedCode=String(draft.usedCode||'');
+  }
+  if(drafted&&draft&&draft.usedCode&&!(opening.referral&&opening.referral.usedCode)){
+    opening.referral=opening.referral||{};
+    opening.referral.usedCode=String(draft.usedCode);
   }
   loadQuoteToForm(opening);
   if($('view-planner').classList.contains('active')) ensurePlanner().then(()=>Planner.show()).catch(()=>{});
@@ -3268,6 +3288,7 @@ async function shareSite(statusEl){
   }
 }
 $('btn-share').onclick=()=>shareSite($('share-status'));
+$('ref-used').addEventListener('input', persistUsedCode);
 $('btn-share-quote').onclick=()=>shareSite($('save-msg'));
 const A2HS_KEY='bq.a2hs.dismissed';
 let deferredInstall=null;

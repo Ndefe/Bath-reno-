@@ -40,6 +40,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
+- A referral code typed on the quote is saved on this device as you type. Reloading keeps that code and the quote's own code.
 - Lead delivery. A quote and a site-measure request are saved in this browser only. The page says so, and offers Copy request and Download request as plain text with the client's details, the estimate, and the requested measure time. Send to Nico is hidden when no email is saved. The old form post runs only if a Cloudflare Worker flag is turned on in saved settings, and that flag is off. Referral codes are stored on this device, are not regenerated on the next visit, and the quote no longer presents $250 as if the code works on another phone.
 - The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
 - The Pages publish step copies favicon.ico into the site, so the icon is published on its own.
