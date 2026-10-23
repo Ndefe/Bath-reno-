@@ -48,10 +48,12 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .view{display:none}.view.active{display:block}
 #view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:hidden;margin-bottom:0}
-.chat-side{flex:1 1 auto;min-height:0;overflow:auto}
+.chat-side{flex:0 1 auto;min-height:0;max-height:88px;overflow:auto}
 .chat-side:has(#photo-check:not([hidden])) > h2,
 .chat-side:has(#photo-check:not([hidden])) > .hint{display:none}
-.chat-log{flex:0 1 160px;min-height:120px;max-height:200px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.chat-log{flex:1 1 auto;min-height:120px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.chat-card:has(#photo-check:not([hidden])) .chat-side{flex:1 1 auto;max-height:none}
+.chat-card:has(#photo-check:not([hidden])) .chat-log{flex:0 1 160px;max-height:200px}
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
@@ -2478,7 +2480,9 @@ Fill a field only when the client has stated it, using their words. Set done to 
     const intake=ensureIntake();
     const log=$('chat-log');
     log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
-    log.scrollTop=log.scrollHeight;
+    const pinLog=()=>{log.scrollTop=log.scrollHeight};
+    pinLog();
+    requestAnimationFrame(pinLog);
     const chips=$('chat-chips');
     if(intake.complete){
       chips.innerHTML='<button type="button" class="chip" data-act="open">Open project</button><button type="button" class="chip" data-act="design">See this look</button><button type="button" class="chip" data-act="reset">Start again</button>';
