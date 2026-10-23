@@ -46,9 +46,14 @@ nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-
 nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
 .view{display:none}.view.active{display:block}
-#view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0}
+#view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:hidden;margin-bottom:0}
-.chat-log{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.chat-side{flex:0 1 auto;min-height:0;max-height:88px;overflow:auto}
+.chat-side:has(#photo-check:not([hidden])) > h2,
+.chat-side:has(#photo-check:not([hidden])) > .hint{display:none}
+.chat-log{flex:1 1 auto;min-height:120px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.chat-card:has(#photo-check:not([hidden])) .chat-side{flex:1 1 auto;max-height:none}
+.chat-card:has(#photo-check:not([hidden])) .chat-log{flex:0 1 160px;max-height:200px}
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
@@ -74,12 +79,13 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
 .ba-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px}
 .ba-missing{margin:8px 0 0}
-.chat-bar{display:flex;gap:8px;align-items:center}
+.chat-bar{display:flex;gap:8px;align-items:center;position:sticky;bottom:0;background:var(--card);z-index:2;padding-top:8px}
 .chat-bar input{flex:1;min-width:0;font-size:16px;min-height:44px}
 .chat-bar .btn{min-height:44px}
 #chat-err:empty{display:none}
 #chat-err{color:var(--danger)}
-.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:46dvh;overflow:auto;flex:none}
+.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;overflow:visible}
+.photo-check summary{font-weight:700;cursor:pointer;margin:0 0 6px}
 .chat-bar,.chips,.photo-list,.estimate{flex:none}
 #measure-box{max-height:36dvh;overflow:auto}
 #quote-measure[hidden],#measure-box[hidden]{display:none!important}
@@ -277,16 +283,15 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 <main>
   <section class="view active" id="view-assist" aria-label="Intake assistant">
     <div class="card chat-card">
+      <div class="chat-side">
       <h2>Assistant</h2>
       <p class="hint" id="assist-mode">Tell us about the bathroom in your own words. Nothing is sent until Nico reviews it.</p>
       <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Nothing is sent.</p>
       <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a></p>
       <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
-      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
-      <div id="chat-chips" class="chips"></div>
       <div id="chat-photos" class="photo-list"></div>
-      <div id="photo-check" class="photo-check" hidden>
-        <h3>Check the bathroom</h3>
+      <details id="photo-check" class="photo-check" hidden>
+        <summary>Check the bathroom</summary>
         <p class="hint" id="photo-vision">Vision is not connected. Enter the dimensions yourself.</p>
         <div class="row3">
           <div><label for="an-len">Length (m)</label><input id="an-len" inputmode="decimal" autocomplete="off"></div>
@@ -303,7 +308,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <button class="btn sec" id="an-correct" type="button">Correct</button>
         </div>
         <p class="hint" id="an-status"></p>
-      </div>
+      </details>
       <div id="estimate-box" class="estimate" hidden>
         <h3>Estimate</h3>
         <p id="estimate-price" class="estimate-price"></p>
@@ -314,6 +319,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <h3>Request a free site measure</h3>
         <div class="measure-picker" data-measure="chat"></div>
       </div>
+      </div>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
+      <div id="chat-chips" class="chips"></div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
         <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
@@ -2472,7 +2480,9 @@ Fill a field only when the client has stated it, using their words. Set done to 
     const intake=ensureIntake();
     const log=$('chat-log');
     log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
-    log.scrollTop=log.scrollHeight;
+    const pinLog=()=>{log.scrollTop=log.scrollHeight};
+    pinLog();
+    requestAnimationFrame(pinLog);
     const chips=$('chat-chips');
     if(intake.complete){
       chips.innerHTML='<button type="button" class="chip" data-act="open">Open project</button><button type="button" class="chip" data-act="design">See this look</button><button type="button" class="chip" data-act="reset">Start again</button>';
@@ -2549,6 +2559,21 @@ const PhotoCheck=(()=>{
   function blank(){
     return {available:false, source:'client', provider:null, dimensions:{length:'',width:'',area:''}, flags:{retile:false,relocate:false,waterproof:false}, confirmed:false, flagsTouched:false};
   }
+  function alignDims(d){
+    d=d||{};
+    const length=String(d.length||'').trim();
+    const width=String(d.width||'').trim();
+    let area=String(d.area||'').trim();
+    const l=+length, w=+width;
+    if(l>0&&w>0) area=String(Math.round(l*w*100)/100);
+    return {length,width,area};
+  }
+  function areaFromSides(){
+    const l=+String($('an-len').value||'').trim();
+    const w=+String($('an-wid').value||'').trim();
+    if(!(l>0&&w>0)) return;
+    $('an-area').value=String(Math.round(l*w*100)/100);
+  }
   function ensureAnalysis(){
     if(!quote.analysis){
       const fromText=quote.intake&&quote.intake.fields?Intake.applyRoom(quote.intake.fields.roomSize):null;
@@ -2558,7 +2583,7 @@ const PhotoCheck=(()=>{
       quote.analysis.dimensions={length:src.length||'', width:src.width||'', area:src.area||''};
     }
     const a=quote.analysis;
-    a.dimensions=a.dimensions||{length:'',width:'',area:''};
+    a.dimensions=alignDims(a.dimensions||{length:'',width:'',area:''});
     a.flags=a.flags||{retile:false,relocate:false,waterproof:false};
     return a;
   }
@@ -2674,8 +2699,10 @@ const PhotoCheck=(()=>{
     const panel=$('photo-check');
     if(!panel||!quote) return;
     const on=Intake.phase()==='photos'||Intake.phase()==='done';
+    const wasHidden=panel.hidden;
     panel.hidden=!on;
     if(!on) return;
+    if(wasHidden) panel.open=true;
     fillInputs();
     refreshVision();
   }
@@ -2696,7 +2723,8 @@ const PhotoCheck=(()=>{
     bound=true;
     $('an-confirm').onclick=()=>confirm();
     $('an-correct').onclick=()=>correct();
-    ['an-len','an-wid','an-area'].forEach(id=>$(id).addEventListener('input', markChanged));
+    ['an-len','an-wid'].forEach(id=>$(id).addEventListener('input', ()=>{areaFromSides(); markChanged()}));
+    $('an-area').addEventListener('input', markChanged);
     ['an-retile','an-relocate','an-waterproof'].forEach(id=>$(id).addEventListener('change', onFlag));
   }
   function sync(){bind(); show()}
@@ -2785,8 +2813,6 @@ const Estimate={
         $('estimate-why').textContent=est.explanation||'';
       }
     }
-    const check=$('photo-check');
-    if(check) check.style.maxHeight=est?'22dvh':'';
     const host=$('quote-estimate');
     if(host){
       if(!est) host.textContent='';

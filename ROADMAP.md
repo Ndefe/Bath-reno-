@@ -30,6 +30,7 @@ These rules sit above the feature list. They do not change the site.
 - Share buttons, an add-to-home-screen prompt, and a smaller first load. The 3D planner loads only when it is opened
 - A client can request a free site measure after seeing an estimate. Nico sets the days and times. The request is saved on the lead as Measure requested. Nothing is booked or sent on its own
 - The assistant answers cost, inclusions, waterproofing, and timing from facts on this site before it calls the text model. It does not invent a week-by-week program
+- On a phone, the opening question has the tall part of the chat, so "How big is the bathroom?" is fully on screen at 360×740 and 375×667. When Check the bathroom is open, the log stays at least 120px and the form keeps the rest of the screen. The estimate sits under the form in that scroll, so it does not cover Confirm details or the Waterproof tick. Typing a length and width updates the area straight away, and Confirm applies that size to the room and the total. An area with no length or width prices from that area. The planner draws a default shape and does not change the area
 - A client job tracker. Nico sets each stage by hand in the pipeline. The shareable link is a snapshot of those stages and does not include a phone number or email
 - A warranty and process page, and a Meet Gert's Reno section. The photo and story stay as placeholders until Nico adds the real ones in Settings
 - The pipeline flags a saved quote with no reply after 3 days and offers a draft nudge. Nico approves it before it is copied or opened. Nothing is sent on its own
@@ -38,6 +39,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
+- Phone chat layout. The opening question is fully on screen at 360×740 and 375×667. With Check the bathroom open, the log stays visible (at least 120px at 360×740, 375×667, 390×844 and 412×915) and the form keeps the remaining height. The estimate is not sticky and does not cover Confirm details. Length and width update the area as you type, and Confirm writes that size onto the room and the total. An area-only size, such as 6 m², prices from that area. The planner uses a default shape and does not change the area.
 - Standing rules written at the top of this roadmap. No contact outside the team. Do not ask Nico for approval to contact people; when outreach is ready, tell him plainly and he takes over. No spending, no sign-ups, and nothing merged without his yes. Free tools only. Notes only. The site is unchanged.
 - Site measure requests. After an estimate is on screen, the client picks a day and a time from the list in Settings. The lead is saved through the existing save adapter, with a local fallback, and the status is Measure requested. Nico sees the request and a draft in the pipeline. Nothing is sent.
 - Instant answers in the assistant for cost, what is included, waterproofing, and timing. The wording comes from `faq-facts.json` and the live catalogue, before any call to the text model. Prices stay "from $X incl. GST, subject to a site measure". The deposit line says verify with QBCC. There is no week-by-week schedule. If the facts file does not load, the assistant does not guess and does not ask the text model.
@@ -87,4 +89,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The standing rules are a separate draft. They are not part of this branch.
+- The lead-delivery wording, the chat licence answers, the chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
