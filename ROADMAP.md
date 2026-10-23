@@ -50,6 +50,7 @@ These rules sit above the feature list. They do not change the site.
 - Public prices. The catalogue served on the site keeps sell rates only. Supplier prices, cost assumptions, and the margin are not in that file. A large-format wall, such as Marble Luxe 600×1200, uses the higher tiling sell rate. Names on the site do not include supplier RRPs. A margin box in Settings stays closed and blank, and a number typed there stays on that phone. It does not change a from-price. GitHub Pages uploads the site files into `_site`, including `favicon.ico`, and leaves out `docs/`, `ROADMAP.md`, `tools/`, and `marketing/`.
 - Owner PIN wording. Settings and the pipeline say the PIN is a convenience lock only, not security, and that nothing sensitive should be stored in this app.
 - Layout and images. The chat keeps its height so the first paint does not jump. Buttons use a darker teal so the text contrast is at least 4.5:1. Product photos are smaller and load lazily. A favicon is linked from the suburb pages, the marketing drafts, and the Google Business Profile checklist. The first chat line says chat text goes to Pollinations.
+- Suburb pages link the same icon as the quote builder, so a browser does not ask the site root for favicon.ico. Prices are unchanged.
 - A referral code typed on the quote is saved on this device as you type. Reloading keeps that code and the quote's own code. Buttons are at least 44px tall.
 - Lead delivery. A quote and a site-measure request are saved in this browser only. The page says so, and offers Copy request and Download request as plain text with the client's details, the estimate, and the requested measure time. Send to Nico is hidden when no email is saved. The old form post runs only if a Cloudflare Worker flag is turned on in saved settings, and that flag is off. Referral codes are stored on this device, are not regenerated on the next visit, and the quote no longer presents $250 as if the code works on another phone.
 - The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
@@ -108,4 +109,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The planner touch fixes, the planner flow, and the suburb favicon draft are separate drafts. They are not part of this branch.
+- The planner touch fixes and the planner flow are separate drafts. They are not part of this branch.

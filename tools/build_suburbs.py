@@ -317,6 +317,7 @@ def page(suburb, others):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{esc(canon)}">
@@ -387,6 +388,7 @@ def index_page():
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" href="../assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
 <title>Bathroom renovations in Brisbane suburbs | Gert's Reno</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{SITE}/suburbs/index.html">
