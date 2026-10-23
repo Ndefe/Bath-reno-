@@ -647,8 +647,16 @@
 
 			function handleTouchStartDolly() {
 
-				const dx = pointers[ 0 ].pageX - pointers[ 1 ].pageX;
-				const dy = pointers[ 0 ].pageY - pointers[ 1 ].pageY;
+				const a = pointerPositions[ pointers[ 0 ].pointerId ];
+				const b = pointers[ 1 ] && pointerPositions[ pointers[ 1 ].pointerId ];
+				if ( ! a || ! b ) {
+
+					dollyStart.set( 0, 0 );
+					return;
+
+				}
+				const dx = a.x - b.x;
+				const dy = a.y - b.y;
 				const distance = Math.sqrt( dx * dx + dy * dy );
 				dollyStart.set( 0, distance );
 
@@ -677,8 +685,10 @@
 				} else {
 
 					const position = getSecondPointerPosition( event );
-					const x = 0.5 * ( event.pageX + position.x );
-					const y = 0.5 * ( event.pageY + position.y );
+					if ( ! position ) return;
+					const here = pointerPage( event );
+					const x = 0.5 * ( here.x + position.x );
+					const y = 0.5 * ( here.y + position.y );
 					rotateEnd.set( x, y );
 
 				}
@@ -701,8 +711,10 @@
 				} else {
 
 					const position = getSecondPointerPosition( event );
-					const x = 0.5 * ( event.pageX + position.x );
-					const y = 0.5 * ( event.pageY + position.y );
+					if ( ! position ) return;
+					const here = pointerPage( event );
+					const x = 0.5 * ( here.x + position.x );
+					const y = 0.5 * ( here.y + position.y );
 					panEnd.set( x, y );
 
 				}
@@ -716,9 +728,20 @@
 			function handleTouchMoveDolly( event ) {
 
 				const position = getSecondPointerPosition( event );
-				const dx = event.pageX - position.x;
-				const dy = event.pageY - position.y;
+				if ( ! position ) return;
+				const here = pointerPage( event );
+				const dx = here.x - position.x;
+				const dy = here.y - position.y;
 				const distance = Math.sqrt( dx * dx + dy * dy );
+				// A missing finger used to report (0, 0). The span then became the
+				// distance to the page origin and one frame zoomed the camera in.
+				if ( distance < 1 ) return;
+				if ( dollyStart.y < 1 ) {
+
+					dollyStart.set( 0, distance );
+					return;
+
+				}
 				dollyEnd.set( 0, distance );
 				dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
 				dollyOut( dollyDelta.y );
@@ -747,22 +770,39 @@
 			function onPointerDown( event ) {
 
 				if ( scope.enabled === false ) return;
-				if ( pointers.length === 0 ) {
-
-					scope.domElement.setPointerCapture( event.pointerId );
-					scope.domElement.addEventListener( 'pointermove', onPointerMove );
-					scope.domElement.addEventListener( 'pointerup', onPointerUp );
-
-				}
-
-				//
-
+				// One finger on the planner must not capture the pointer, or the page cannot scroll.
+				// Two fingers pinch and pan, and a mouse still orbits. Capture only those.
+				const starting = pointers.length === 0;
 				addPointer( event );
 				if ( event.pointerType === 'touch' ) {
 
-					onTouchStart( event );
+					if ( starting ) scope.domElement.addEventListener( 'pointerup', onPointerUp );
+					if ( pointers.length >= 2 ) {
+
+						pointers.forEach( function ( p ) {
+
+							trackPointer( p );
+
+						} );
+						onTouchStart( event );
+						pointers.forEach( function ( p ) {
+
+							try { scope.domElement.setPointerCapture( p.pointerId ); } catch ( err ) {}
+
+						} );
+						scope.domElement.addEventListener( 'pointermove', onPointerMove );
+
+					}
 
 				} else {
+
+					if ( starting ) {
+
+						scope.domElement.setPointerCapture( event.pointerId );
+						scope.domElement.addEventListener( 'pointermove', onPointerMove );
+						scope.domElement.addEventListener( 'pointerup', onPointerUp );
+
+					}
 
 					onMouseDown( event );
 
@@ -804,6 +844,23 @@
 			function onPointerCancel( event ) {
 
 				removePointer( event );
+				const twoFinger = state === STATE.TOUCH_DOLLY_PAN || state === STATE.TOUCH_DOLLY_ROTATE;
+				if ( pointers.length === 0 || ( twoFinger && pointers.length < 2 ) ) {
+
+					if ( pointers.length === 0 ) {
+
+						scope.domElement.removeEventListener( 'pointermove', onPointerMove );
+						scope.domElement.removeEventListener( 'pointerup', onPointerUp );
+
+					}
+					if ( state !== STATE.NONE ) {
+
+						state = STATE.NONE;
+						scope.dispatchEvent( _endEvent );
+
+					}
+
+				}
 
 			}
 
@@ -1033,6 +1090,14 @@
 
 			}
 
+			function pointerPage( event ) {
+
+				const x = Number.isFinite( event.pageX ) ? event.pageX : event.clientX;
+				const y = Number.isFinite( event.pageY ) ? event.pageY : event.clientY;
+				return { x: x, y: y };
+
+			}
+
 			function trackPointer( event ) {
 
 				let position = pointerPositions[ event.pointerId ];
@@ -1043,14 +1108,16 @@
 
 				}
 
-				position.set( event.pageX, event.pageY );
+				const here = pointerPage( event );
+				position.set( here.x, here.y );
 
 			}
 
 			function getSecondPointerPosition( event ) {
 
-				const pointer = event.pointerId === pointers[ 0 ].pointerId ? pointers[ 1 ] : pointers[ 0 ];
-				return pointerPositions[ pointer.pointerId ];
+				const pointer = pointers[ 0 ] && event.pointerId === pointers[ 0 ].pointerId ? pointers[ 1 ] : pointers[ 0 ];
+				if ( ! pointer ) return null;
+				return pointerPositions[ pointer.pointerId ] || null;
 
 			}
 
