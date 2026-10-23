@@ -50,6 +50,7 @@ These rules sit above the feature list. They do not change the site.
 - Public prices. The catalogue served on the site keeps sell rates only. Supplier prices, cost assumptions, and the margin are not in that file. A large-format wall, such as Marble Luxe 600×1200, uses the higher tiling sell rate. Names on the site do not include supplier RRPs. A margin box in Settings stays closed and blank, and a number typed there stays on that phone. It does not change a from-price. GitHub Pages uploads the site files into `_site`, including `favicon.ico`, and leaves out `docs/`, `ROADMAP.md`, `tools/`, and `marketing/`.
 - Owner PIN wording. Settings and the pipeline say the PIN is a convenience lock only, not security, and that nothing sensitive should be stored in this app.
 - Layout and images. The chat keeps its height so the first paint does not jump. Buttons use a darker teal so the text contrast is at least 4.5:1. Product photos are smaller and load lazily. A favicon is linked from the suburb pages, the marketing drafts, and the Google Business Profile checklist. The first chat line says chat text goes to Pollinations.
+- Fixture actions sit on the picture and stay clear of Plan, Walk, and Client, including on the short phone picture. A pinch that loses a finger leaves the camera where it is. One finger still scrolls the page. Prices are unchanged.
 - The phone header stays a short sticky bar and does not cover the title. Owner links and the share note open below that bar and can be tapped. The public header hides an empty ABN. The quote Nico reviews still shows the placeholder until a real number is saved. The tab row fades at the edge so the later tabs can be swiped into view. Prices are unchanged.
 - Planner shows one step at a time: Room, Layout, Fixtures, Style, then Render. The public tabs are Quote, Planner, Render, FAQ and About, and Book a measure. Projects, Pipeline, Settings, and Gallery sit behind Owner. The planner has a Back to quote button, and floor, wall, and tapware each show a colour square. Prices are unchanged.
 - Suburb pages link the same icon as the quote builder, so a browser does not ask the site root for favicon.ico. Prices are unchanged.
@@ -110,5 +111,3 @@ These rules sit above the feature list. They do not change the site.
 - Owner pipeline behind a PIN set in Settings. Stages are New, Contacted, Measure booked, Quoted, Won and Lost. Each lead has a score from budget fit, timeline and how complete the details are, plus a next action. Changing a stage does not send anything.
 
 ## Next
-
-- The planner touch fixes are a separate draft. They are not part of this branch.

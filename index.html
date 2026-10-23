@@ -181,9 +181,45 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .pl-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 @media(max-width:860px){.planner{grid-template-columns:1fr}}
 .pl-stage{position:relative;background:#dfe5ea;border-radius:12px;overflow:hidden;height:70vh;min-height:360px}
-#pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:none}
-.pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end;z-index:5}
+#pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:pan-y}
+.pl-col{min-width:0;display:flex;flex-direction:column}
+@media(min-width:861px){.pl-side{grid-column:2;grid-row:1}}
+.pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end;z-index:8}
 .pl-overlay .btn,.pl-overlay button,#view-planner .btn{min-height:44px}
+.pl-seg{display:flex;background:#fff;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.pl-seg button{min-height:44px;min-width:44px;border:0;background:#fff;color:var(--ink);font:inherit;font-size:14px;padding:8px 10px;cursor:pointer}
+.pl-seg button[aria-pressed="true"]{background:var(--acc);color:#fff}
+.pl-float{position:absolute;z-index:6;display:flex;flex-wrap:wrap;gap:6px;max-width:240px;background:#fff;border-radius:14px;padding:6px;box-shadow:0 8px 24px rgba(16,24,32,.18);overflow:auto}
+.pl-float-nudge{display:grid;grid-template-columns:repeat(3,44px);gap:4px}
+.pl-float-nudge button{min-width:44px;min-height:44px}
+.pl-float[hidden]{display:none!important}
+.pl-float button{min-width:44px;min-height:44px;border:0;border-radius:10px;background:var(--acc2);color:var(--ink);font:inherit;font-size:13px;padding:8px 10px}
+.pl-float button.danger{background:#fbeaea;color:var(--danger)}
+.pl-measure{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;margin:0;background:#fff;color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.3;box-shadow:0 4px 12px rgba(16,24,32,.12)}
+.pl-measure[hidden]{display:none!important}
+.pl-fab{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;margin:8px 0 0}
+.pl-fab .btn{min-height:44px;min-width:44px;flex:1 1 64px;padding:10px 8px;font-size:16px}
+.pl-fab-status{flex:1 0 100%;margin:0;font-size:14px;line-height:1.3;color:var(--ink)}
+.pl-fab-status:empty{display:none}
+.pl-fab-status.is-error{color:var(--danger)}
+.pl-gesture{margin:8px 0 0;font-size:15px;line-height:1.35;color:var(--ink)}
+.pl-sheet-open{min-height:44px}
+.pl-ask{position:fixed;inset:0;z-index:40;background:rgba(16,24,32,.45);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.pl-ask[hidden]{display:none!important}
+.pl-ask-box{background:#fff;border-radius:16px;padding:16px;width:min(420px,100%);display:flex;flex-direction:column;gap:8px}
+.pl-ask-box p{margin:0 0 8px;font-size:16px;line-height:1.4}
+.pl-ask-box .btn{min-height:44px;font-size:16px}
+@media(max-width:860px){
+  .pl-sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-radius:16px 16px 0 0;max-height:70vh;overflow:auto;padding:12px 12px 20px;box-shadow:0 -8px 24px rgba(0,0,0,.16)}
+  .pl-sheet[hidden]{display:none!important}
+  .pl-sheet-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .pl-sheet-bar button{min-height:44px;min-width:44px}
+}
+@media(min-width:861px){
+  .pl-sheet,.pl-sheet[hidden]{display:block!important}
+  .pl-sheet-bar{display:none}
+  #pl-sheet-open{display:none}
+}
 #view-planner input,#view-planner select{min-height:44px}
 #pl-stepfree{width:44px;height:44px;min-width:44px;min-height:44px;accent-color:var(--acc)}
 #pl-ai{display:none!important}
@@ -194,11 +230,13 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .pl-walk-help{position:absolute;left:12px;bottom:148px;z-index:5;max-width:calc(100% - 24px);font-size:12px;line-height:1.35;color:#fff;background:rgba(16,24,32,.5);padding:4px 8px;border-radius:6px}
 .pl-walk-help[hidden]{display:none!important}
 body.walking{overflow:hidden}
-body.walking header.app,body.walking .pl-side,body.walking .pl-hint{display:none}
+body.walking header.app,body.walking .pl-side,body.walking .pl-hint,body.walking .pl-fab,body.walking .pl-float,body.walking .pl-measure{display:none}
 body.walking main{max-width:none;padding:0}
 body.walking .planner{display:block}
 body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
-.pl-palette{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.pl-palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pl-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 6px;font-size:13px;line-height:1.2}
+.pl-tile svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
 .pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
@@ -211,7 +249,7 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 button:disabled{opacity:.6;cursor:progress}
 .qd-render{margin:10px 0}
 .qd-render img{width:100%;max-height:240px;object-fit:cover;border-radius:8px;display:block}
-body.client header.app,body.client .pl-panel,body.client .pl-hint{display:none}
+body.client header.app,body.client .pl-panel,body.client .pl-hint,body.client .pl-fab,body.client .pl-float,body.client .pl-measure{display:none}
 body.client main{max-width:none;padding:0}
 body.client .planner{grid-template-columns:minmax(0,1fr) minmax(240px,400px);height:100vh;gap:0}
 body.client .pl-stage{height:100vh;border-radius:0}
@@ -499,21 +537,45 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
   <!-- PLANNER VIEW -->
   <section class="view" id="view-planner">
     <div class="planner">
+      <div class="pl-col">
       <div class="pl-stage" id="pl-stage">
         <div id="pl-canvas"></div>
         <p class="pl-hint" id="pl-load" hidden>Loading the planner…</p>
         <div class="pl-overlay">
-          <button class="btn sm" type="button" id="pl-client">Client view</button>
-          <button class="btn sec sm" type="button" id="pl-png">Save image</button>
-          <button class="btn sm" type="button" id="pl-ai">AI render</button>
-          <button class="btn sec sm" type="button" id="pl-plan">Plan view</button>
-          <button class="btn sm" type="button" id="pl-walk">Walk through</button>
+          <div class="pl-seg" role="group" aria-label="View">
+            <button type="button" id="pl-plan" aria-pressed="false">Plan</button>
+            <button type="button" id="pl-walk" aria-pressed="false">Walk</button>
+            <button type="button" id="pl-client" aria-pressed="false">Client</button>
+          </div>
+          <button class="btn" type="button" id="pl-png">Save image</button>
+          <button class="btn sm" type="button" id="pl-ai" hidden>AI render</button>
           <button class="btn sm" type="button" id="pl-walk-exit" hidden>Exit</button>
           <button class="btn sec sm" type="button" id="pl-walk-reset" hidden>Look here</button>
         </div>
         <p id="pl-walk-help" class="pl-walk-help" hidden></p>
         <div id="pl-joy" class="pl-joy" hidden role="application" aria-label="Move"><div class="pl-joy-knob" id="pl-joy-knob"></div></div>
-        <div class="pl-hint">Drag an item to move it · drag empty space to orbit · scroll/pinch to zoom</div>
+        <div id="pl-float" class="pl-float" hidden>
+          <div class="pl-float-nudge" aria-label="Nudge">
+            <span></span><button type="button" data-mv="0,-1" aria-label="Nudge up">▲</button><span></span>
+            <button type="button" data-mv="-1,0" aria-label="Nudge left">◀</button><button type="button" id="pl-rot-fab">Turn</button><button type="button" data-mv="1,0" aria-label="Nudge right">▶</button>
+            <span></span><button type="button" data-mv="0,1" aria-label="Nudge down">▼</button><span></span>
+          </div>
+          <button type="button" id="pl-flip">Flip</button>
+          <button type="button" id="pl-dup">Copy</button>
+          <button type="button" id="pl-fab-del" class="danger">Delete</button>
+          <button type="button" id="pl-fab-clear">Clear</button>
+        </div>
+        <p id="pl-measure" class="pl-measure" hidden></p>
+      </div>
+      <div class="pl-fab" id="pl-fab">
+        <p id="pl-fab-sel" class="pl-fab-status">Nothing selected</p>
+        <p id="pl-fab-status" class="pl-fab-status" role="status"></p>
+        <button class="btn sec" type="button" id="pl-undo">Undo</button>
+        <button class="btn sec" type="button" id="pl-redo">Redo</button>
+        <button class="btn sec" type="button" id="pl-suggest">Suggest layout</button>
+        <button class="btn" type="button" id="pl-fab-render">Render</button>
+      </div>
+      <p class="pl-gesture" id="pl-gesture">Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. A swipe on empty space scrolls the page. Two fingers pinch and pan.</p>
       </div>
       <div class="pl-side">
       <button class="btn sec" type="button" id="pl-back-quote">Back to quote</button>
@@ -561,7 +623,11 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
         </div>
         <div data-flow="fixtures" hidden>
         <h2>Fixtures</h2>
-        <div class="pl-palette" id="pl-palette"></div>
+        <button class="btn sec pl-sheet-open" type="button" id="pl-sheet-open">Add item</button>
+        <div class="pl-sheet" id="pl-sheet" hidden>
+          <div class="pl-sheet-bar"><strong>Fixtures</strong><button class="btn sec" type="button" id="pl-sheet-close">Close</button></div>
+          <div class="pl-palette" id="pl-palette"></div>
+        </div>
         <h2>Selected: <span id="pl-sel">none</span></h2>
         <div class="pl-move">
           <span></span><button class="btn sec sm" data-mv="0,-1">▲</button><span></span>
@@ -584,6 +650,13 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
       </div>
     </div>
   </section>
+  <div id="pl-ask" class="pl-ask" hidden>
+    <div class="pl-ask-box" role="dialog" aria-modal="true" aria-labelledby="pl-ask-text">
+      <p id="pl-ask-text"></p>
+      <button class="btn del" type="button" id="pl-ask-yes">Remove</button>
+      <button class="btn sec" type="button" id="pl-ask-no">Keep</button>
+    </div>
+  </div>
 
   <!-- SAVED VIEW -->
   <section class="view" id="view-saved"><div class="card"><h2>Projects</h2>
