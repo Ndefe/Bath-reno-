@@ -38,6 +38,7 @@ These rules sit above the feature list. They do not change the site.
 - A warranty and process page, and a Meet Gert's Reno section. The photo and story stay as placeholders until Nico adds the real ones in Settings
 - The pipeline flags a saved quote with no reply after 3 days and offers a draft nudge. Nico approves it before it is copied or opened. Nothing is sent on its own
 - A lead and a site-measure request are saved on this device only. The client can copy or download the request. Send to Nico stays hidden until an email is saved here. A referral code stays the same on this device and is not a promise of $250
+- The owner PIN is described as a convenience lock only, not security. Settings says not to store anything sensitive in this app
 
 ## CHANGELOG
 
@@ -46,6 +47,7 @@ These rules sit above the feature list. They do not change the site.
 - Chat licence wording. The assistant no longer says it is a licensed contractor, and it no longer promises to keep details confidential. The only licence reply is that licence details are shown on the quote once confirmed. Questions about reviews and NDIS are answered from the local facts ("We're a new business, so no reviews yet" and "We're not NDIS-registered; our Accessible Care package suits self-managed and plan-managed participants") and do not continue as a quote answer.
 - Chat privacy. The greeting no longer says "Nothing is sent". It says chat text and AI render prompts go to Pollinations, a free third-party AI service, and asks people not to type a phone number, email or street address. The same note sits above the chat and on the AI render card.
 - Public prices. The catalogue served on the site keeps sell rates only. Supplier prices, cost assumptions, and the margin are not in that file. A large-format wall, such as Marble Luxe 600×1200, uses the higher tiling sell rate. Names on the site do not include supplier RRPs. A margin box in Settings stays closed and blank, and a number typed there stays on that phone. It does not change a from-price. GitHub Pages uploads the site files into `_site`, including `favicon.ico`, and leaves out `docs/`, `ROADMAP.md`, `tools/`, and `marketing/`.
+- Owner PIN wording. Settings and the pipeline say the PIN is a convenience lock only, not security, and that nothing sensitive should be stored in this app.
 - A referral code typed on the quote is saved on this device as you type. Reloading keeps that code and the quote's own code. Buttons are at least 44px tall.
 - Lead delivery. A quote and a site-measure request are saved in this browser only. The page says so, and offers Copy request and Download request as plain text with the client's details, the estimate, and the requested measure time. Send to Nico is hidden when no email is saved. The old form post runs only if a Cloudflare Worker flag is turned on in saved settings, and that flag is off. Referral codes are stored on this device, are not regenerated on the next visit, and the quote no longer presents $250 as if the code works on another phone.
 - The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
@@ -104,4 +106,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The PIN wording and the layout and image fixes are separate drafts. They are not part of this branch.
+- The layout and image fixes are a separate draft. They are not part of this branch.
