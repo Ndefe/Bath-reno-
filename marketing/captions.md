@@ -46,7 +46,7 @@ https://ndefe.github.io/Bath-reno-/
 
 ## Week 7 — What to have ready
 
-If you start a quote, a length and width, or the floor area, is enough to see a from-price. Photos help, and you can skip them. Add your suburb, name, phone and email. It stays on your phone. Nothing is sent until Nico reviews it.
+If you start a quote, a length and width, or the floor area, is enough to see a from-price. Photos help, and you can skip them. Add your suburb, name, phone and email. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.
 
 https://ndefe.github.io/Bath-reno-/
 
