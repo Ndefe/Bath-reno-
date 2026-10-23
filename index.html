@@ -7,6 +7,15 @@
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
 <meta name="theme-color" content="#1d2733">
+<script>
+(function(){
+  try{
+    if(localStorage.getItem('bq.a2hs.dismissed')) return;
+    var ios=/iphone|ipad|ipod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(ios) document.documentElement.classList.add('a2hs-on');
+  }catch(e){}
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -235,8 +244,9 @@ header.app .share-status{flex:1 0 100%;color:#d5dde4;margin:0}
 .a2hs[hidden]{display:none!important}
 .a2hs p{margin:0;flex:1;font-size:13px;line-height:1.35}
 .a2hs .btn{flex:none;min-height:44px}
-body.on-assist:has(#a2hs:not([hidden])) .chat-card > h2,
-body.on-assist:has(#a2hs:not([hidden])) .chat-card > .hint{display:none}
+html.a2hs-on #a2hs{display:flex!important}
+html.a2hs-on .chat-card > h2,
+html.a2hs-on .chat-card > .hint{display:none}
 #pl-load[hidden]{display:none!important}
 @media print{.a2hs{display:none!important}}
 /* Mobile tweaks */
@@ -3209,6 +3219,7 @@ $('a2hs-install').onclick=async()=>{
 };
 $('a2hs-dismiss').onclick=()=>{
   localStorage.setItem(A2HS_KEY,'1');
+  document.documentElement.classList.remove('a2hs-on');
   $('a2hs').hidden=true;
 };
 window.addEventListener('load',()=>{
