@@ -32,6 +32,7 @@ These rules sit above the feature list. They do not change the site.
 - The assistant answers cost, inclusions, waterproofing, and timing from facts on this site before it calls the text model. It does not invent a week-by-week program
 - On a phone, the opening question has the tall part of the chat, so "How big is the bathroom?" is fully on screen at 360×740 and 375×667. When Check the bathroom is open, the log stays at least 120px and the form keeps the rest of the screen. The estimate sits under the form in that scroll, so it does not cover Confirm details or the Waterproof tick. Typing a length and width updates the area straight away, and Confirm applies that size to the room and the total. An area with no length or width prices from that area. The planner draws a default shape and does not change the area
 - The assistant does not claim a licence or that details are confidential. A licence question gets one line: details are on the quote once confirmed. Reviews and NDIS are answered from the local facts and are not treated as quote answers
+- The chat greeting says that chat text and AI render prompts go to Pollinations, a free third-party service, and asks people not to include a phone number, email or street address. It does not say that nothing is sent
 - A client job tracker. Nico sets each stage by hand in the pipeline. The shareable link is a snapshot of those stages and does not include a phone number or email
 - A warranty and process page, and a Meet Gert's Reno section. The photo and story stay as placeholders until Nico adds the real ones in Settings
 - The pipeline flags a saved quote with no reply after 3 days and offers a draft nudge. Nico approves it before it is copied or opened. Nothing is sent on its own
@@ -42,6 +43,7 @@ These rules sit above the feature list. They do not change the site.
 ### 2026-10-23
 
 - Chat licence wording. The assistant no longer says it is a licensed contractor, and it no longer promises to keep details confidential. The only licence reply is that licence details are shown on the quote once confirmed. Questions about reviews and NDIS are answered from the local facts ("We're a new business, so no reviews yet" and "We're not NDIS-registered; our Accessible Care package suits self-managed and plan-managed participants") and do not continue as a quote answer.
+- Chat privacy. The greeting no longer says "Nothing is sent". It says chat text and AI render prompts go to Pollinations, a free third-party AI service, and asks people not to type a phone number, email or street address. The same note sits above the chat and on the AI render card.
 - A referral code typed on the quote is saved on this device as you type. Reloading keeps that code and the quote's own code. Buttons are at least 44px tall.
 - Lead delivery. A quote and a site-measure request are saved in this browser only. The page says so, and offers Copy request and Download request as plain text with the client's details, the estimate, and the requested measure time. Send to Nico is hidden when no email is saved. The old form post runs only if a Cloudflare Worker flag is turned on in saved settings, and that flag is off. Referral codes are stored on this device, are not regenerated on the next visit, and the quote no longer presents $250 as if the code works on another phone.
 - The public copy now says the lead stays on this device until the customer copies or sends it, and that chat text and render prompts go to Pollinations. The estimate box no longer says nothing is sent. Regenerating the suburb pages keeps that wording.
@@ -100,4 +102,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
+- The published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
