@@ -523,7 +523,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <section class="view" id="view-pipeline" aria-label="Owner pipeline">
     <div class="card" id="pipe-lock">
       <h2>Owner pipeline</h2>
-      <p class="hint" id="pipe-lock-msg">Enter the owner PIN from Settings.</p>
+      <p class="hint" id="pipe-lock-msg">Enter the owner PIN from Settings. This is a convenience lock only, not security.</p>
       <label for="pipe-pin">PIN</label>
       <input id="pipe-pin" type="password" inputmode="numeric" autocomplete="off">
       <div class="actions"><button class="btn" id="pipe-unlock" type="button">Unlock</button></div>
@@ -581,7 +581,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="hint">Stored only in this browser. Pollinations does not use a key. A future paid provider would.</p>
       <label for="s-pin">Owner PIN</label>
       <input id="s-pin" type="password" inputmode="numeric" autocomplete="off" spellcheck="false">
-      <p class="hint">Unlocks the pipeline on this phone. It is not a password for the leads, and it is stored only in this browser.</p>
+      <p class="hint">A convenience lock only, not security. It hides the pipeline on this phone until the PIN is typed. Do not store anything sensitive here. The PIN and the leads stay in this browser, and anyone with this phone can read them.</p>
       <label for="s-google-review">Google review link</label>
       <input id="s-google-review" type="url" inputmode="url" autocomplete="off" placeholder="https://">
       <p class="hint">Leave this blank until you paste the link from your Google Business profile. When a lead is marked Won, the pipeline can draft a review request. Nothing is sent automatically. This app does not show star ratings or testimonials.</p>
@@ -1732,7 +1732,7 @@ function renderPipeline(){
   if(!pin){
     ownerOpen=false;
     lock.hidden=false; board.hidden=true;
-    $('pipe-lock-msg').textContent='Set an owner PIN in Settings. The pipeline stays locked until then.';
+    $('pipe-lock-msg').textContent='Set an owner PIN in Settings. This is a convenience lock only, not security. Do not store anything sensitive here.';
     $('pipe-pin').disabled=true; $('pipe-unlock').disabled=true;
     $('pipe-err').textContent='';
     return;
@@ -1740,7 +1740,7 @@ function renderPipeline(){
   $('pipe-pin').disabled=false; $('pipe-unlock').disabled=false;
   if(!ownerOpen){
     lock.hidden=false; board.hidden=true;
-    $('pipe-lock-msg').textContent='Enter the owner PIN. This only unlocks the pipeline on this phone.';
+    $('pipe-lock-msg').textContent='Enter the owner PIN. This is a convenience lock only, not security.';
     return;
   }
   lock.hidden=true; board.hidden=false;
