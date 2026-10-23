@@ -14,8 +14,17 @@
 - Planner doors, windows and L-shaped rooms. A door can go on any wall, at 720, 770, 820 or 870 mm or a custom width, with its position, hinge side and swing, or as a cavity slider. The swing shows on the plan and the frame and leaf show in 3D. Windows are openings with glazing. An L-shaped room is priced on its true floor area. The shape and openings are saved with the project
 - Before/after gallery, driven by `gallery.json` and photos in `gallery/`. It ships with an empty list and says the first jobs are coming soon. A Google review link can be saved in Settings. Marking a lead Won drafts an SMS and email. Nothing is sent until that wording is approved
 - Referral codes. Each saved lead has its own code. A new lead can record someone else's code, and the pipeline shows the match. A $250 reward is considered only after that job is marked Won, and only if Nico approves the reward and any message. Nothing is paid or sent automatically, and the reward is not taken off the quote
+- Accessible Care package. From $30,600 incl. GST at 5 m² ($27,500 + $620/m²), subject to a free site measure. Grab rails and a fold-down seat can be placed in the planner, and the shower can be step-free. Slab set-down and door widening are extras to be quoted, not priced. Three $600 allowances sit inside the price and are labelled as allowances to confirm. Gert's Reno is not an NDIS-registered provider
 
 ## CHANGELOG
+
+### 2026-10-23
+
+- Accessible Care package in the catalogue, the intake look list, the estimate, the planner, the quote and the PDF. The from price is $27,500 + $620 per m², so 5 m² is from $30,600 incl. GST, subject to a free site measure.
+- Products are the Reece and National Tiles items checked on 23 Oct 2026. No other package's prices changed.
+- Slab set-down and door widening show as extras with "Price to confirm". They are not in the from price. The three $600 allowances are labelled as allowances to confirm.
+- The quote and the PDF say Gert's Reno is not an NDIS-registered provider, that the quote is for self-managed and plan-managed participants, that NDIS-funded work needs an OT assessment and the OT's spec overrides the package, and that AS 1428.1 is a design reference. The NCC 2022 H4 / AS 3740 waterproofing note stays. A curtain setup is waterproofed across the whole floor.
+- The planner can place grab rails and a fold-down seat, and it has a step-free shower option (no hob, linear channel, curtain).
 
 ### 2026-10-22
 
@@ -45,4 +54,4 @@
 
 ## Next
 
-- Accessible / NDIS package. Further features wait until the combined review is done.
+- Further features wait until the combined review is done.

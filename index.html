@@ -399,6 +399,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div id="pl-openings"></div>
         <h2 style="margin-top:14px">Look</h2>
         <label>Style preset</label><select id="pl-look"></select>
+        <div class="checkline"><input id="pl-stepfree" type="checkbox"><label for="pl-stepfree">Step-free shower</label></div>
         <div class="row"><div><label>Floor tiles</label><select id="pl-floor"></select></div><div><label>Wall tiles</label><select id="pl-wall"></select></div></div>
         <label>Tapware finish</label><select id="pl-metal"></select>
         <h2 style="margin-top:14px">Add item</h2>
@@ -508,7 +509,9 @@ const ROLE={
   floor:'Floor tile',wall:'Wall tile',feature:'Feature tile',
   vanity:'Vanity',basin_mixer:'Basin mixer',shower_mixer:'Shower mixer',shower_rail:'Shower rail',
   toilet_suite:'Toilet suite',bath:'Bath',shower_screen:'Shower screen',mirror_cabinet:'Mirror cabinet',
-  mirror:'Mirror',towel_rail:'Towel rail',toilet_roll_holder:'Toilet roll holder',floor_waste:'Floor waste'
+  mirror:'Mirror',towel_rail:'Towel rail',toilet_roll_holder:'Toilet roll holder',floor_waste:'Floor waste',
+  grab_rail:'Grab rail',shower_seat:'Shower seat',shower_curtain:'Shower curtain',wall_basin:'Wall basin',
+  shower_channel:'Shower channel',bottle_trap:'Bottle trap',basin_waste:'Basin waste',back_rest:'Back rest'
 };
 
 let catalogue=null, settings, quote, defaults, shownPkg=null;
@@ -545,7 +548,7 @@ function isLargeFormat(tile){
 }
 function catPkg(id){return catalogue?.packages.find(p=>p.id===id)||null}
 function extraApplies(ex,pkgId){
-  const m=String(ex.id).match(/_(grey-modern|beige-copper|marble-luxe|budget-compact)$/);
+  const m=String(ex.id).match(/_(grey-modern|beige-copper|marble-luxe|budget-compact|accessible-care)$/);
   return !m||m[1]===pkgId;
 }
 function allowsQty(ex){return /^each\b/i.test(ex.unit||'')}
@@ -584,6 +587,7 @@ const Calc={
   },
   priceExtra(ex,area,pkgId,qty){
     const q=Math.max(1,+qty||1);
+    if(ex.price==null) return 0;
     if(String(ex.id).startsWith('fttc_')) return area>0?this.round(ex.price*Math.sqrt(area/6)):0;
     if(/%/.test(ex.unit||'')) return this.round(this.tilingLabourCost(area,pkgId)*(+ex.price/100)/(1-MARGIN));
     if(/m2|m²/i.test(ex.unit||'')){
@@ -605,7 +609,8 @@ const Calc={
       const ex=(catalogue?.extras||[]).find(e=>e.id===pick.id);
       if(!ex||!extraApplies(ex,q.packageId)) continue;
       const qty=allowsQty(ex)?Math.max(1,+pick.qty||1):1;
-      lines.push({id:ex.id,desc:this.lineDesc(ex,area,qty),amount:this.priceExtra(ex,area,q.packageId,qty),qty});
+      const quoteLater=ex.price==null;
+      lines.push({id:ex.id,desc:this.lineDesc(ex,area,qty),amount:quoteLater?0:this.priceExtra(ex,area,q.packageId,qty),qty,quoteLater});
     }
     for(const e of q.extras||[]){
       if(e.desc||+e.amount) lines.push({desc:e.desc||'Extra',amount:this.round(+e.amount||0)});
@@ -662,7 +667,9 @@ function productsHtml(pkgId){
     return `<div class="product">${img}<div><div class="pname">${esc(p.name)}</div><div class="pmeta">${esc(role)} · ${esc(p.code)}</div></div></div>`;
   }).join('')}</div>`;
 }
+function lineAmount(e){return e&&e.quoteLater?'Price to confirm':(e&&e.amount?fromPrice(e.amount):'—')}
 function extraHint(ex){
+  if(ex.price==null) return 'Price to confirm after a site measure. Not included in the from price.';
   if(String(ex.id).startsWith('fttc_')) return 'Scales with floor area from the 6 m² catalogue price';
   if(/%/.test(ex.unit||'')) return `${ex.price}% of tiling labour`;
   if(/m2|m²/i.test(ex.unit||'')) return ex.unit;
@@ -885,7 +892,8 @@ function renderExtras(){
     const on=!!pick, qty=pick?Math.max(1,+pick.qty||1):1;
     const amount=Calc.priceExtra(ex,area,quote.packageId,on?qty:1);
     const qtyBox=allowsQty(ex)?`<input class="qty" data-qty="${esc(ex.id)}" type="number" min="1" step="1" inputmode="numeric" value="${qty}" ${on?'':'hidden'} aria-label="Quantity for ${esc(ex.name)}">`:'';
-    return `<div class="extra-opt"><label><input type="checkbox" data-xid="${esc(ex.id)}" ${on?'checked':''}><span class="grow"><span class="ename">${esc(ex.name)}</span><span class="hint">${esc(extraHint(ex))}</span></span></label>${qtyBox}<span class="price" data-xprice="${esc(ex.id)}">${amount?fromPrice(amount):'—'}</span></div>`;
+    const shown=ex.price==null?'Price to confirm':(amount?fromPrice(amount):'—');
+    return `<div class="extra-opt"><label><input type="checkbox" data-xid="${esc(ex.id)}" ${on?'checked':''}><span class="grow"><span class="ename">${esc(ex.name)}</span><span class="hint">${esc(extraHint(ex))}</span></span></label>${qtyBox}<span class="price" data-xprice="${esc(ex.id)}">${shown}</span></div>`;
   }).join('');
   renderCustom();
 }
@@ -896,7 +904,7 @@ function syncExtraPrices(){
     if(!ex) return;
     const pick=(quote.picks||[]).find(p=>p.id===ex.id);
     const amount=Calc.priceExtra(ex,area,quote.packageId,pick?pick.qty:1);
-    el.textContent=amount?fromPrice(amount):'—';
+    el.textContent=ex.price==null?'Price to confirm':(amount?fromPrice(amount):'—');
   });
 }
 function renderProducts(){
@@ -1055,13 +1063,22 @@ function depositFor(total){
   const pct=total>=20000?over:under;
   return {pct, amount:Calc.round((+total||0)*pct/100)};
 }
+function careParagraphs(pkgId){
+  if(pkgId!=='accessible-care') return [];
+  return [
+    "Gert's Reno is not an NDIS-registered provider. Self-managed and plan-managed participants only. NDIS-funded work needs an OT assessment, and the OT's spec overrides this package. AS 1428.1 is used as a design reference.",
+    'A curtain setup is waterproofed across the whole floor.',
+    'Three $600 allowances to confirm are inside this price: wall reinforcement behind the rails and seat, fitting the rails, seat and curtain track, and the hobless shower set-in.'
+  ];
+}
+function careHtml(pkgId){return careParagraphs(pkgId).map(p=>`<p>${esc(p)}</p>`).join('')}
 function complianceHtml(t){
   const dep=t&&t.total?depositFor(t.total):null;
   const depLine=dep?`Deposit ${dep.pct}% (${fromPrice(dep.amount)}) — verify with QBCC.`:'Deposit is calculated once the floor size is entered. Verify with QBCC.';
-  return `<div class="qd-notes"><p>${esc(WATERPROOF)}</p><p>${esc(depLine)}</p><p>${esc(settings.progressPayments||'')}</p><p>${esc(settings.warranty||'')}</p><p><strong>Book a free measure &amp; quote</strong></p></div>`;
+  return `<div class="qd-notes"><p>${esc(WATERPROOF)}</p>${careHtml(quote&&quote.packageId)}<p>${esc(depLine)}</p><p>${esc(settings.progressPayments||'')}</p><p>${esc(settings.warranty||'')}</p><p><strong>Book a free measure &amp; quote</strong></p></div>`;
 }
 function summaryTable(t){
-  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
+  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${lineAmount(e)}</td></tr>`).join('');
   const formula=t.area>0&&t.pkg?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Enter the floor size to price this package';
   return `<table>
   <tr><td>${esc(t.pkg?.name||'No package')}<br><span class="hint">${formula}</span></td><td class="n" id="sum-base">${t.base?fromPrice(t.base):'—'}</td></tr>
@@ -1096,18 +1113,27 @@ function renderFigure(q){
 }
 function scopeLines(pkgId){
   const compact=pkgId==='budget-compact';
-  return [
+  const care=pkgId==='accessible-care';
+  const lines=[
     compact?'Lighter strip-out of the existing bathroom.':'Strip-out of the existing bathroom.',
     'One 4 m³ skip for the bathroom waste.',
-    'Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021).',
-    'Screed to falls in the shower.',
-    compact?'Floor tiles and gloss subway walls to 2.1 m. The 2.5 m² feature area uses the same subway.':'Floor tiles and wall tiles to 2.1 m, including about 2.5 m² of feature tile.',
+    care?'Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021). A curtain setup is waterproofed across the whole floor.':'Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021).',
+    care?'Screed to falls for a hobless shower with a linear channel.':'Screed to falls in the shower.',
+    care?'P5 grip floor tiles and matt white wall tiles to 2.1 m. The 2.5 m² feature area uses the same wall tile.':compact?'Floor tiles and gloss subway walls to 2.1 m. The 2.5 m² feature area uses the same subway.':'Floor tiles and wall tiles to 2.1 m, including about 2.5 m² of feature tile.',
     'Plumbing rough-in and fit-off, keeping the existing layout.',
     compact?'A smaller electrical allowance for the existing layout.':'Electrical allowance for a fan, lights, a power point and the certificate.',
     'Wall sheeting repairs, and a ceiling patch and paint.',
     'Supply and installation of the fixtures listed under inclusions.',
     'Selected extras, each priced on its own line.'
   ];
+  if(care){
+    lines.splice(lines.length-1,0,
+      'Wall reinforcement behind the rails and seat. A $600 allowance to confirm with the trades.',
+      'Fitting three grab rails, the fold-down seat and the curtain track. A $600 allowance to confirm with the trades.',
+      'Hobless shower set-in: extra screed falls and the linear channel. A $600 allowance to confirm with the trades.'
+    );
+  }
+  return lines;
 }
 function exclusionLines(pkgId, picks){
   const hasBath=(picks||[]).some(p=>String(p.id).startsWith('bath_'));
@@ -1120,6 +1146,15 @@ function exclusionLines(pkgId, picks){
     'Anything not named in the scope or selected as an extra.'
   ];
   if(pkgId==='budget-compact') lines.splice(3,0,'A hand shower or slide rail. Budget Compact includes a fixed shower screen and a mixer only.');
+  if(pkgId==='accessible-care'){
+    const hasSlab=(picks||[]).some(p=>String(p.id).startsWith('step-free-slab-setdown'));
+    const hasDoor=(picks||[]).some(p=>String(p.id).startsWith('door-widening'));
+    lines.splice(3,0,
+      hasSlab?'Slab set-down other than the one selected. It is priced after a site measure.':'Slab set-down for a step-free shower. It is priced after a site measure.',
+      hasDoor?'Door widening other than the one selected. It is priced after a site measure.':'Door widening. It is priced after a site measure.',
+      "An occupational therapy assessment. NDIS-funded work needs one, and the OT's spec overrides this package."
+    );
+  }
   return lines;
 }
 function renderPrint(){
@@ -1130,7 +1165,7 @@ function renderPrint(){
   const legal=legalBits();
   const dep=t.total?depositFor(t.total):null;
   const logo=settings.logo?`<img class="qd-logo" src="${settings.logo}" alt="">`:'';
-  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${e.amount?fromPrice(e.amount):'—'}</td></tr>`).join('');
+  const lines=(t.lines||[]).map(e=>`<tr><td>${esc(e.desc)}</td><td class="n">${lineAmount(e)}</td></tr>`).join('');
   const formula=t.area>0?`${fmt(t.baseFee)} + ${t.area.toFixed(2)} m² × ${fmt(t.rate)}/m²`:'Floor size not set';
   const scope=scopeLines(quote.packageId).map(s=>`<li>${esc(s)}</li>`).join('');
   const excluded=exclusionLines(quote.packageId, quote.picks).map(s=>`<li>${esc(s)}</li>`).join('');
@@ -1160,6 +1195,7 @@ function renderPrint(){
    <p>${esc(settings.progressPayments||DEFAULT_PROGRESS)}</p>
    <h3>Compliance and warranty</h3>
    <p>${esc(WATERPROOF)}</p>
+   ${careHtml(quote.packageId)}
    <p>${esc(settings.warranty||DEFAULT_WARRANTY)}</p>
    ${quote.notes?`<h3>Notes</h3><p>${esc(quote.notes).replace(/\n/g,'<br>')}</p>`:''}
    <div class="qd-banner"><strong>Book a free measure &amp; quote</strong><span>The price above is an estimate. A free site measure confirms it before any work is booked.</span></div>
@@ -1821,15 +1857,15 @@ const TextLLM={
 };
 
 const Intake=(()=>{
-  const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, or Marble Luxe), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
-Never give a renovation price, a deposit figure, an ABN, or a QBCC licence number. Never say a price is final. If they ask the cost, say Nico confirms an estimate after a free site measure.
+  const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, Marble Luxe, or Accessible Care), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
+Never give a renovation price, a deposit figure, an ABN, or a QBCC licence number. Never say a price is final. If they ask the cost, say Nico confirms an estimate after a free site measure. If they mention NDIS, say Gert's Reno is not an NDIS-registered provider and can quote for self-managed and plan-managed participants. Do not say the bathroom is AS 1428.1 compliant. The OT's spec overrides the package.
 End every reply with one line:
 FIELDS: {"roomSize":"","style":"","budget":"","timeline":"","suburb":"","name":"","phone":"","email":"","done":false}
 Fill a field only when the client has stated it, using their words. Set done to true only when every field has a value. The lines before FIELDS: are the only words the client sees.`;
   const GREETING='Hi, I\'m the assistant for Gert\'s Reno. I\'ll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button. This stays on your phone until Nico reviews it. Nothing is sent, and no price is final, until then.\n\nHow big is the bathroom? A length and width, or the floor area, is perfect.';
   const STEPS=[
     {id:'roomSize', ask:'How big is the bathroom? A length and width, or the floor area, is perfect.', invalid:'Tell me a size, even a rough one, or tap Not sure yet.', chips:['About 3-4 m2','About 6 m2','Not sure yet']},
-    {id:'style', ask:'Which look is closest?', invalid:'Choose a look, or describe it in a few words.', chips:['Budget Compact','Grey Modern','Beige Copper','Marble Luxe']},
+    {id:'style', ask:'Which look is closest?', invalid:'Choose a look, or describe it in a few words.', chips:['Budget Compact','Grey Modern','Beige Copper','Marble Luxe','Accessible Care']},
     {id:'budget', ask:'What budget range should we keep in mind?', invalid:'A budget range helps. A rough one is fine.', chips:['Under $20k','$20-30k','$30k or more','Not sure']},
     {id:'timeline', ask:'When would you like the work done?', invalid:'When are you hoping to start?', chips:['As soon as we can','In a few months','Just looking']},
     {id:'suburb', ask:'Which suburb is the bathroom in?', invalid:'I need the suburb to save the lead.', chips:[]},
@@ -1861,6 +1897,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
   }
   function matchPackage(style){
     const s=String(style||'').toLowerCase();
+    if(/accessible|ndis|grab|step-free|step free|ageing|aging|ambulant/.test(s)) return 'accessible-care';
     if(/budget|compact/.test(s)) return 'budget-compact';
     if(/beige|copper|brass/.test(s)) return 'beige-copper';
     if(/marble|luxe/.test(s)) return 'marble-luxe';
@@ -1923,7 +1960,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     quote.customer={name:f.name.trim(),phone:f.phone.trim(),email:f.email.trim(),suburb,address:suburb};
     const room=applyRoom(f.roomSize);
     if(room) quote.room=room;
-    const pkg=matchPackage(f.style);
+    const pkg=matchPackage(f.style)||matchPackage(f.budget);
     if(pkg&&settings.packages.some(p=>p.id===pkg)) quote.packageId=pkg;
     quote.notes=[f.roomSize&&`Room: ${f.roomSize}`,f.style&&`Style: ${f.style}`,f.budget&&`Budget: ${f.budget}`,f.timeline&&`Timeline: ${f.timeline}`,`Photos: ${(quote.photos||[]).length}`].filter(Boolean).join('\n');
     if(!quote.stage) quote.stage='New';
@@ -3539,7 +3576,8 @@ window.LOOKS={
   'budget-compact':{name:'Budget Compact',floor:'stone-code',wall:'whoosh-white',metal:'black',wood:0xf7f7f5},
   'grey-modern':{name:'Grey Modern',floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef},
   'beige-copper':{name:'Beige Copper',floor:'sand-600',wall:'cream-gloss',metal:'brass',wood:0xf7f4ef},
-  'marble-luxe':{name:'Marble Luxe',floor:'statuario',wall:'statuario',metal:'bronze',wood:0x5c4038}
+  'marble-luxe':{name:'Marble Luxe',floor:'statuario',wall:'statuario',metal:'bronze',wood:0x5c4038},
+  'accessible-care':{name:'Accessible Care',floor:'orion-dark',wall:'regina-white',metal:'chrome',wood:0xf7f7f5}
 };
 const Planner=(()=>{
   const TILES={
@@ -3555,7 +3593,8 @@ const Planner=(()=>{
     'regina-white':{name:'Regina white 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f4f3f0';g.fillRect(0,0,W,H);specks(g,W,H,8,280);g.strokeStyle='#d4d4cf';g.lineWidth=Math.max(3,W*0.025);g.strokeRect(1.5,1.5,W-3,H-3)}},
     'sand-600':{name:'Concrete sand 600×600',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#d9c7aa';g.fillRect(0,0,S,S);noise(g,S,16);g.strokeStyle='#c3ad8c';g.lineWidth=4;g.strokeRect(2,2,S-4,S-4)}},
     'cream-gloss':{name:'Light cream gloss 300×600',size:[0.6,0.3],aspect:true,draw:(g,W,H)=>{const grd=g.createLinearGradient(0,0,W,H);grd.addColorStop(0,'#f7f1e4');grd.addColorStop(0.5,'#efe4d0');grd.addColorStop(1,'#f8f3e8');g.fillStyle=grd;g.fillRect(0,0,W,H);g.strokeStyle='#e0d3bc';g.lineWidth=Math.max(3,W*0.02);g.strokeRect(1.5,1.5,W-3,H-3)}},
-    'statuario':{name:'Statuario 600×1200',size:[1.2,0.6],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f7f5f2';g.fillRect(0,0,W,H);g.lineCap='round';for(let i=0;i<6;i++){g.strokeStyle=i%2?'rgba(170,172,176,0.55)':'rgba(186,186,190,0.4)';g.lineWidth=i%3?1.4:2.4;g.beginPath();g.moveTo(-10,H*(0.08+i*0.15));g.bezierCurveTo(W*0.28,H*(0.02+i*0.16),W*0.62,H*(0.22+i*0.1),W+10,H*(0.06+i*0.14));g.stroke();}g.strokeStyle='#e6e2dc';g.lineWidth=3;g.strokeRect(1.5,1.5,W-3,H-3)}}
+    'statuario':{name:'Statuario 600×1200',size:[1.2,0.6],aspect:true,draw:(g,W,H)=>{g.fillStyle='#f7f5f2';g.fillRect(0,0,W,H);g.lineCap='round';for(let i=0;i<6;i++){g.strokeStyle=i%2?'rgba(170,172,176,0.55)':'rgba(186,186,190,0.4)';g.lineWidth=i%3?1.4:2.4;g.beginPath();g.moveTo(-10,H*(0.08+i*0.15));g.bezierCurveTo(W*0.28,H*(0.02+i*0.16),W*0.62,H*(0.22+i*0.1),W+10,H*(0.06+i*0.14));g.stroke();}g.strokeStyle='#e6e2dc';g.lineWidth=3;g.strokeRect(1.5,1.5,W-3,H-3)}},
+    'orion-dark':{name:'Orion dark grey P5 600×600',size:[0.6,0.6],draw:(g,S)=>{g.fillStyle='#4a4e52';g.fillRect(0,0,S,S);noise(g,S,10);g.strokeStyle='#34383c';g.lineWidth=4;g.strokeRect(2,2,S-4,S-4)}}
   };
   TILES['black-hex'].draw=(g,S)=>{g.fillStyle='#d9d9d9';g.fillRect(0,0,S,S);g.fillStyle='#1e1f22';const w=S/2,rh=S/2,R=Math.min(w/Math.sqrt(3),rh/1.5)-2;
     for(let row=-1;row<=2;row++)for(let col=-1;col<=2;col++)hex(g,col*w+(row%2?w/2:0),row*rh,R)};
@@ -3568,7 +3607,10 @@ const Planner=(()=>{
     toilet:{name:'Toilet',w:0.36,d:0.655,h:0.862,y:0},
     tap:{name:'Tap / mixer',w:0.15,d:0.12,h:0.2,y:1.0},
     mirror:{name:'Mirror',w:0.75,d:0.15,h:0.7,y:1.12},
-    rail:{name:'Towel rail',w:0.799,d:0.133,h:0.6,y:1.0,ring:false}
+    rail:{name:'Towel rail',w:0.799,d:0.133,h:0.6,y:1.0,ring:false},
+    grab:{name:'Grab rail',w:0.94,d:0.08,h:0.6,y:0.8},
+    seat:{name:'Fold-down seat',w:0.6,d:0.45,h:0.08,y:0.45},
+    basin:{name:'Wall basin',w:0.5,d:0.42,h:0.19,y:0.8}
   };
   function seed(s){return()=>(s=(s*16807)%2147483647)/2147483647}
   function noise(g,S,a){const r=seed(3);for(let i=0;i<4000;i++){const v=(r()-.5)*a;g.fillStyle=`rgba(${v>0?255:0},${v>0?255:0},${v>0?255:0},${Math.abs(v)/255*3})`;g.fillRect(r()*S,r()*S,3,3)}}
@@ -3585,7 +3627,7 @@ const Planner=(()=>{
   const joy={on:false,dx:0,dy:0,id:null};
   const lookPtr={on:false,id:null,x:0,y:0};
   const texCache={};
-  const defaultDesign=()=>({room:{shape:'rect',l:2.5,w:2.0,h:2.4,notchL:1.2,notchW:1,notchCorner:'ne'},floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef,items:[],doors:[],windows:[]});
+  const defaultDesign=()=>({room:{shape:'rect',l:2.5,w:2.0,h:2.4,notchL:1.2,notchW:1,notchCorner:'ne'},floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef,stepFree:false,items:[],doors:[],windows:[]});
   let planOn=false;
 
   function tileCanvas(key){
@@ -3628,8 +3670,14 @@ const Planner=(()=>{
     if(bath){const d=bath.dimensions_mm||{};ITEMS.bath.w=mm(d,'length_mm',ITEMS.bath.w);ITEMS.bath.d=mm(d,'width_mm',ITEMS.bath.d);ITEMS.bath.h=mm(d,'height_mm',ITEMS.bath.h)}
     const wc=find('toilet_suite');
     if(wc){const d=wc.dimensions_mm||{};ITEMS.toilet.w=mm(d,'pan_width_mm',mm(d,'width_mm',ITEMS.toilet.w));ITEMS.toilet.d=mm(d,'pan_projection_mm',ITEMS.toilet.d);ITEMS.toilet.h=mm(d,'height_mm',ITEMS.toilet.h)}
-    const sh=find('shower_screen');
-    if(sh){const d=sh.dimensions_mm||{};ITEMS.shower.w=mm(d,'width_mm',ITEMS.shower.w);ITEMS.shower.d=mm(d,'depth_mm',0.9)}
+    const sh=find('shower_screen')||find('shower_curtain');
+    if(sh){const d=sh.dimensions_mm||{};ITEMS.shower.w=mm(d,'width_mm',ITEMS.shower.w);ITEMS.shower.d=mm(d,'depth_mm',sh.category==='shower_curtain'?1.2:0.9)}
+    const grab=find('grab_rail');
+    if(grab){const d=grab.dimensions_mm||{};ITEMS.grab.w=mm(d,'width_mm',0.94);ITEMS.grab.h=mm(d,'height_mm',0.6);ITEMS.grab.d=0.08}
+    const seat=find('shower_seat');
+    if(seat){const d=seat.dimensions_mm||{};ITEMS.seat.w=mm(d,'width_mm',0.6);if(+d.depth_mm>0) ITEMS.seat.d=d.depth_mm/1000}
+    const basin=find('wall_basin');
+    if(basin){const d=basin.dimensions_mm||{};ITEMS.basin.w=mm(d,'width_mm',0.5);ITEMS.basin.d=mm(d,'depth_mm',0.42);ITEMS.basin.h=mm(d,'height_mm',0.19)}
     const mir=find('mirror_cabinet')||find('mirror');
     if(mir){
       const d=mir.dimensions_mm||{};
@@ -3685,6 +3733,7 @@ const Planner=(()=>{
     $('pl-shape').onchange=applyRoomSize;
     $('pl-notch-corner').onchange=applyRoomSize;
     $('pl-look').onchange=e=>{if(e.target.value)applyLook(e.target.value)};
+    $('pl-stepfree').onchange=()=>{if(!design)return;design.stepFree=$('pl-stepfree').checked;buildItems()};
     $('pl-floor').onchange=e=>{design.floor=e.target.value;$('pl-look').value='';buildRoom()};
     $('pl-wall').onchange=e=>{design.wall=e.target.value;$('pl-look').value='';buildRoom()};
     $('pl-metal').onchange=e=>{design.metal=e.target.value;$('pl-look').value='';buildItems()};
@@ -3822,6 +3871,7 @@ const Planner=(()=>{
     if(!Array.isArray(d.items)) d.items=[];
     d.doors=(Array.isArray(d.doors)?d.doors:[]).map(normalizeDoor);
     d.windows=(Array.isArray(d.windows)?d.windows:[]).map(normalizeWindow);
+    d.stepFree=!!d.stepFree;
     return d;
   }
   function clampOpenings(){
@@ -4141,6 +4191,7 @@ const Planner=(()=>{
     if(TILES[design.floor]) $('pl-floor').value=design.floor;
     if(TILES[design.wall]) $('pl-wall').value=design.wall;
     if(METALS[design.metal]) $('pl-metal').value=design.metal;
+    if($('pl-stepfree')&&document.activeElement!==$('pl-stepfree')) $('pl-stepfree').checked=!!design.stepFree;
   }
 
   const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:0.35,metalness:0,...o});
@@ -4160,13 +4211,26 @@ const Planner=(()=>{
     }
     if(type==='shower'){
       const gh=Math.min(h,(design.room.h||2.4)-0.12);
-      box(g,M(0xeeeeec),w,0.05,d,0,0.025,0);
-      const glass=new THREE.MeshPhysicalMaterial({color:0xcfe8ee,transparent:true,opacity:0.25,roughness:0.05,metalness:0,side:THREE.DoubleSide});
-      box(g,glass,w,gh,0.012,0,gh/2,d/2-0.006).castShadow=false;
-      const ret=Math.min(d*0.7,0.9);
-      box(g,glass,0.012,gh,ret,w/2-0.006,gh/2,d/2-ret/2).castShadow=false;
-      box(g,metal,w,0.02,0.02,0,gh,d/2);
-      box(g,metal,0.02,gh,0.02,w/2,gh/2,d/2);
+      const stepFree=!!design.stepFree;
+      g.userData.stepFree=stepFree;
+      if(stepFree){
+        box(g,M(0xeeeeec),w,0.008,d,0,0.006,0);
+        const channel=Math.min(0.9,Math.max(0.4,w*0.75));
+        box(g,metal,channel,0.012,0.045,0,0.012,-d/2+0.1);
+        box(g,metal,w,0.025,0.025,0,gh,-d/2+0.02);
+        box(g,metal,0.025,0.025,d,-w/2+0.02,gh,0);
+        const cloth=M(0xf3efe6,{roughness:0.92,transparent:true,opacity:0.88});
+        box(g,cloth,Math.max(0.2,w-0.08),gh*0.82,0.015,0.04,gh*0.42,d/2-0.03);
+        box(g,cloth,0.015,gh*0.82,Math.max(0.2,d*0.72),w/2-0.03,gh*0.42,0.04);
+      }else{
+        box(g,M(0xeeeeec),w,0.05,d,0,0.025,0);
+        const glass=new THREE.MeshPhysicalMaterial({color:0xcfe8ee,transparent:true,opacity:0.25,roughness:0.05,metalness:0,side:THREE.DoubleSide});
+        box(g,glass,w,gh,0.012,0,gh/2,d/2-0.006).castShadow=false;
+        const ret=Math.min(d*0.7,0.9);
+        box(g,glass,0.012,gh,ret,w/2-0.006,gh/2,d/2-ret/2).castShadow=false;
+        box(g,metal,w,0.02,0.02,0,gh,d/2);
+        box(g,metal,0.02,gh,0.02,w/2,gh/2,d/2);
+      }
       cyl(g,metal,0.09,0.09,0.02,0,gh-0.02,-d/2+Math.min(0.34,d*0.45),24);
       mixer(g,metal,-w/2+0.08,1.05,-d/2+0.02);
     }
@@ -4193,6 +4257,21 @@ const Planner=(()=>{
       const depth=Math.max(d||0.03,0.02);
       box(g,metal,w,h,depth,0,h/2,0);
       box(g,M(0xcfdde6,{metalness:0.15,roughness:0.05}),Math.max(0.08,w-0.04),Math.max(0.08,h-0.04),0.008,0,h/2,depth/2+0.004);
+    }
+    if(type==='grab'){
+      box(g,metal,w,0.032,0.032,0,0.02,0);
+      box(g,metal,0.032,Math.max(0.2,h),0.032,-w/2+0.02,Math.max(0.2,h)/2,0);
+    }
+    if(type==='seat'){
+      box(g,metal,0.06,0.04,0.08,-w/2+0.02,0.02,0);
+      box(g,white,w*0.92,0.035,Math.max(0.32,d*0.9),0.02,0.03,0.02);
+      box(g,metal,0.025,0.45,0.025,w*0.28,-0.2,d*0.25);
+    }
+    if(type==='basin'){
+      const bowl=cyl(g,white,Math.min(0.22,w*0.42),Math.min(0.18,w*0.34),Math.max(0.12,h),0,h/2,0.02,28);
+      bowl.scale.z=0.8;
+      cyl(g,metal,0.018,0.022,0.16,0,-0.06,0.04);
+      mixer(g,metal,0,h+0.02,-d*0.2);
     }
     if(type==='rail'){
       if(spec.ring){
@@ -4307,7 +4386,7 @@ const Planner=(()=>{
   function onUp(){if(drag){drag=null;if(design) design.placedBy='user';if(!walking)controls.enabled=true;refreshWarnings()}}
 
   const FINISH={black:'matte black',chrome:'polished chrome',copper:'brushed copper',brass:'brushed brass',bronze:'brushed bronze'};
-  const FIXTURE_CAT={vanity:['vanity'],toilet:['toilet_suite'],shower:['shower_screen'],bath:['bath'],mirror:['mirror_cabinet','mirror'],rail:['towel_rail'],tap:['basin_mixer','shower_mixer']};
+  const FIXTURE_CAT={vanity:['vanity'],toilet:['toilet_suite'],shower:['shower_screen','shower_curtain'],bath:['bath'],mirror:['mirror_cabinet','mirror'],rail:['towel_rail'],tap:['basin_mixer','shower_mixer'],grab:['grab_rail'],seat:['shower_seat'],basin:['wall_basin']};
   let renderState={busy:false,blob:null,dataUrl:'',seed:null};
   let renderForQuote=null;
 
@@ -4371,7 +4450,8 @@ const Planner=(()=>{
       floor?`Floor tiles: ${tileBit(floor)}, laid straight.`:(TILES[design.floor]?`Floor: ${TILES[design.floor].name}.`:''),
       wall?`Wall tiles: ${tileBit(wall)}, tiled to about 2.1 m.`:(TILES[design.wall]?`Walls: ${TILES[design.wall].name}.`:''),
       feature?`Feature wall accent, about 2.5 square metres: ${tileBit(feature)}.`:'',
-      `Tapware, shower hardware and metal accessories are ${finish}.`
+      `Tapware, shower hardware and metal accessories are ${finish}.`,
+      design.stepFree?'Step-free shower with no hob, a linear floor channel and a curtain instead of a glass screen.':''
     ];
     const items=design.items||[];
     if(!items.length) parts.push('No fixtures are placed yet. Show the tiled room shell in this finish, uncluttered and ready to furnish.');
@@ -4385,7 +4465,10 @@ const Planner=(()=>{
         const named=product?product.name:spec.name;
         const colour=product&&product.colour?product.colour:'';
         let finishBit;
-        if(it.type==='tap'||it.type==='rail'||it.type==='shower') finishBit=`${finish} finish`;
+        if(it.type==='shower'&&design.stepFree) finishBit='curtain and linear drain, no glass screen';
+        else if(it.type==='tap'||it.type==='rail'||it.type==='shower'||it.type==='grab') finishBit=`${finish} finish`;
+        else if(it.type==='seat') finishBit='fold-down seat';
+        else if(it.type==='basin') finishBit=`wall-hung basin${colour?', '+colour:''}`;
         else if(it.type==='vanity') finishBit=`${colour?colour+', ':''}with ${finish} tapware`;
         else finishBit=colour;
         const turned=it.rot?`, turned ${it.rot*90} degrees`: '';
@@ -4721,7 +4804,9 @@ const Planner=(()=>{
 
   function applyLook(key, opts){
     const L=LOOKS[key];if(!L||!design) return;
+    const changing=design.look!==key;
     Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:key});
+    if(changing) design.stepFree=key==='accessible-care';
     sizeFromPackage(key);
     design.items.forEach(clampItem);
     if(inited && !(opts&&opts.silent)){$('pl-look').value=key;buildRoom();buildItems()}
@@ -4729,7 +4814,7 @@ const Planner=(()=>{
   function wantsBath(){
     return (BQ.quote.picks||[]).some(p=>String(p.id).startsWith('bath_'));
   }
-  const FIXTURE_TYPE={vanity:'vanity',toilet_suite:'toilet',shower_screen:'shower',mirror:'mirror',mirror_cabinet:'mirror',towel_rail:'rail',basin_mixer:'tap',bath:'bath'};
+  const FIXTURE_TYPE={vanity:'vanity',toilet_suite:'toilet',shower_screen:'shower',shower_curtain:'shower',mirror:'mirror',mirror_cabinet:'mirror',towel_rail:'rail',basin_mixer:'tap',bath:'bath',wall_basin:'basin',grab_rail:'grab',shower_seat:'seat'};
   function layoutForPackage(pkgId){
     const pkg=catalogue&&catalogue.packages.find(p=>p.id===pkgId);
     if(!pkg||!design) return [];
@@ -4747,6 +4832,9 @@ const Planner=(()=>{
       mirror:{x:l/2,z:0,rot:1},
       tap:{x:l/2,z:0.2,rot:1},
       rail:{x:-l/2,z:0.15,rot:1},
+      grab:{x:-l/2,z:0,rot:1},
+      seat:{x:-l/2,z:-w/2+0.55,rot:1},
+      basin:{x:l/2,z:0.15,rot:1},
       bath:{x:0,z:0,rot:0}
     };
     return types.map(type=>{
@@ -4882,8 +4970,16 @@ const Planner=(()=>{
   }
   function applyPackageLook(){
     if(!window.BQ||!BQ.quote) return;
-    const p=settings.packages.find(p=>p.id===BQ.quote.packageId);
-    if(p&&p.look){ensureDesign();applyLook(p.look)}
+    const p=settings.packages.find(x=>x.id===BQ.quote.packageId);
+    if(!(p&&p.look)) return;
+    ensureDesign();
+    applyLook(p.look);
+    const stamp=(BQ.quote.packageId||'')+'|'+(wantsBath()?'bath':'room');
+    if(design.placedBy!=='user' && design.preloadStamp!==stamp){
+      design.items=layoutForPackage(BQ.quote.packageId);
+      design.preloadStamp=stamp;
+      if(inited) buildItems();
+    }
   }
   function toggleClient(){
     const on=document.body.classList.toggle('client');$('pl-client').textContent=on?'Exit client view':'Client view';
@@ -4909,6 +5005,7 @@ const Planner=(()=>{
       else if(r.mode==='m2'&&+r.area>0){const w=Math.sqrt(+r.area/1.25);design.room.w=Calc.round(Math.max(1,w));design.room.l=Calc.round(Math.max(1,+r.area/design.room.w))}
       const p=settings.packages.find(p=>p.id===q.packageId), L=LOOKS[p?.look];
       if(L) Object.assign(design,{floor:L.floor,wall:L.wall,metal:L.metal,wood:L.wood,look:p.look});
+      design.stepFree=!!(p&&p.look==='accessible-care');
     }else design=q.design;
     design=normalizeDesign(design);
     clampOpenings();

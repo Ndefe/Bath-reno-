@@ -1409,6 +1409,441 @@
       },
       "fixtures_total_rrp": 6777.0,
       "fttc_extra_6m2": 1990.0
+    },
+    {
+      "id": "accessible-care",
+      "name": "Accessible Care",
+      "tier": "accessible",
+      "description": "Step-free walk-in shower with linear drain, folding seat and grab-rail hand shower, ambulant-height toilet with grab rails, wall-hung basin with lever mixer, P5 grip floor in dark grey with matt white walls for contrast. Suits NDIS (self/plan-managed) and ageing-in-place clients; final spec to OT report. Gert's Reno is not an NDIS-registered provider. Self-managed and plan-managed participants only. NDIS-funded work needs an OT assessment, and the OT's spec overrides this package. AS 1428.1 is used as a design reference.",
+      "tiles": [
+        {
+          "id": "orion-dark-grey-p5",
+          "role": "floor",
+          "supplier": "National Tiles",
+          "name": "Orion Dark Grey External P5",
+          "code": "NT21-4086FLX",
+          "size_mm": "600x600x9",
+          "thickness_mm": "9",
+          "finish": "Grip",
+          "slip_rating": "P5",
+          "price_per_m2": 54.95,
+          "price_unit": "m2",
+          "box_or_unit_price": 79.13,
+          "m2_per_box": 1.44,
+          "price_note": "URL slug says p4; the page spec says P5. Check the rating on the box label before ordering.",
+          "price_verified": true,
+          "price_source": "nationaltiles.com.au product page",
+          "url": "https://www.nationaltiles.com.au/orion-dark-grey-external-p4-tile",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "regina-white-matt",
+          "role": "wall",
+          "supplier": "National Tiles",
+          "name": "Regina White Matt",
+          "code": "NT19-6130FL",
+          "size_mm": "300x600",
+          "thickness_mm": "9",
+          "finish": "Matt",
+          "slip_rating": "P2",
+          "price_per_m2": 54.95,
+          "price_unit": "m2",
+          "box_or_unit_price": 79.13,
+          "m2_per_box": 1.44,
+          "price_note": null,
+          "price_verified": true,
+          "price_source": "nationaltiles.com.au product page",
+          "url": "https://www.nationaltiles.com.au/regina-white-matt-tile",
+          "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt19-6130fl_ecomm.jpg",
+          "date_checked": "2026-10-23",
+          "image_file": "images/wall_NT19-6130FL.jpg"
+        }
+      ],
+      "items": [
+        {
+          "id": "1811611",
+          "category": "toilet_suite",
+          "supplier": "Reece",
+          "name": "Wolfen Ambulant Close Coupled Back to Wall Rimless Suite",
+          "code": "1811611",
+          "dimensions_mm": {
+            "pan_projection_mm": 650
+          },
+          "colour": "White",
+          "rrp": 1416.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/toilets-c544028/care-ambulant-toilets-c544095/wolfen-ambulant-close-coupled-back-to-wall-1811611",
+          "optional": false,
+          "note": "The page says it meets AS1428.1-2009. Pan projection 650 mm. 4-star WELS.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "9501877",
+          "category": "grab_rail",
+          "supplier": "Reece",
+          "name": "Mobi 940 x 600mm x 90 Degree Right Hand Grab Rail",
+          "code": "9501877",
+          "dimensions_mm": {
+            "width_mm": 940,
+            "height_mm": 600
+          },
+          "colour": "Satin stainless steel",
+          "rrp": 172.73,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/mobi-940-x-600mm-x-90-degree-right-hand-grab-rail-9501877",
+          "optional": false,
+          "note": "GST free on Reece. Right hand. The left-hand rail is a different code and is not included.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "9501877b",
+          "category": "grab_rail",
+          "supplier": "Reece",
+          "name": "Mobi 940 x 600mm x 90 Degree Grab Rail (shower seat)",
+          "code": "9501877",
+          "dimensions_mm": {
+            "width_mm": 940,
+            "height_mm": 600
+          },
+          "colour": "Satin stainless steel",
+          "rrp": 172.73,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/mobi-940-x-600mm-x-90-degree-right-hand-grab-rail-9501877",
+          "optional": false,
+          "note": "GST free on Reece. Second rail, for the shower seat. Order the hand to suit the layout.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "9502624",
+          "category": "grab_rail",
+          "supplier": "Reece",
+          "name": "Mobi 32mm x 900mm Grab Rail Polished Stainless",
+          "code": "9502624",
+          "dimensions_mm": {
+            "width_mm": 900,
+            "diameter_mm": 32
+          },
+          "colour": "Polished stainless steel",
+          "rrp": 81.82,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/mobi-32mm-x-900mm-grab-rail-polished-stainless-9502624",
+          "optional": false,
+          "note": "GST free on Reece.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "2260056",
+          "category": "shower_seat",
+          "supplier": "Reece",
+          "name": "Wolfen Folding Shower Seat 600mm Stainless",
+          "code": "2260056",
+          "dimensions_mm": {
+            "width_mm": 600
+          },
+          "colour": "Stainless steel and white",
+          "rrp": 552.73,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/wolfen-folding-shower-seat-600mm-stainless-2260056",
+          "optional": false,
+          "note": "GST free on Reece. The page says it meets AS1428.1-2009 Amd.1.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "2213368",
+          "category": "shower_rail",
+          "supplier": "Reece",
+          "name": "Posh Solus MK3 Single Grab Rail Shower 1 Function",
+          "code": "2213368",
+          "dimensions_mm": {
+            "width_mm": 900
+          },
+          "colour": "",
+          "rrp": 488.73,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/showers-c543286/shower-heads-outlets-c543234/rail-showers-c543966/posh-solus-mk3-single-grab-rail-shower-1-function-2213368",
+          "optional": false,
+          "note": "GST free on Reece. 4-star WELS. 1500 mm hose. The page says it meets AS 1428.1.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "9505251",
+          "category": "shower_mixer",
+          "supplier": "Reece",
+          "name": "Posh Bristol MK2 Shower Mixer Tap with Extended Lever Chrome",
+          "code": "9505251",
+          "dimensions_mm": {},
+          "colour": "Chrome",
+          "rrp": 138.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/shower-bath-tapware-c544025/posh-bristol-mk2-shower-mixer-tap-with-extended-9505251",
+          "optional": false,
+          "note": "Extended lever. The page says it has a temperature-limiting device.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "1851595",
+          "category": "wall_basin",
+          "supplier": "Reece",
+          "name": "Wolfen Wall Basin 500 x 420 x 190mm with Overflow",
+          "code": "1851595",
+          "dimensions_mm": {
+            "width_mm": 500,
+            "depth_mm": 420,
+            "height_mm": 190
+          },
+          "colour": "White",
+          "rrp": 310.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/basins-c543130/wolfen-wall-basin-500-x-420-x-190mm-with-overflow-1851595",
+          "optional": false,
+          "note": "Wall-hung. The page says it complies with AS1428.1-2009.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "10876",
+          "category": "basin_mixer",
+          "supplier": "Reece",
+          "name": "Mizu Soothe MK2 Basin Mixer with Extended Lever Chrome",
+          "code": "10876",
+          "dimensions_mm": {},
+          "colour": "Chrome",
+          "rrp": 206.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/basin-tapware-c544043/mizu-soothe-mk2-basin-mixer-with-extended-10876",
+          "optional": false,
+          "note": "6-star WELS.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "2263197",
+          "category": "basin_waste",
+          "supplier": "Reece",
+          "name": "Mizu Drift Universal 40mm Pop Up Plug & Waste",
+          "code": "2263197",
+          "dimensions_mm": {},
+          "colour": "Chrome",
+          "rrp": 35.9,
+          "price_verified": true,
+          "price_source": "reece.com.au listing",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/basins-c543130/wastes-c543636/mizu-drift-universal-40mm-pop-up-plug-waste-2263197",
+          "optional": false,
+          "note": "Price from the Reece listing, not the product page. The plumber should check it suits the overflow basin.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "2262546",
+          "category": "bottle_trap",
+          "supplier": "Reece",
+          "name": "Mizu Drift Bottle Trap 40mm Chrome",
+          "code": "2262546",
+          "dimensions_mm": {},
+          "colour": "Chrome",
+          "rrp": 130.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/mizu-drift-bottle-trap-40mm-chrome-2262546",
+          "optional": false,
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "306272",
+          "category": "shower_channel",
+          "supplier": "Reece",
+          "name": "Kado Lux Shower Channel Kit Satin 900mm",
+          "code": "306272",
+          "dimensions_mm": {
+            "width_mm": 900
+          },
+          "colour": "Satin",
+          "rrp": 318.1,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/showers-c543286/wastes-channels-c543331/kado-lux-shower-channel-kit-satin-900mm-306272",
+          "optional": false,
+          "note": "The page says it is one-drain-for-the-whole-bathroom compliant.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "1712023",
+          "category": "shower_curtain",
+          "supplier": "Reece",
+          "name": "Aluminium 90 Degree Shower Track 1200 x 1200 with Curtain",
+          "code": "1712023",
+          "dimensions_mm": {
+            "width_mm": 1200,
+            "depth_mm": 1200
+          },
+          "colour": "",
+          "rrp": 375.51,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/aluminium-90-degree-shower-track-1200-x-1200-with-1712023",
+          "optional": false,
+          "note": "trade-only online.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "2304685",
+          "category": "mirror",
+          "supplier": "Reece",
+          "name": "Posh Domaine 600mm x 800mm Polished Edge Mirror",
+          "code": "2304685",
+          "dimensions_mm": {
+            "width_mm": 600.0,
+            "height_mm": 800.0
+          },
+          "colour": "",
+          "rrp": 215.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/posh-domaine-600mm-x-800mm-polished-edge-mirror-2304685",
+          "image_url": "https://digitalassets.reecegroup.com.au/m/b76dec5a6faf5e8b/Web_1200x900-Posh-Domaine-600mm-x-800mm-Polished-Edge-Mirror.jpg",
+          "optional": false,
+          "note": "Mount it so a seated user can see.",
+          "date_checked": "2026-10-23",
+          "image_file": "images/mirror_2304685.jpg"
+        },
+        {
+          "id": "2268105",
+          "category": "toilet_roll_holder",
+          "supplier": "Reece",
+          "name": "Mizu Soothe Toilet Roll Holder Matte Black",
+          "code": "2268105",
+          "dimensions_mm": {
+            "width_mm": 163.0,
+            "height_mm": 23.6,
+            "projection_mm": 73.5
+          },
+          "colour": "Matte Black",
+          "rrp": 57.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-matte-black-2268105",
+          "image_url": "https://digitalassets.reecegroup.com.au/asset/3aedff91-aa39-46c6-ab08-b93f7abd1f0e/Web_1200x900/Mizu-Soothe-Toilet-Roll-Holder-Matte-Black.jpg",
+          "optional": false,
+          "date_checked": "2026-10-23",
+          "image_file": "images/toilet_roll_holder_2268105.jpg"
+        },
+        {
+          "id": "9508924",
+          "category": "toilet_suite",
+          "supplier": "Reece",
+          "name": "Wolfen 800 Close Coupled Back to Wall Rimless Suite with Backrest",
+          "code": "9508924",
+          "dimensions_mm": {
+            "pan_height_mm": 435,
+            "pan_projection_mm": 805
+          },
+          "colour": "White",
+          "rrp": 2499.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/toilets-c544028/care-ambulant-toilets-c544095/wolfen-800-close-coupled-back-to-wall-rimless-9508924",
+          "optional": true,
+          "note": "The page says it meets AS1428.1-2021. Pan height 435 mm, projection 805 mm. Optional upgrade, not in the from price.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "9507171",
+          "category": "back_rest",
+          "supplier": "Reece",
+          "name": "Wolfen Back Rest with Fixed Arms",
+          "code": "9507171",
+          "dimensions_mm": {},
+          "colour": "White",
+          "rrp": 360.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/wolfen-back-rest-with-fixed-arms-white-and-9507171",
+          "optional": true,
+          "note": "The page says it meets AS1428.1-2009 Amd.1 when used with a single-flap seat. Optional, not in the from price.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "2266525",
+          "category": "grab_rail",
+          "supplier": "Reece",
+          "name": "Mizu Drift 450 x 450 x 90 Degree Ambulant Toilet Grab Rail Left Hand Brushed",
+          "code": "2266525",
+          "dimensions_mm": {
+            "width_mm": 450,
+            "height_mm": 450
+          },
+          "colour": "Brushed",
+          "rrp": 280.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/bathroom-accessories-c543221/grab-rails-backrests-c617897/mizu-drift-450-x-450-x-90-degree-ambulant-2266525",
+          "optional": true,
+          "note": "GST free on Reece. Optional, not in the from price.",
+          "date_checked": "2026-10-23"
+        },
+        {
+          "id": "1779024",
+          "category": "shower_seat",
+          "supplier": "Reece",
+          "name": "RBA Budget Shower Seat to AS1428.1-2009",
+          "code": "1779024",
+          "dimensions_mm": {},
+          "colour": "",
+          "rrp": 522.0,
+          "price_verified": true,
+          "price_source": "reece.com.au product page, postcode 4000",
+          "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/rba-budget-shower-seat-to-as1428-1-2009-1779024",
+          "optional": true,
+          "note": "GST free on Reece. trade-only online. Optional, not in the from price.",
+          "date_checked": "2026-10-23"
+        }
+      ],
+      "pricing": {
+        "base_fee": 27500,
+        "rate_per_m2": 620,
+        "formula": "27500 + 620 x floor m2 (incl. GST)",
+        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate. Accessible: wall reinforcement behind all rails/seat, hobless shower with linear drain, care fixtures fitted. Slab set-down, door widening and OT report not included. Three $600 allowances to confirm are inside this price: wall reinforcement, fitting the rails, seat and curtain track, and the hobless shower set-in.",
+        "examples": {
+          "5": {
+            "price": 30600,
+            "cost": 22295.58,
+            "margin_pct": 27.14
+          },
+          "6": {
+            "price": 31220,
+            "cost": 22763.98,
+            "margin_pct": 27.09
+          },
+          "7": {
+            "price": 31840,
+            "cost": 23211.55,
+            "margin_pct": 27.1
+          },
+          "8": {
+            "price": 32460,
+            "cost": 23642.65,
+            "margin_pct": 27.16
+          }
+        },
+        "breakdown_6m2": {
+          "tiles": 1497.57,
+          "tile_labour": 2326.16,
+          "waterproofing": 1300,
+          "screed": 270,
+          "fixed_trades": 12700,
+          "fixtures": 4670.25,
+          "total": 22763.98,
+          "wall_m2": 18.78
+        }
+      },
+      "fixtures_total_rrp": 4670.25,
+      "fttc_extra_6m2": 1160
     }
   ],
   "extras": [
@@ -1636,6 +2071,46 @@
       "basis": "QLD $6k-$12k full re-plumb vs $5k standard already included",
       "sources": [
         "https://www.thequoteyard.com.au/services/bathroom-renovation-plumbing-qld"
+      ]
+    },
+    {
+      "id": "toilet-upgrade-wolfen-800_accessible-care",
+      "name": "Toilet upgrade to Wolfen 800 suite with backrest (Reece 9508924)",
+      "price": 1480,
+      "unit": "job",
+      "basis": "Supply difference $1,083 / 0.73. Install difference not included.",
+      "sources": [
+        "https://www.reece.com.au/product/bathroom-c544063/toilets-c544028/care-ambulant-toilets-c544095/wolfen-800-close-coupled-back-to-wall-rimless-9508924"
+      ]
+    },
+    {
+      "id": "step-free-slab-setdown_accessible-care",
+      "name": "Slab set-down for a step-free shower",
+      "price": null,
+      "unit": "job",
+      "basis": "Price to confirm after site measure. Not included in the from price.",
+      "note": "price to confirm after site measure",
+      "price_verified": false,
+      "sources": []
+    },
+    {
+      "id": "door-widening_accessible-care",
+      "name": "Door widening",
+      "price": null,
+      "unit": "job",
+      "basis": "Price to confirm after site measure. Not included in the from price.",
+      "note": "price to confirm after site measure",
+      "price_verified": false,
+      "sources": []
+    },
+    {
+      "id": "fttc_accessible-care",
+      "name": "Floor-to-ceiling tiling - Accessible Care (6 m2 room; scales with wall area)",
+      "price": 1160,
+      "unit": "job",
+      "basis": "Extra ~5.88 m2 wall tile supply + labour at package rates, /(1-27%)",
+      "sources": [
+        "https://www.nationaltiles.com.au/regina-white-matt-tile"
       ]
     }
   ],
