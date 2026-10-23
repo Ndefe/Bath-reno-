@@ -276,7 +276,7 @@ def ld(suburb):
 
 
 CSS = """
-:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0e7c86;--line:#dde3ea}
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0a5f68;--line:#dde3ea}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5}
 a{color:var(--acc)}
@@ -315,6 +315,8 @@ def page(suburb, others):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{esc(canon)}">
@@ -383,6 +385,8 @@ def index_page():
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" href="../assets/icon-192.png" type="image/png">
 <title>Bathroom renovations in Brisbane suburbs | Gert's Reno</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{SITE}/suburbs/index.html">
