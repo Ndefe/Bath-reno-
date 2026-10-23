@@ -285,8 +285,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div class="card chat-card">
       <div class="chat-side">
       <h2>Assistant</h2>
-      <p class="hint" id="assist-mode">Tell us about the bathroom in your own words. Nothing is sent until Nico reviews it.</p>
-      <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Nothing is sent.</p>
+      <p class="hint" id="assist-mode">What you type in this chat is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
+      <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Other chat text, and any AI render prompt, goes to Pollinations. Do not include a phone number, email or street address.</p>
       <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a></p>
       <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
       <div id="chat-photos" class="photo-list"></div>
@@ -2166,8 +2166,18 @@ const Faq=(()=>{
     {id:'cost', re:/\b(costs?|prices?|pricing|how much|deposit)\b/i},
     {id:'included', re:/\b(included|inclusions)\b|\bwhat(?:'s| is) included\b|\bwhat do you include\b/i},
     {id:'waterproof', re:/waterproof/i},
-    {id:'timeline', re:/week[\s-]*by[\s-]*week|\bhow long\b|\btimeline\b|\bhow many weeks\b|\bwhat to expect\b/i}
+    {id:'timeline', re:/week[\s-]*by[\s-]*week|\bhow long\b|\btimeline\b|\bhow many weeks\b|\bwhat to expect\b/i},
+    {id:'licence', re:/\blicen[cs]e|\blicen[cs]ed\b|\bqbcc\b/i},
+    {id:'reviews', re:/\breviews?\b|\btestimonials?\b|\bratings?\b|\bstar ratings?\b/i},
+    {id:'ndis', re:/\bndis\b/i},
+    {id:'tracker', re:/\btracker\b|\bjob stages?\b|\bwhere is my job\b/i}
   ];
+  const LOCAL={
+    licence:'Licence details are shown on the quote once confirmed.',
+    reviews:"We're a new business, so no reviews yet.",
+    ndis:"We're not NDIS-registered; our Accessible Care package suits self-managed and plan-managed participants.",
+    tracker:'The job tracker is a snapshot link Nico copies from the pipeline. It is not a live login, it has no phone number or email, and nothing is sent.'
+  };
   let facts=null;
   function load(data){facts=data&&typeof data==='object'?data:null}
   function match(text){
@@ -2205,18 +2215,117 @@ const Faq=(()=>{
     const progress=settings.progressPayments||facts.progress;
     return [facts.timeline, progress?`Payment stages on the quote: ${progress}`:'', facts.notFinal].filter(Boolean).join('\n\n');
   }
+  function localLine(id){
+    const fromFacts=facts&&facts[id];
+    return String(fromFacts||LOCAL[id]||'').trim();
+  }
   function answer(ids, text){
-    if(!facts) return 'The facts file on this site did not load. I will not guess. Nothing was sent.';
     const parts=[];
-    if(ids.includes('cost')) parts.push(cost(text));
-    if(ids.includes('included')) parts.push(included());
-    if(ids.includes('waterproof')) parts.push(waterproof());
-    if(ids.includes('timeline')) parts.push(timeline());
+    ['licence','reviews','ndis','tracker'].forEach(id=>{if(ids.includes(id)) parts.push(localLine(id))});
+    const needsFacts=ids.some(id=>id==='cost'||id==='included'||id==='waterproof'||id==='timeline');
+    if(needsFacts&&!facts) parts.push('The facts file on this site did not load. I will not guess. Nothing was sent.');
+    else if(facts){
+      if(ids.includes('cost')) parts.push(cost(text));
+      if(ids.includes('included')) parts.push(included());
+      if(ids.includes('waterproof')) parts.push(waterproof());
+      if(ids.includes('timeline')) parts.push(timeline());
+    }
     return parts.filter(Boolean).join('\n\n')||'The facts file on this site did not load. I will not guess. Nothing was sent.';
   }
-  return {load, match, answer, get loaded(){return !!facts}};
+  function notFinal(){
+    return (facts&&facts.notFinal)||'Nothing is final until Nico confirms it after a free site measure.';
+  }
+  return {load, match, answer, notFinal, get loaded(){return !!facts}};
 })();
 window.Faq=Faq;
+
+function stripDimensions(text){
+  return String(text||'')
+    .replace(/\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\s*(?:mm|cm|m²|m2|sq\.?\s*m|sqm)\b/gi,' ')
+    .replace(/\b\d+(?:\.\d+)?\s*(?:mm|cm|m²|m2|sq\.?\s*m|sqm)\b/gi,' ')
+    .replace(/\b\d+(?:\.\d+)?\s*(?:x|×|by)\s*\d+(?:\.\d+)?(?:\s*(?:mm|cm|m|m²|m2))?\b/gi,' ')
+    .replace(/\b\d+(?:\.\d+)?\s*m\b/gi,' ');
+}
+function replyClaims(text){
+  const s=String(text||'');
+  if(/\b(licen[cs]e[ds]?|qbcc|ndis|reviews?|ratings?|testimonials?|guarantees?|warrant(?:y|ee|ies)|promises?|awards?|insured|accredited|certified)\b/i.test(s)) return true;
+  if(/\bstars?\b|\bout of\s*5\b|\d\s*[- ]?stars?\b|\brated\b|\b\d\s*\/\s*\d+\b/i.test(s)) return true;
+  if(/\bhappy\s+(?:customers|clients|families)\b|\btrusted by\b|\bfixed price\b|\bsatisfaction\b|\bnumber one\b|\byears experience\b|\byears of experience\b|\bhundreds of\b|\bbest\b/i.test(s)) return true;
+  if(/\b(?:dollars?|thousand)\b/i.test(s)) return true;
+  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b/i.test(s)) return true;
+  if(/\b\d+\s*%/.test(s)) return true;
+  const bare=stripDimensions(s);
+  if(/\b\d{4,}\b/.test(bare)) return true;
+  if(/\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b/.test(bare)) return true;
+  if(/\d/.test(bare)) return true;
+  return false;
+}
+function replyAllowed(text){
+  const s=String(text||'').trim();
+  if(!s||s.length>200||!/\?\s*$/.test(s)) return false;
+  return !replyClaims(s);
+}
+function replyUnsafe(text){
+  return !replyAllowed(text);
+}
+function statesPrice(text){
+  const s=String(text||'');
+  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b/i.test(s)) return true;
+  if(/\b(?:dollars?|thousand)\b/i.test(s)) return true;
+  if(/\b(?:price|priced|pricing)\b/i.test(s)) return true;
+  if(/\b\d+\s*%/.test(s)) return true;
+  if(/\bquote\b/i.test(s)&&/\d/.test(s)) return true;
+  return /\b\d{4,}\b/.test(stripDimensions(s));
+}
+function claimIds(text){
+  const ids=[];
+  if(/\b(licen[cs]e[ds]?|qbcc|accredited|certified|insured)\b/i.test(text)) ids.push('licence');
+  if(/\b(reviews?|testimonials?|rated|awards?|best\b|number one|years experience|years of experience|bathrooms done|happy\s+(?:customers|clients|families)|trusted by|stars?\b)\b/i.test(text)) ids.push('reviews');
+  if(/\bndis\b/i.test(text)) ids.push('ndis');
+  if(/\btracker\b|\bjob stages?\b/i.test(text)) ids.push('tracker');
+  return ids;
+}
+function moneyClaim(text){
+  const s=String(text||'');
+  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b/i.test(s)) return true;
+  if(/\b(?:dollars?|thousand)\b/i.test(s)) return true;
+  if(/\b(?:price|priced|pricing)\b/i.test(s)) return true;
+  if(/\b\d+\s*%/.test(s)) return true;
+  return /\bquote\b/i.test(s)&&/\d/.test(s);
+}
+function storedReplacement(raw, userText){
+  const text=String(raw||'').trim();
+  const question=/\?\s*$/.test(text);
+  const ids=claimIds(text);
+  if(!question&&(ids.includes('licence')||ids.includes('ndis'))&&!moneyClaim(text)){
+    if(window.Faq) return Faq.answer(ids.filter(id=>id==='licence'||id==='ndis'), userText||text);
+  }
+  if(!question&&statesPrice(text)){
+    if(quote&&quote.estimate&&quote.estimate.priceText){
+      const why=String(quote.estimate.explanation||'').trim();
+      return why?`${quote.estimate.priceText}. ${why}`:quote.estimate.priceText;
+    }
+    if(window.Faq) return Faq.answer(['cost'], userText||text);
+  }
+  if(!window.Faq) return '';
+  if(question){
+    const matched=Faq.match(text).filter(id=>{
+      if(id==='cost') return false;
+      if(id==='reviews') return /\breviews?\b|\btestimonials?\b/i.test(text);
+      return true;
+    });
+    return matched.length?Faq.answer(matched, userText||text):'';
+  }
+  if(ids.length) return Faq.answer(ids, userText||text);
+  if(/\b(warrant(?:y|ee|ies)|guarantees?|promises?)\b/i.test(text)) return Faq.notFinal();
+  return '';
+}
+function guardedReply(shown, userText){
+  const raw=String(shown||'').trim();
+  if(!replyUnsafe(raw)) return {blocked:false, text:raw};
+  return {blocked:true, text:storedReplacement(raw, userText)};
+}
+window.ReplyGuard={unsafe:replyUnsafe, guard:guardedReply, claims:replyClaims};
 
 const Intake=(()=>{
   const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, Marble Luxe, or Accessible Care), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
@@ -2224,7 +2333,7 @@ Never give a renovation price, a deposit figure, an ABN, or a QBCC licence numbe
 End every reply with one line:
 FIELDS: {"roomSize":"","style":"","budget":"","timeline":"","suburb":"","name":"","phone":"","email":"","done":false}
 Fill a field only when the client has stated it, using their words. Set done to true only when every field has a value. The lines before FIELDS: are the only words the client sees.`;
-  const GREETING='Hi, I\'m the assistant for Gert\'s Reno. I\'ll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button. This stays on your phone until Nico reviews it. Nothing is sent, and no price is final, until then.\n\nHow big is the bathroom? A length and width, or the floor area, is perfect.';
+  const GREETING='Hi, I\'m the assistant for Gert\'s Reno. I\'ll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button.\n\nWhat you type in this chat is sent to Pollinations, a free third-party AI service. An AI render prompt is sent there too. Do not include personal details such as a phone number, email or street address. Photos stay on this phone. No price is final until Nico confirms it after a free site measure.\n\nHow big is the bathroom? A length and width, or the floor area, is perfect.';
   const STEPS=[
     {id:'roomSize', ask:'How big is the bathroom? A length and width, or the floor area, is perfect.', invalid:'Tell me a size, even a rough one, or tap Not sure yet.', chips:['About 3-4 m2','About 6 m2','Not sure yet']},
     {id:'style', ask:'Which look is closest?', invalid:'Choose a look, or describe it in a few words.', chips:['Budget Compact','Grey Modern','Beige Copper','Marble Luxe','Accessible Care']},
@@ -2379,10 +2488,18 @@ Fill a field only when the client has stated it, using their words. Set done to 
       const reply=await TextLLM.complete(historyForModel());
       quote.intake.pending=false;
       const parsed=parseAssistant(reply);
-      mergeFields(parsed.fields);
-      const clean=sanitizeAssistant(parsed.message);
-      if(clean) push('assistant', clean);
-      await afterAnswer();
+      const guarded=guardedReply(parsed.message, text);
+      if(guarded.blocked){
+        if(guarded.text) push('assistant', guarded.text);
+        const step=nextField();
+        if(step) push('assistant', step.ask);
+        render();
+      }else{
+        mergeFields(parsed.fields);
+        const clean=sanitizeAssistant(guarded.text);
+        if(clean) push('assistant', clean);
+        await afterAnswer();
+      }
     }catch{
       quote.intake.pending=false;
       quote.intake.mode='script';
@@ -2491,8 +2608,8 @@ Fill a field only when the client has stated it, using their words. Set done to 
       chips.innerHTML=(step?.chips||[]).map(label=>`<button type="button" class="chip" data-act="send" data-value="${esc(label)}">${esc(label)}</button>`).join('');
     }
     $('assist-mode').textContent=intake.mode==='script'
-      ?'Asking the questions directly. The text assistant is unavailable. Nothing is sent until Nico reviews it.'
-      :'You can type in your own words. Nothing is sent until Nico reviews it.';
+      ?'Asking the questions directly on this phone. These replies are not sent to Pollinations. Do not include a phone number, email or street address.'
+      :'What you type in this chat is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.';
     const send=$('chat-form').querySelector('button[type=submit]');
     send.disabled=!!intake.pending;
     renderPhotos();
@@ -2796,7 +2913,7 @@ const Estimate={
         {role:'user',content:this.facts(t)}
       ]);
       const clean=Intake.sanitizeAssistant(reply).replace(/FIELDS:[\s\S]*$/,'').trim();
-      if(clean && !/\$/.test(clean) && !/%/.test(clean) && !/\bdollars?\b/i.test(clean) && !/\bABN\b/i.test(clean) && !/\bQBCC\b/i.test(clean) && !/"total"\s*:/.test(clean)){
+      if(clean && !replyUnsafe(clean) && !/\$/.test(clean) && !/%/.test(clean) && !/\bdollars?\b/i.test(clean) && !/\bABN\b/i.test(clean) && !/\bQBCC\b/i.test(clean) && !/"total"\s*:/.test(clean)){
         explanation=clean;
         source='llm';
       }

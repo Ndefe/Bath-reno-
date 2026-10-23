@@ -39,6 +39,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
+- A model reply is shown only when it is a short intake question. Anything else, including a price, a warranty, a rating, or a superlative, is replaced with the stored answer or the next intake question. A licence number or an NDIS year uses that stored line, not the price answer. The chat says typed text and render prompts go to Pollinations.
 - Phone chat layout. The opening question is fully on screen at 360×740 and 375×667. With Check the bathroom open, the log stays visible (at least 120px at 360×740, 375×667, 390×844 and 412×915) and the form keeps the remaining height. The estimate is not sticky and does not cover Confirm details. Length and width update the area as you type, and Confirm writes that size onto the room and the total. An area-only size, such as 6 m², prices from that area. The planner uses a default shape and does not change the area.
 - Standing rules written at the top of this roadmap. No contact outside the team. Do not ask Nico for approval to contact people; when outreach is ready, tell him plainly and he takes over. No spending, no sign-ups, and nothing merged without his yes. Free tools only. Notes only. The site is unchanged.
 - Site measure requests. After an estimate is on screen, the client picks a day and a time from the list in Settings. The lead is saved through the existing save adapter, with a local fallback, and the status is Measure requested. Nico sees the request and a draft in the pipeline. Nothing is sent.
@@ -89,4 +90,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The lead-delivery wording, the chat licence answers, the chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
+- The lead-delivery wording, the chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
