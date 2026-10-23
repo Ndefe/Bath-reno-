@@ -123,6 +123,7 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
 @media(max-width:860px){.grid{grid-template-columns:1fr}#view-quote .card{position:static!important}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.card:not(.chat-card){box-shadow:0 8px 22px rgba(16,24,32,.05)}
 .card h2{font-size:16px;margin:0 0 12px}
 label{display:block;font-size:13px;color:var(--mute);margin:8px 0 4px}
 input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
@@ -240,9 +241,31 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
 .pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
-.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px}
+@keyframes soft-pulse{from{opacity:.55;transform:none}to{opacity:1;transform:translateY(-2px)}}
+@keyframes soft-fade{from{opacity:.55}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  .spin{animation:soft-pulse .3s ease-in-out infinite alternate}
+  .bubble.wait{animation:soft-fade .3s ease-in-out infinite alternate}
+  button:not(#view-planner button):not(#view-assist button),
+  .card:not(.chat-card):not([data-flow]){transition:transform .18s ease,box-shadow .18s ease}
+  button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
+  button:disabled,button:disabled:active{transform:none;transition:none}
+  .reveal{opacity:0;transform:translateY(6px)}
+  .reveal.revealed{opacity:1;transform:none;transition:opacity .28s ease,transform .28s ease}
+  .arrive .card:not(.reveal):not(.chat-card):not([data-flow]){animation:rise .28s ease}
+}
+@media (prefers-reduced-motion:no-preference) and (hover:hover) and (pointer:fine){
+  button:not(:disabled):not(#view-planner button):not(#view-assist button):hover{transform:scale(1.03)}
+  .card:not(.chat-card):not([data-flow]):hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(16,24,32,.08)}
+}
+@media (prefers-reduced-motion:reduce){
+  .spin,.bubble.wait,.reveal,.arrive .card{animation:none;transform:none}
+  .reveal{opacity:1}
+  button,.card{transition:none}
+  button:hover,button:active,.card:hover{transform:none}
+}
 #pl-render-img{width:100%;height:auto;border-radius:8px;display:block;background:#eef2f5}
 #pl-render-status{font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
 #pl-render-status.is-error{color:var(--danger);font-weight:600}
@@ -1246,6 +1269,55 @@ function syncExtraPrices(){
 function renderProducts(){
   $('pkg-products').innerHTML=productsHtml(quote.packageId);
 }
+let quoteCount=0;
+function paintQuoteTotal(t){
+  const text=totalLabel(t);
+  const nodes=[$('m-total-v'),$('sum-total')].filter(Boolean);
+  nodes.forEach(el=>{el.textContent=text});
+  const to=Math.round((+t.total||0)*100)/100;
+  const from=paintQuoteTotal.vis;
+  paintQuoteTotal.vis=to;
+  const token=++quoteCount;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||from==null||from===to||!(to>0)||text==='Enter the floor size') return;
+  const tail=text.endsWith(' plus items to confirm')?' plus items to confirm':'';
+  const t0=performance.now();
+  const finish=()=>{
+    if(token!==quoteCount) return;
+    nodes.forEach(el=>{if(el.isConnected) el.textContent=text});
+  };
+  const step=now=>{
+    if(token!==quoteCount) return;
+    const p=Math.min(1,(now-t0)/280);
+    if(p>=1){finish();return}
+    const vis=Math.round((from+(to-from)*(1-Math.pow(1-p,3)))*100)/100;
+    nodes.forEach(el=>{if(el.isConnected) el.textContent=fromPrice(vis)+tail});
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  setTimeout(finish,320);
+}
+paintQuoteTotal.vis=null;
+function settleReveal(){
+  document.querySelectorAll('.reveal:not(.revealed)').forEach(el=>{
+    if(el.getBoundingClientRect().top<window.innerHeight-8) el.classList.add('revealed');
+  });
+}
+function armReveal(root){
+  if(!root||window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(root.id==='view-assist'||root.id==='view-planner') return;
+  root.querySelectorAll('.card').forEach(el=>{
+    if(el.classList.contains('chat-card')||el.hidden||el.classList.contains('reveal')) return;
+    const r=el.getBoundingClientRect();
+    if(r.height<2||r.top<window.innerHeight-8) return;
+    el.classList.add('reveal');
+  });
+  settleReveal();
+}
+if(!window.__revealBound){
+  window.__revealBound=true;
+  window.addEventListener('scroll',settleReveal,{passive:true});
+}
 function update(){
   if(!catalogue||!quote) return;
   readForm();
@@ -1273,7 +1345,7 @@ function update(){
   refreshDelivery();
   renderReferralPanel();
   updateBrand();
-  $('m-total-v').textContent=totalLabel(t);
+  paintQuoteTotal(t);
   if(window.Estimate) Estimate.refreshFigures();
   renderFollowup();
   if(window.Measure) Measure.refresh();
@@ -2019,6 +2091,15 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='pipeline') renderPipeline();
   if(b.dataset.view==='planner') ensurePlanner().then(()=>Planner.show()).catch(()=>{});
   if(b.dataset.view==='settings') renderSettings();
+  const view=document.getElementById('view-'+b.dataset.view);
+  if(view&&b.dataset.view!=='assist'&&b.dataset.view!=='planner'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    view.classList.remove('arrive');
+    void view.offsetWidth;
+    view.classList.add('arrive');
+    clearTimeout(view._arrive);
+    view._arrive=setTimeout(()=>{view.classList.remove('arrive')},320);
+  }
+  armReveal(view);
 });
 function toggleNav(btnId,boxId){
   const box=$(boxId);
