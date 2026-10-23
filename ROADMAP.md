@@ -23,6 +23,7 @@
 - The assistant answers cost, inclusions, waterproofing, and timing from facts on this site before it calls the text model. It does not invent a week-by-week program
 - A client job tracker. Nico sets each stage by hand in the pipeline. The shareable link is a snapshot of those stages and does not include a phone number or email
 - A warranty and process page, and a Meet Gert's Reno section. The photo and story stay as placeholders until Nico adds the real ones in Settings
+- The pipeline flags a saved quote with no reply after 3 days and offers a draft nudge. Nico approves it before it is copied or opened. Nothing is sent on its own
 
 ## CHANGELOG
 
@@ -32,6 +33,7 @@
 - Instant answers in the assistant for cost, what is included, waterproofing, and timing. The wording comes from `faq-facts.json` and the live catalogue, before any call to the text model. Prices stay "from $X incl. GST, subject to a site measure". The deposit line says verify with QBCC. There is no week-by-week schedule. If the facts file does not load, the assistant does not guess and does not ask the text model.
 - Client job tracker at `tracker.html`. The stages are site measure, design, demolition, waterproofing, tiling, fit-off and handover. Nico sets each one by hand in the pipeline. The link carries that snapshot, because this is a static site. It is not a live login, it changes only when a new link is copied, and it does not include a phone number or email. Nothing is sent.
 - Warranty and process page at `about.html`, using the warranty, deposit, progress payments and waterproofing wording already on the quote. Meet Gert's Reno shows a dashed photo placeholder and a story placeholder until Nico saves his real photo and story in Settings. Nothing is invented or uploaded.
+- Quote follow-up reminders. A saved quote with a number and a price, not Won or Lost, is flagged after 3 days with no reply. Nico can mark that the client replied. The nudge is a short draft he approves, then copies or opens in his own SMS or email app. Nothing is sent on its own.
 - Suburb pages for 24 Brisbane suburbs, plus an index. Each page has its own title, meta description and copy. Prices are catalogue from-prices, incl. GST, subject to a site measure. No reviews or job counts are shown.
 - LocalBusiness JSON-LD names Gert's Reno and Brisbane. ABN and QBCC are left out of the markup because they are still blank. No phone number or email is invented.
 - `sitemap.xml` and `robots.txt` list the quote builder and the suburb pages.
@@ -75,4 +77,4 @@
 
 ## Next
 
-- The follow-up reminders and the standing rules are separate drafts. They are not part of this branch.
+- The standing rules are a separate draft. They are not part of this branch.
