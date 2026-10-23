@@ -3,7 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bathroom Quote Builder</title>
+<title>Bathroom renovations in Brisbane | Gert's Reno</title>
+<meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
+<link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Gert's Reno",
+  "url": "https://ndefe.github.io/Bath-reno-/",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Brisbane",
+    "addressRegion": "QLD",
+    "addressCountry": "AU"
+  },
+  "areaServed": { "@type": "City", "name": "Brisbane" },
+  "description": "Bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure."
+}
+</script>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0e7c86;--acc2:#e9f5f6;--line:#dde3ea;--danger:#c0392b}
 *{box-sizing:border-box}
@@ -86,6 +104,7 @@ textarea{min-height:70px;resize:vertical}
 .extra{display:grid;grid-template-columns:1fr 120px auto;gap:8px;margin-bottom:6px}
 .seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.seg label{margin:0;display:flex;gap:4px;align-items:center;color:var(--ink)}.seg input{width:auto}
 .hint{font-size:12px;color:var(--mute)}
+.hint a{color:var(--acc)}
 .badge{display:inline-block;background:#fff4d6;color:#8a6200;border-radius:6px;padding:2px 6px;font-size:11px;font-weight:600}
 .pkg{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse}
@@ -235,6 +254,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div class="card chat-card">
       <h2>Assistant</h2>
       <p class="hint" id="assist-mode">Tell us about the bathroom in your own words. Nothing is sent until Nico reviews it.</p>
+      <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a></p>
       <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
       <div id="chat-chips" class="chips"></div>
       <div id="chat-photos" class="photo-list"></div>
