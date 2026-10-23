@@ -141,6 +141,25 @@ Screenshots: `docs/ux/before-marketing-phone.png`, `docs/ux/before-marketing-lap
 - **Medium, flyer on a phone.** An A4 flyer is scaled into 390 px, so the type is small and the page is a poster, not a phone screen. That is acceptable for a print draft and poor if someone opens it on a phone to read it.
 - **Low.** Marketing and the checklist use the same ink and teal, with tighter type (headings about 1.05–1.4 rem) and no shared spacing scale with the quote app. The checklist is a long single column, which is fine on both sizes.
 
+## Tester pass on the live site, 23 Oct 2026
+
+Checked again at **390×844** on https://ndefe.github.io/Bath-reno-/ (the published `main`). Headless Chrome. Nothing was rendered and nothing was sent. Two shots from this pass: `docs/ux/tester-planner-phone.png`, `docs/ux/tester-nudge-phone.png`.
+
+These are the same screens as the audit above. The numbers below are the ones measured on that pass. Where a note from the tester does not match the page, the measured result is the one recorded.
+
+1. **High. AI render.** Two buttons: the canvas one is **77×28** (“AI render”), and the card one is **94×38**, also “AI render”, at y=737. The card copy says a picture often takes 10–60 seconds. The code aborts the request at **90 seconds** and only then writes a hint. Until that, the button is disabled and labelled “Rendering…” with a spinner. There is no Cancel, no Retry, and no progress. Save image on the canvas is **not** disabled; it is a secondary button, so it looks inactive. No second press was sent to the render service during this check.
+2. **High. Nudge pad.** The up arrow starts about **1,360 px** below the canvas (canvas bottom at y=625, arrow at y=1,989). Arrows and rotate are **69×28**. Delete item is **90×28** and Clear all is **69×28**, with **8 px** between them. Delete removes the item with no question. Clear all does call `confirm('Remove all items?')`, but nothing on the button says that, so the two actions look the same. There is no Undo.
+3. **Medium. Canvas touch.** The canvas is **370×439** (the stage fills the 370 px column; a 355 px width was not what this viewport drew). `touch-action` is `none`, so a one-finger swipe on the picture does not scroll the page. The hint sits on the canvas, **360×40**, at 12 px: “Drag an item to move it · drag empty space to orbit · scroll/pinch to zoom”.
+4. **Medium. Add item.** Bath, Shower, Tap, Mirror, Towel rail, and Grab rail are **165×26**. Vanity, Toilet, seat, and basin wrap to **165×43**. Labels include raw millimetres, for example “+ Towel rail 799×600”. Gap in the grid is 6 px. Adding an item does not show a toast. The 3D selection outline is the only highlight.
+5. **Medium. Canvas toolbar.** Client view **86×28**, Save image **90×28**, AI render **77×28**, Plan view **77×28** sit on one row. Walk through is **103×28** and wraps underneath. Plan and Walk use the same button style as the actions, and neither sets a pressed state. Save image is enabled.
+6. **Medium. Doors and windows.** Add door is **88×28**. Add window is **106×28**. The empty lines are “No doors yet.” and “No windows yet.”
+7. **Medium. One long planner.** The planner view is about **2,015 px** tall and the document is **2,210 px**. Room size, shape, doors, windows, style, two tile lists, tapware, ten add buttons, and the nudge pad are all open. Tile names mix “White subway” with product names such as “Stone Code grey 600×600”. Changing a finish does not show a swatch next to the select. The picture is the only preview, and it is off screen by then.
+8. **Medium. Header.** Seven tabs. Start, Quote, Planner, Projects, and Gallery are **33 px** tall on the first row. Pipeline (**181×33**) and Settings (**181×33**) wrap. The header is **176 px** tall. It **is** sticky: after scrolling the quote to y=5,375 the header stayed at y=0. The problem is the height and the owner tabs, not a missing sticky rule.
+9. **Low/Medium. Quote bar and the way back.** The fixed total bar is **54 px** tall and sits at y=790. Scrolled to the end, the quote view finishes **42 px** above that bar, so the last control is not covered on this build. The gap is still tight. The planner has no “Back to quote” control. The Quote tab is the only way back.
+10. **Low. Small controls.** The Quote tab has **17** checkboxes (16 extras and 1 approval), each box **13×13**. The extra’s box sits inside its label, so the row is a larger target, but the box itself is 13 px. “+ Add custom extra” is **138×28**. “Copy code” is **83×28**. Copy SMS is **97×38** and Copy email is **106×38**, in the same row as “Print / Save as PDF” on the follow-up card. Print on the summary is **159×38** and Share is **68×38**. “Selected: none” is with the nudge pad, about 1,360 px below the canvas.
+
+Kept, and still true on this pass: the room opens furnished, the render card says the picture is an AI illustration and may not match the layout, and the quote’s length, width, package, and tile selects are full-size fields.
+
 ## What the follow-up changes should do
 
 These are the notes for the two later drafts. This audit does not change the site.
