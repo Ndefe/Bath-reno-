@@ -54,7 +54,7 @@ header.app h1{font-size:18px;margin:0;line-height:1.25;min-height:1.25em}
 .ph-box{border:2px dashed var(--mute);border-radius:12px;padding:12px;margin:8px 0;background:#f7f8fa}
 .qd-logo{height:42px;width:auto;max-width:140px;object-fit:contain}
 nav{display:flex;flex-wrap:wrap;gap:4px}
-nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin:0;cursor:pointer;font-size:14px}
+nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin:0;cursor:pointer;font-size:14px;min-height:44px}
 nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
 .view{display:none}.view.active{display:block}
@@ -183,6 +183,10 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .pl-stage{position:relative;background:#dfe5ea;border-radius:12px;overflow:hidden;height:70vh;min-height:360px}
 #pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:none}
 .pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end;z-index:5}
+.pl-overlay .btn,.pl-overlay button,#view-planner .btn{min-height:44px}
+#view-planner input,#view-planner select{min-height:44px}
+#pl-stepfree{width:44px;height:44px;min-width:44px;min-height:44px;accent-color:var(--acc)}
+#pl-ai{display:none!important}
 .pl-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:#455;background:#fffc;padding:3px 8px;border-radius:6px}
 .pl-joy{position:absolute;left:16px;bottom:16px;width:120px;height:120px;border-radius:50%;background:rgba(16,24,32,.4);border:2px solid rgba(255,255,255,.85);z-index:6;touch-action:none}
 .pl-joy[hidden]{display:none!important}
@@ -255,21 +259,29 @@ html.a2hs-on .chat-card > .hint{display:none}
 @media print{.a2hs{display:none!important}}
 /* Mobile tweaks */
 header.app{position:sticky;top:0;z-index:20}
-@media(max-width:520px){
-  header.app{padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 10px}
-  header.app h1{font-size:15px}
-  header.app .brand-lockup{grid-column:1;grid-row:1}
-  #btn-share{grid-column:2;grid-row:1;justify-self:end}
-  header.app .share-status{grid-column:1 / -1}
-  nav{display:flex;width:100%;gap:4px;grid-column:1 / -1}nav button{flex:1 1 auto;margin:0;padding:8px 8px;font-size:13px}
+@media(max-width:860px){
+  header.app{flex-wrap:nowrap;align-items:center;height:56px;min-height:56px;max-height:56px;padding:0 8px;gap:8px;overflow:visible}
+  .brand-lockup{flex:0 1 28%;min-width:0;max-width:28%;overflow:hidden}
+  .brand-lockup > div{min-width:0;flex:1 1 auto;overflow:hidden;max-width:100%}
+  header.app h1{display:block;width:100%;font-size:15px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  #brand-legal{display:none}
+  #btn-share{min-height:44px;max-height:44px;padding:6px 8px;flex:0 0 auto;position:relative;z-index:2}
+  header.app nav{display:flex;width:auto;flex:1 1 0;min-width:0;gap:4px;flex-wrap:nowrap;overflow:visible}
+  .nav-row{flex-wrap:nowrap;overflow-x:auto;min-width:0;mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+  .nav-row button,.nav-row a.nav-link{flex:0 0 auto;min-height:44px;margin:0;padding:8px 10px;font-size:14px;white-space:nowrap}
+  .nav-owner{position:fixed;top:56px;left:0;right:0;flex:none;background:var(--ink);padding:6px 8px;z-index:30}
+  #nav-owner-links button{flex:1 1 auto;min-height:44px}
+  header.app .share-status{position:fixed;top:56px;left:8px;right:8px;flex:none;z-index:30;background:var(--ink);padding:4px 0}
+  .flow button{font-size:12px;padding:4px 2px;min-width:0}
   .row3{grid-template-columns:1fr 1fr 1fr}
   main{padding:10px}
-  .pl-stage{height:52vh;min-height:300px}
+  .pl-stage{height:34vh;min-height:200px}
   .product img{width:48px;height:48px}
   .extra{grid-template-columns:1fr 88px auto}
   .extra-opt{padding:12px 0}
   input,select,textarea{font-size:16px}
-  #m-total{display:flex}
+}
+@media(max-width:520px){
   #view-quote{padding-bottom:84px}
   #summary{scroll-margin-top:88px}
 }
@@ -278,6 +290,29 @@ header.app{position:sticky;top:0;z-index:20}
 #m-total button{flex:none;white-space:nowrap;min-height:44px;padding:10px 14px}
 @media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}body.on-quote:not(.client) main{padding-bottom:96px}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
+.flow{display:flex;gap:4px;margin:0 0 8px}
+.flow button{flex:1 1 0;min-height:44px;min-width:44px;border:1px solid var(--line);background:#fff;border-radius:8px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.flow button[aria-current="step"]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.flow-progress{height:6px;background:#e1e7ee;border-radius:99px;margin:0 0 10px;overflow:hidden}
+.flow-progress span{display:block;height:100%;width:20%;background:var(--acc);border-radius:99px;transition:width .28s ease}
+[data-flow]{animation:flow-in .28s ease}
+@keyframes flow-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .flow-progress span{transition:none}
+  [data-flow]{animation:none}
+}
+#flow-next{min-height:48px;width:100%;margin-top:4px}
+[data-flow][hidden]{display:none!important}
+body.client .flow,body.client #flow-next{display:none}
+.pl-panel[hidden]{display:none!important}
+.nav-row{display:flex;gap:4px;flex:1 1 auto;min-width:0;overflow-x:auto;align-items:center}
+.nav-owner{display:flex;flex:1 0 100%;flex-wrap:wrap;gap:4px}
+.nav-owner[hidden]{display:none!important}
+#nav-owner{flex:0 0 auto;background:transparent;border:0;color:#b7c3cf;text-decoration:underline;text-underline-offset:3px;font-size:13px;min-height:44px;padding:8px 6px}
+button.text-link{background:none;border:0;padding:0;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer;min-height:44px}
+nav a.nav-link{display:inline-flex;align-items:center;justify-content:center;background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin:0;text-decoration:none;font-size:14px;min-height:44px}
+.swatch{display:inline-block;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);vertical-align:middle;margin:6px 0 0 8px;background:#ddd}
+#pl-back-quote{min-height:44px;width:100%;margin:0 0 8px}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
@@ -294,13 +329,20 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <button class="btn sec sm" type="button" id="btn-share">Share</button>
   <p class="hint share-status" id="share-status" role="status"></p>
   <nav>
-    <button data-view="assist" class="active">Start</button>
+    <div class="nav-row">
     <button data-view="quote">Quote</button>
     <button data-view="planner">Planner</button>
-    <button data-view="saved">Projects</button>
-    <button data-view="gallery">Gallery</button>
-    <button data-view="pipeline">Pipeline</button>
-    <button data-view="settings">Settings</button>
+    <button type="button" id="nav-render">Render</button>
+    <button data-view="assist" class="active">FAQ and About</button>
+    <button type="button" id="nav-measure">Book a measure</button>
+    <button type="button" id="nav-owner" aria-expanded="false">Owner</button>
+    </div>
+    <span class="nav-owner" id="nav-owner-links" hidden>
+      <button data-view="saved">Projects</button>
+      <button data-view="pipeline">Pipeline</button>
+      <button data-view="settings">Settings</button>
+      <button data-view="gallery">Gallery</button>
+    </span>
   </nav>
 </header>
 <main>
@@ -317,8 +359,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <h2>Assistant</h2>
       <p class="hint" id="assist-mode">What you type in this chat is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
       <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Other chat text, and any AI render prompt, goes to Pollinations. Do not include a phone number, email or street address.</p>
-      <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a></p>
+      <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a> · <a href="tracker.html">Job tracker</a></p>
       <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
+      <p class="hint"><button type="button" class="text-link" id="open-gallery">Before and after gallery</button></p>
+      <p class="hint" id="measure-note" hidden>A free site measure can be requested once an estimate is on screen. Nothing is booked from here.</p>
       <div id="chat-photos" class="photo-list"></div>
       <details id="photo-check" class="photo-check" hidden>
         <summary>Check the bathroom</summary>
@@ -472,7 +516,16 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
         <div class="pl-hint">Drag an item to move it · drag empty space to orbit · scroll/pinch to zoom</div>
       </div>
       <div class="pl-side">
-      <div class="card pl-render" id="pl-render">
+      <button class="btn sec" type="button" id="pl-back-quote">Back to quote</button>
+      <div class="flow" id="flow" aria-label="Planner steps">
+        <button type="button" data-flow-go="size" aria-current="step">Room</button>
+        <button type="button" data-flow-go="layout">Layout</button>
+        <button type="button" data-flow-go="fixtures">Fixtures</button>
+        <button type="button" data-flow-go="style">Style</button>
+        <button type="button" data-flow-go="render">Render</button>
+      </div>
+      <div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Room, step 1 of 5" aria-label="Planner progress"><span></span></div>
+      <div class="card pl-render" id="pl-render" data-flow="render" hidden>
         <h2>AI render</h2>
         <p class="hint">Photo-style picture of this room. It is an AI illustration and may not match the exact layout. The prompt is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
         <div id="pl-render-view" hidden>
@@ -488,7 +541,8 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
         </div>
       </div>
       <div class="pl-panel card">
-        <h2>Room (m)</h2>
+        <div data-flow="size">
+        <h2>Room size</h2>
         <div class="row3"><div><label for="pl-l">Length</label><input id="pl-l" type="number" step="0.1" min="1"></div><div><label for="pl-w">Width</label><input id="pl-w" type="number" step="0.1" min="1"></div><div><label for="pl-h">Height</label><input id="pl-h" type="number" step="0.1" min="2"></div></div>
         <label for="pl-shape">Room shape</label>
         <select id="pl-shape"><option value="rect">Rectangle</option><option value="l">L-shape</option></select>
@@ -499,15 +553,16 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
           <p class="hint">The notch is the missing corner. Floor area is the L, not the full rectangle.</p>
         </div>
         <div class="hint" id="pl-area"></div>
+        </div>
+        <div data-flow="layout" hidden>
+        <h2>Layout</h2>
+        <p class="hint">Doors and windows. Plan view is on the picture.</p>
         <div id="pl-openings"></div>
-        <h2 style="margin-top:14px">Look</h2>
-        <label>Style preset</label><select id="pl-look"></select>
-        <div class="checkline"><input id="pl-stepfree" type="checkbox"><label for="pl-stepfree">Step-free shower</label></div>
-        <div class="row"><div><label>Floor tiles</label><select id="pl-floor"></select></div><div><label>Wall tiles</label><select id="pl-wall"></select></div></div>
-        <label>Tapware finish</label><select id="pl-metal"></select>
-        <h2 style="margin-top:14px">Add item</h2>
+        </div>
+        <div data-flow="fixtures" hidden>
+        <h2>Fixtures</h2>
         <div class="pl-palette" id="pl-palette"></div>
-        <h2 style="margin-top:14px">Selected: <span id="pl-sel">none</span></h2>
+        <h2>Selected: <span id="pl-sel">none</span></h2>
         <div class="pl-move">
           <span></span><button class="btn sec sm" data-mv="0,-1">▲</button><span></span>
           <button class="btn sec sm" data-mv="-1,0">◀</button><button class="btn sec sm" id="pl-rot">⟳ 90°</button><button class="btn sec sm" data-mv="1,0">▶</button>
@@ -515,6 +570,16 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
         </div>
         <div class="actions"><button class="btn del sm" id="pl-del">Delete item</button><button class="btn del sm" id="pl-clear">Clear all</button></div>
         <div class="hint" style="margin-top:8px">Fixture sizes follow the package. Doors, windows and the room shape are saved with the project.</div>
+        </div>
+        <div data-flow="style" hidden>
+        <h2>Style</h2>
+        <label>Style preset</label><select id="pl-look"></select>
+        <div class="checkline"><input id="pl-stepfree" type="checkbox"><label for="pl-stepfree">Step-free shower</label></div>
+        <div class="row"><div><label>Floor tiles</label><select id="pl-floor"></select><i class="swatch" id="sw-floor" aria-hidden="true"></i></div><div><label>Wall tiles</label><select id="pl-wall"></select><i class="swatch" id="sw-wall" aria-hidden="true"></i></div></div>
+        <label>Tapware finish</label><select id="pl-metal"></select><i class="swatch" id="sw-metal" aria-hidden="true"></i>
+        <p class="hint">The square matches the finish on the picture.</p>
+        </div>
+        <button class="btn" type="button" id="flow-next">Next</button>
       </div>
       </div>
     </div>
@@ -562,7 +627,7 @@ How big is the bathroom? A length and width, or the floor area, is perfect.</div
       <img id="s-logo-preview" alt="" hidden>
       <button class="btn sec sm" id="s-logo-clear" type="button">Remove logo</button>
       <div class="row"><div><label for="s-abn">ABN</label><input id="s-abn" inputmode="numeric" autocomplete="off" placeholder="Add your ABN"></div><div><label for="s-qbcc">QBCC licence number</label><input id="s-qbcc" autocomplete="off" placeholder="Add your QBCC licence number"></div></div>
-      <p class="hint">ABN and the QBCC licence stay blank until you type them. The quote shows “(add your ABN)” and “(add your licence number)” in the meantime.</p>
+      <p class="hint">The public header stays blank until you type an ABN or a licence. The quote Nico reviews still shows “(add your ABN)” and “(add your licence number)” until then.</p>
       <div class="row"><div><label for="s-dep-under">Deposit under $20,000 (%)</label><input id="s-dep-under" type="number" min="0" max="10" step="0.1"></div><div><label for="s-dep-over">Deposit at $20,000 or more (%)</label><input id="s-dep-over" type="number" min="0" max="5" step="0.1"></div></div>
       <p class="hint">Capped at 10% under $20,000 and 5% from $20,000. Verify with QBCC.</p>
       <label for="s-progress">Progress payments</label>
@@ -862,7 +927,7 @@ function renderLeadSummary(){
   if(!el||!quote) return;
   const c=quote.customer||{};
   const bits=[c.name,c.phone,c.email,c.suburb].filter(Boolean);
-  el.textContent=bits.length?bits.join(' · '):'No client details yet. Use Start to talk to the assistant.';
+  el.textContent=bits.length?bits.join(' · '):'No client details yet. Use FAQ and About to talk to the assistant.';
   renderAnalysisSummary();
 }
 function renderAnalysisSummary(){
@@ -1292,8 +1357,14 @@ function updateBrand(){
   const logo=$('brand-logo');
   if(settings.logo){logo.src=settings.logo;logo.hidden=false;logo.alt=(settings.bizName||'Business')+' logo'}
   else{logo.removeAttribute('src');logo.hidden=true;logo.alt=''}
-  const legal=legalBits();
-  $('brand-legal').textContent=`ABN ${legal.abn} · QBCC licence ${legal.qbcc}`;
+  const abn=String(settings.abn||'').trim();
+  const qbcc=String(settings.qbcc||'').trim();
+  const parts=[];
+  if(abn) parts.push('ABN '+abn);
+  if(qbcc) parts.push('QBCC licence '+qbcc);
+  const legalEl=$('brand-legal');
+  legalEl.textContent=parts.join(' · ');
+  legalEl.hidden=!parts.length;
 }
 function depositFor(total){
   const under=Math.min(10,Math.max(0,+settings.depositUnderPct||0));
@@ -1841,6 +1912,7 @@ $('gallery-root').addEventListener('error',e=>{
   ba.replaceWith(note);
 },true);
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  if(!b.dataset.view) return;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   document.body.classList.toggle('on-quote',b.dataset.view==='quote');
@@ -1853,6 +1925,74 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='planner') ensurePlanner().then(()=>Planner.show()).catch(()=>{});
   if(b.dataset.view==='settings') renderSettings();
 });
+function toggleNav(btnId,boxId){
+  const box=$(boxId);
+  const open=box.hidden;
+  box.hidden=!open;
+  $(btnId).setAttribute('aria-expanded',open?'true':'false');
+}
+$('nav-owner').onclick=()=>toggleNav('nav-owner','nav-owner-links');
+$('nav-render').onclick=()=>{
+  document.querySelector('nav button[data-view=planner]').click();
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.id==='nav-render'));
+  setFlow('render');
+};
+$('nav-measure').onclick=()=>{
+  const quoteBox=$('quote-measure');
+  const chatBox=$('measure-box');
+  if(quoteBox&&!quoteBox.hidden){
+    document.querySelector('nav button[data-view=quote]').click();
+    quoteBox.scrollIntoView({block:'start'});
+    return;
+  }
+  document.querySelector('nav button[data-view=assist]').click();
+  if(chatBox&&!chatBox.hidden){chatBox.scrollIntoView({block:'nearest'});return}
+  const note=$('measure-note');
+  if(note) note.hidden=false;
+};
+if($('open-gallery')) $('open-gallery').onclick=()=>{
+  const box=$('nav-owner-links');
+  if(box&&box.hidden) toggleNav('nav-owner','nav-owner-links');
+  document.querySelector('nav button[data-view=gallery]').click();
+};
+$('pl-back-quote').onclick=()=>document.querySelector('nav button[data-view="quote"]').click();
+const SWATCH={'white-subway':'#f4f4f1','grey-large':'#8d9196','terrazzo':'#eae4da','black-hex':'#1e1f22','beige-stone':'#d8c6a8','white-matte':'#f2f2ef','stone-code':'#8a8d90','whoosh-white':'#f7f7f5','regina-grey':'#8e9398','regina-white':'#f4f3f0','sand-600':'#d9c7aa','cream-gloss':'#f7f1e4','statuario':'#f7f5f2','orion-dark':'#4a4e52',black:'#1b1b1d',chrome:'#e4e8ec',copper:'#c27a4e',brass:'#b08d57',bronze:'#8d5a3a'};
+function paintSwatches(){
+  [['sw-floor','pl-floor'],['sw-wall','pl-wall'],['sw-metal','pl-metal']].forEach(([sw,sel])=>{
+    const el=$(sw), src=$(sel);
+    if(el&&src) el.style.background=SWATCH[src.value]||'#ddd';
+  });
+}
+['pl-floor','pl-wall','pl-metal','pl-look'].forEach(id=>{const el=$(id);if(el) el.addEventListener('change',()=>setTimeout(paintSwatches,0))});
+const FLOW=['size','layout','fixtures','style','render'];
+let flowStep='size';
+const FLOW_NAME={size:'Room',layout:'Layout',fixtures:'Fixtures',style:'Style',render:'Render'};
+function setFlow(step){
+  if(!FLOW.includes(step)) step='size';
+  flowStep=step;
+  const bar=$('flow-progress');
+  if(bar){
+    const i=FLOW.indexOf(step);
+    bar.setAttribute('aria-valuenow',String(i+1));
+    bar.setAttribute('aria-valuetext',FLOW_NAME[step]+', step '+(i+1)+' of '+FLOW.length);
+    const span=bar.firstElementChild;
+    if(span) span.style.width=((i+1)/FLOW.length*100)+'%';
+  }
+  document.querySelectorAll('[data-flow]').forEach(el=>{el.hidden=el.dataset.flow!==step});
+  document.querySelectorAll('[data-flow-go]').forEach(btn=>{
+    if(btn.dataset.flowGo===step) btn.setAttribute('aria-current','step');
+    else btn.removeAttribute('aria-current');
+  });
+  const panel=document.querySelector('#view-planner .pl-panel');
+  if(panel) panel.hidden=step==='render';
+  const next=$('flow-next');
+  if(next) next.hidden=step==='render';
+  if(step==='style') paintSwatches();
+}
+document.querySelectorAll('[data-flow-go]').forEach(b=>b.onclick=()=>setFlow(b.dataset.flowGo));
+$('flow-next').onclick=()=>{const i=FLOW.indexOf(flowStep);setFlow(FLOW[Math.min(FLOW.length-1,i+1)])};
+['pl-ai','pl-ai-card'].forEach(id=>{const el=$(id);if(el) el.addEventListener('click',()=>setFlow('render'))});
+setFlow('size');
 $('view-quote').addEventListener('input',e=>{
   if(!quote||e.target.id==='fu-approve'||e.target.id==='fu-sms'||e.target.id==='fu-email'||e.target.id==='fu-subject') return;
   if(e.target.dataset.qty){
@@ -3146,7 +3286,7 @@ const Measure=(()=>{
     if(!days.includes(weekday(pick.date))||!slots.includes(pick.time)){lastStatus='That time is not in the list Nico marked as available. Nothing was sent.';paint();return}
     readForm();
     const problems=leadProblems();
-    if(problems.length){lastStatus=problems.join(' ')+' Use Start to add the client details. Nothing was sent.';paint();return}
+    if(problems.length){lastStatus=problems.join(' ')+' Use FAQ and About to add the client details. Nothing was sent.';paint();return}
     quote.measure={date:pick.date,time:pick.time,status:'Measure requested',requestedAt:new Date().toISOString(),sent:false,ownerDraft:''};
     if(!quote.stage||quote.stage==='New'||quote.stage==='Contacted') quote.stage='Measure requested';
     ensureNumber();
@@ -3172,6 +3312,8 @@ const Measure=(()=>{
     if(box) box.hidden=!(quote&&quote.estimate&&priced());
     const card=$('quote-measure');
     if(card) card.hidden=!priced();
+    const note=$('measure-note');
+    if(note&&box&&!box.hidden) note.hidden=true;
   }
   function bind(){
     if(bound) return;
