@@ -1229,6 +1229,7 @@ const Planner=(()=>{
   async function runRender(){
     if(renderState.busy){RenderService.cancel();return}
     if(!BQ.quote) return;
+    if(typeof setFlow==='function') setFlow('render');
     if(!design) ensureDesign();
     const seed=Math.floor(Math.random()*1e9);
     const prompt=buildRenderPrompt();
