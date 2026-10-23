@@ -47,8 +47,8 @@ nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
 .view{display:none}.view.active{display:block}
 #view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0}
-.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:hidden;margin-bottom:0}
-.chat-log{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:auto;margin-bottom:0}
+.chat-log{flex:1 1 180px;min-height:180px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
@@ -74,12 +74,14 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
 .ba-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px}
 .ba-missing{margin:8px 0 0}
-.chat-bar{display:flex;gap:8px;align-items:center}
+.chat-bar{display:flex;gap:8px;align-items:center;position:sticky;bottom:0;background:var(--card);z-index:2;padding-top:8px}
 .chat-bar input{flex:1;min-width:0;font-size:16px;min-height:44px}
 .chat-bar .btn{min-height:44px}
 #chat-err:empty{display:none}
 #chat-err{color:var(--danger)}
-.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:46dvh;overflow:auto;flex:none}
+.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:none;overflow:visible;flex:0 0 auto}
+.photo-check[open]{max-height:min(36dvh, 220px);overflow:auto;min-height:120px}
+.photo-check summary{font-weight:700;cursor:pointer;margin:0 0 6px}
 .chat-bar,.chips,.photo-list,.estimate{flex:none}
 #measure-box{max-height:36dvh;overflow:auto}
 #quote-measure[hidden],#measure-box[hidden]{display:none!important}
@@ -285,8 +287,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
       <div id="chat-chips" class="chips"></div>
       <div id="chat-photos" class="photo-list"></div>
-      <div id="photo-check" class="photo-check" hidden>
-        <h3>Check the bathroom</h3>
+      <details id="photo-check" class="photo-check" hidden>
+        <summary>Check the bathroom</summary>
         <p class="hint" id="photo-vision">Vision is not connected. Enter the dimensions yourself.</p>
         <div class="row3">
           <div><label for="an-len">Length (m)</label><input id="an-len" inputmode="decimal" autocomplete="off"></div>
@@ -303,7 +305,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <button class="btn sec" id="an-correct" type="button">Correct</button>
         </div>
         <p class="hint" id="an-status"></p>
-      </div>
+      </details>
       <div id="estimate-box" class="estimate" hidden>
         <h3>Estimate</h3>
         <p id="estimate-price" class="estimate-price"></p>
@@ -2549,6 +2551,20 @@ const PhotoCheck=(()=>{
   function blank(){
     return {available:false, source:'client', provider:null, dimensions:{length:'',width:'',area:''}, flags:{retile:false,relocate:false,waterproof:false}, confirmed:false, flagsTouched:false};
   }
+  function alignDims(d){
+    d=d||{};
+    let length=String(d.length||'').trim();
+    let width=String(d.width||'').trim();
+    let area=String(d.area||'').trim();
+    const l=+length, w=+width, a=+area;
+    if(!(l>0)&&!(w>0)&&a>0){
+      width='2';
+      length=String(Math.round((a/2)*100)/100);
+    }else if(l>0&&w>0){
+      area=String(Math.round(l*w*100)/100);
+    }
+    return {length,width,area};
+  }
   function ensureAnalysis(){
     if(!quote.analysis){
       const fromText=quote.intake&&quote.intake.fields?Intake.applyRoom(quote.intake.fields.roomSize):null;
@@ -2558,7 +2574,7 @@ const PhotoCheck=(()=>{
       quote.analysis.dimensions={length:src.length||'', width:src.width||'', area:src.area||''};
     }
     const a=quote.analysis;
-    a.dimensions=a.dimensions||{length:'',width:'',area:''};
+    a.dimensions=alignDims(a.dimensions||{length:'',width:'',area:''});
     a.flags=a.flags||{retile:false,relocate:false,waterproof:false};
     return a;
   }
@@ -2674,8 +2690,10 @@ const PhotoCheck=(()=>{
     const panel=$('photo-check');
     if(!panel||!quote) return;
     const on=Intake.phase()==='photos'||Intake.phase()==='done';
+    const wasHidden=panel.hidden;
     panel.hidden=!on;
     if(!on) return;
+    if(wasHidden) panel.open=true;
     fillInputs();
     refreshVision();
   }
