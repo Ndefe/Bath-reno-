@@ -7,6 +7,15 @@
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
 <meta name="theme-color" content="#1d2733">
+<script>
+(function(){
+  try{
+    if(localStorage.getItem('bq.a2hs.dismissed')) return;
+    var ios=/iphone|ipad|ipod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(ios) document.documentElement.classList.add('a2hs-on');
+  }catch(e){}
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -36,6 +45,7 @@ header.app h1{font-size:18px;margin:0}
 .brand-lockup{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-lockup img{height:36px;width:auto;max-width:96px;object-fit:contain;background:#fff;border-radius:6px}
 #brand-legal{margin:2px 0 0;color:#d5dde4;font-size:12px;line-height:1.3}
+#brand,#brand-legal{min-height:1.3em}
 .book{width:100%;margin:0 0 12px}
 #s-logo-preview{display:block;margin-top:8px;max-height:64px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
 #s-owner-preview{display:block;margin-top:8px;max-height:120px;max-width:120px;object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--line)}
@@ -231,12 +241,14 @@ select{max-width:100%}
 
 .share-status:empty{display:none}
 header.app .share-status{flex:1 0 100%;color:#d5dde4;margin:0}
-.a2hs{position:fixed;left:12px;right:12px;bottom:12px;z-index:35;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;max-width:440px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.a2hs{position:static;display:flex;align-items:center;gap:8px;z-index:1;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:0 0 8px}
 .a2hs[hidden]{display:none!important}
-.a2hs p{margin:0 0 8px}
-body.on-assist:has(#a2hs:not([hidden])) main{padding-bottom:156px}
+.a2hs p{margin:0;flex:1;font-size:13px;line-height:1.35}
+.a2hs .btn{flex:none;min-height:44px}
+html.a2hs-on #a2hs{display:flex!important}
+html.a2hs-on .chat-card > h2,
+html.a2hs-on .chat-card > .hint{display:none}
 #pl-load[hidden]{display:none!important}
-@media(max-width:520px){body.on-quote:not(.client) .a2hs{bottom:78px}}
 @media print{.a2hs{display:none!important}}
 /* Mobile tweaks */
 header.app{position:sticky;top:0;z-index:20}
@@ -268,8 +280,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <div class="brand-lockup">
     <img id="brand-logo" alt="" hidden>
     <div>
-      <h1 id="brand">Quote Builder</h1>
-      <p class="hint" id="brand-legal"></p>
+      <h1 id="brand">Gert's Reno · Quote Builder</h1>
+      <p class="hint" id="brand-legal">ABN (add your ABN) · QBCC licence (add your licence number)</p>
     </div>
   </div>
   <button class="btn sec sm" type="button" id="btn-share">Share</button>
@@ -285,6 +297,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </nav>
 </header>
 <main>
+<div id="a2hs" class="a2hs" hidden>
+  <p id="a2hs-text">Add this page from the Share menu. Nothing is sent.</p>
+  <div class="actions" style="margin:0">
+    <button class="btn sm" type="button" id="a2hs-install" hidden>Add</button>
+    <button class="btn sec sm" type="button" id="a2hs-dismiss">Not now</button>
+  </div>
+</div>
   <section class="view active" id="view-assist" aria-label="Intake assistant">
     <div class="card chat-card">
       <div class="chat-side">
@@ -580,13 +599,6 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </section>
 </main>
 <div id="m-total"><span>Total <span id="m-total-v">$0.00</span></span><button onclick="document.getElementById('summary').scrollIntoView({behavior:'smooth'})">View quote</button></div>
-<div id="a2hs" class="a2hs" hidden>
-  <p id="a2hs-text"></p>
-  <div class="actions">
-    <button class="btn sm" type="button" id="a2hs-install" hidden>Add to home screen</button>
-    <button class="btn sec sm" type="button" id="a2hs-dismiss">Not now</button>
-  </div>
-</div>
 <div id="printArea"></div>
 
 <script>
@@ -3182,13 +3194,13 @@ function showA2hs(){
   const box=$('a2hs'), text=$('a2hs-text'), btn=$('a2hs-install');
   if(!box) return;
   if(isIos()){
-    text.textContent='On iPhone or iPad, tap Share, then Add to Home Screen. Nothing is sent.';
+    text.textContent='Add this page from the Share menu. Nothing is sent.';
     btn.hidden=true;
     box.hidden=false;
     return;
   }
   if(deferredInstall){
-    text.textContent='Add the quote builder to your home screen. It opens this page. Nothing is sent.';
+    text.textContent='Add this page to your home screen. Nothing is sent.';
     btn.hidden=false;
     box.hidden=false;
   }
@@ -3208,6 +3220,7 @@ $('a2hs-install').onclick=async()=>{
 };
 $('a2hs-dismiss').onclick=()=>{
   localStorage.setItem(A2HS_KEY,'1');
+  document.documentElement.classList.remove('a2hs-on');
   $('a2hs').hidden=true;
 };
 window.addEventListener('load',()=>{
