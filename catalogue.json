@@ -4,30 +4,7 @@
   "currency": "AUD",
   "prices_include_gst": true,
   "date_checked": "2026-10-21",
-  "margin_model": "27% gross margin on sell price",
-  "pricing_model": "price = base_fee + rate_per_m2 * floor area; bath and extras separate",
-  "cost_assumptions": {
-    "demo_labour": 1300,
-    "skip": 550,
-    "plumb_rough": 2800,
-    "plumb_fitoff": 1600,
-    "electrical": 1300,
-    "sheeting": 700,
-    "ceiling_paint": 500,
-    "crew_fitoff": 900,
-    "shower_falls": 350,
-    "warranty_admin": 650,
-    "consumables_fixed": 250,
-    "wp_rate": 65,
-    "wp_extra_area": 5.5,
-    "wp_min": 1300,
-    "screed_rate": 45,
-    "tile_labour": 70,
-    "tile_labour_large": 90,
-    "tile_labour_feature": 120,
-    "adhesive_grout": 14,
-    "waste": 0.1
-  },
+  "pricing_model": "price = base_fee + rate_per_m2 * floor area; bath and extras separate. Figures are sell prices, incl. GST.",
   "packages": [
     {
       "id": "budget-compact",
@@ -44,13 +21,6 @@
           "size_mm": "600x600",
           "thickness_mm": "10",
           "finish": "Matt",
-          "price_per_m2": 29.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 43.13,
-          "m2_per_box": 1.44,
-          "price_note": "Box $43.13 / $29.95 per m² = 1.44 m² per box",
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/stone-code-grey-matt",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-4101fl-eccom.jpg",
           "date_checked": "2026-10-21",
@@ -65,13 +35,6 @@
           "size_mm": "75x300",
           "thickness_mm": "9",
           "finish": "Gloss",
-          "price_per_m2": 39.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 79.1,
-          "m2_per_box": 1.98,
-          "price_note": "Box $79.10 / $39.95 per m² = 1.98 m² per box. Wall tile.",
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/whoosh-white-gloss-tile-nt18-4080wl",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-4080wl-eccom.jpg",
           "date_checked": "2026-10-21",
@@ -86,13 +49,6 @@
           "size_mm": "75x300",
           "thickness_mm": "9",
           "finish": "Gloss",
-          "price_per_m2": 39.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 79.1,
-          "m2_per_box": 1.98,
-          "price_note": "Same tile as the wall. The 2.5 m² feature area is this gloss subway, so no third tile is priced.",
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/whoosh-white-gloss-tile-nt18-4080wl",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-4080wl-eccom.jpg",
           "date_checked": "2026-10-21",
@@ -107,18 +63,14 @@
           "name": "Posh Bristol MK2 750mm Wall Hung Vanity Unit Centre Bowl 1 Door and 2 Right Hand Drawers 1 Taphole White",
           "code": "9506050",
           "dimensions_mm": {
-            "width_mm": 750.0,
-            "height_mm": 543.0,
-            "depth_mm": 460.0
+            "width_mm": 750,
+            "height_mm": 543,
+            "depth_mm": 460
           },
           "colour": "White",
-          "rrp": 638.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-750mm-wall-hung-vanity-unit-9506050",
           "image_url": "https://digitalassets.reecegroup.com.au/m/be8038a56ef0276d/Web_1200x900-Posh-Bristol-MK2-Wall-Hung-Vanity-Unit-1-Taphole-750mm.jpg",
           "optional": false,
-          "note": "Also 900mm option: 9506060 ($774)",
           "date_checked": "2026-10-21",
           "image_file": "images/vanity_9506050.jpg"
         },
@@ -130,9 +82,6 @@
           "code": "2265204",
           "dimensions_mm": {},
           "colour": "Matte Black",
-          "rrp": 195.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-basin-mixer-matte-black-6-star-2265204",
           "image_url": "https://digitalassets.reecegroup.com.au/m/6803b16db12acb92/Web_1200x900-Mizu-Soothe-MK2-Basin-Mixer-Matte-Black-6-Star.jpg",
           "optional": false,
@@ -148,9 +97,6 @@
           "code": "9512381",
           "dimensions_mm": {},
           "colour": "Matte Black",
-          "rrp": 130.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-shower-mixer-kit-matte-black-9512381",
           "image_url": "https://digitalassets.reecegroup.com.au/m/46d6a2797ee34b4/Web_1200x900-Mizu-Soothe-MK2-Shower-Mixer-Trimset-Matte-Black.jpg",
           "optional": false,
@@ -165,16 +111,13 @@
           "name": "Caroma Forma Close Coupled Back to Wall Back Inlet Over Height Rimless Toilet Suite with Soft Close Quick Release Seat White (4 Star)",
           "code": "9506685",
           "dimensions_mm": {
-            "width_mm": 350.0,
-            "height_mm": 862.0,
-            "pan_height_mm": 440.0,
-            "pan_projection_mm": 655.0,
-            "pan_width_mm": 360.0
+            "width_mm": 350,
+            "height_mm": 862,
+            "pan_height_mm": 440,
+            "pan_projection_mm": 655,
+            "pan_width_mm": 360
           },
           "colour": "White",
-          "rrp": 499.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/caroma-forma-close-coupled-back-to-wall-back-9506685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/794fd7b5625a4e32/Web_1200x900-Caroma-Forma-Close-Coupled-Back-To-Wall-Back-Inlet-Over-Height-Rimless-Toilet-Suite-with-Soft-Close-Quick-Release-Seat-White-4-Star.jpg",
           "optional": false,
@@ -189,14 +132,11 @@
           "name": "Posh Bristol Freestanding Bath 1560 x 750 x 560mm White",
           "code": "9504428",
           "dimensions_mm": {
-            "length_mm": 1560.0,
-            "width_mm": 750.0,
-            "height_mm": 560.0
+            "length_mm": 1560,
+            "width_mm": 750,
+            "height_mm": 560
           },
           "colour": "White",
-          "rrp": 1290.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-bristol-freestanding-bath-1560-x-750-x-9504428",
           "image_url": "https://digitalassets.reecegroup.com.au/m/d06aec99e3da6495/Web_1200x900-Posh-Bristol-Freestanding-Bath-White.jpg",
           "optional": true,
@@ -211,12 +151,9 @@
           "name": "Kado Lux Fixed Shower Screen Panel and Wall Support 1400mm Chrome",
           "code": "9506301",
           "dimensions_mm": {
-            "width_mm": 1400.0
+            "width_mm": 1400
           },
           "colour": "Chrome",
-          "rrp": 367.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-fixed-shower-screen-panel-and-wall-9506301",
           "image_url": "https://digitalassets.reecegroup.com.au/m/4607dc3d3e9ac645/Web_1200x900-Kado-Lux-Fixed-Shower-Screen-Panel-and-Wall-Support-1400mm-Chrome.jpg",
           "optional": false,
@@ -231,13 +168,10 @@
           "name": "Posh Domaine 600mm x 800mm Polished Edge Mirror",
           "code": "2304685",
           "dimensions_mm": {
-            "width_mm": 600.0,
-            "height_mm": 800.0
+            "width_mm": 600,
+            "height_mm": 800
           },
           "colour": "",
-          "rrp": 215.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-domaine-600mm-x-800mm-polished-edge-mirror-2304685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/b76dec5a6faf5e8b/Web_1200x900-Posh-Domaine-600mm-x-800mm-Polished-Edge-Mirror.jpg",
           "optional": false,
@@ -252,14 +186,11 @@
           "name": "Roca Ona Double Towel Rail 800mm Matte Black",
           "code": "15078",
           "dimensions_mm": {
-            "width_mm": 799.0,
-            "height_mm": 55.0,
+            "width_mm": 799,
+            "height_mm": 55,
             "projection_mm": 132.5
           },
           "colour": "Matte Black",
-          "rrp": 231.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-double-towel-rail-800mm-matte-black-15078",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ae8ca7542a4a448b/Web_1200x900-Roca-Ona-Double-Towel-Rail-800mm-Matte-Black.jpg",
           "optional": false,
@@ -274,14 +205,11 @@
           "name": "Mizu Soothe Toilet Roll Holder Matte Black",
           "code": "2268105",
           "dimensions_mm": {
-            "width_mm": 163.0,
+            "width_mm": 163,
             "height_mm": 23.6,
             "projection_mm": 73.5
           },
           "colour": "Matte Black",
-          "rrp": 57.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-matte-black-2268105",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3aedff91-aa39-46c6-ab08-b93f7abd1f0e/Web_1200x900/Mizu-Soothe-Toilet-Roll-Holder-Matte-Black.jpg",
           "optional": false,
@@ -300,9 +228,6 @@
             "height_mm": 20
           },
           "colour": "",
-          "rrp": 66.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-drift-brass-trapscrew-grate-square-100mm-9512361",
           "image_url": "https://digitalassets.reecegroup.com.au/m/f4a253dd691d3b95/Web_1200x900-Mizu-Drift-Trapscrew-Grate-Square-100mm-Brushed-Brass.jpg",
           "optional": false,
@@ -315,67 +240,8 @@
         "base_fee": 17400,
         "rate_per_m2": 620,
         "formula": "price = base_fee + rate_per_m2 * floor_area_m2 (inc GST)",
-        "includes": "Compact scope for a small bathroom: lighter strip-out, 1x 4m3 skip, waterproofing, screed to falls, grey floor tile and gloss subway walls to 2.1 m (the 2.5 m2 feature area uses the same subway), plumbing rough-in and fit-off on the existing layout, a smaller electrical allowance, sheeting and ceiling patch, and the listed fixtures. No hand shower or slide rail. Bath and extras are separate. Estimate, subject to a free site measure.",
-        "compact_allowances": {
-          "demo_labour": 900,
-          "skip": 440,
-          "plumb_rough": 2000,
-          "plumb_fitoff": 1200,
-          "electrical": 800,
-          "sheeting": 500,
-          "ceiling_paint": 400,
-          "crew_fitoff": 600,
-          "shower_falls": 350,
-          "warranty_admin": 650,
-          "consumables_fixed": 200,
-          "fixed_trades": 8040,
-          "note": "Small-room allowances inside the cited trade ranges. Shower falls stay at the same $350 as the other packages. The standard fixed-trades block is $10,900."
-        },
-        "examples": {
-          "3": {
-            "price": 19260,
-            "cost": 14040,
-            "margin_pct": 27.1
-          },
-          "4": {
-            "price": 19880,
-            "cost": 14510,
-            "margin_pct": 27.0
-          },
-          "5": {
-            "price": 20500,
-            "cost": 14945,
-            "margin_pct": 27.1
-          },
-          "6": {
-            "price": 21120,
-            "cost": 15358,
-            "margin_pct": 27.3
-          }
-        },
-        "breakdown_4m2": {
-          "tiles": 791,
-          "tile_labour": 1801,
-          "waterproofing": 1300,
-          "screed": 180,
-          "fixed_trades": 8040,
-          "fixtures": 2398,
-          "total": 14510,
-          "wall_m2": 15.0
-        },
-        "breakdown_6m2": {
-          "tiles": 1023,
-          "tile_labour": 2327,
-          "waterproofing": 1300,
-          "screed": 270,
-          "fixed_trades": 8040,
-          "fixtures": 2398,
-          "total": 15358,
-          "wall_m2": 18.78
-        }
-      },
-      "fixtures_total_rrp": 2398.0,
-      "fttc_extra_6m2": 1030.0
+        "includes": "Compact scope for a small bathroom: lighter strip-out, 1x 4m3 skip, waterproofing, screed to falls, grey floor tile and gloss subway walls to 2.1 m (the 2.5 m2 feature area uses the same subway), plumbing rough-in and fit-off on the existing layout, a smaller electrical allowance, sheeting and ceiling patch, and the listed fixtures. No hand shower or slide rail. Bath and extras are separate. Estimate, subject to a free site measure."
+      }
     },
     {
       "id": "grey-modern",
@@ -392,13 +258,6 @@
           "size_mm": "300x600",
           "thickness_mm": "9",
           "finish": "Matt",
-          "price_per_m2": 54.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 79.13,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/regina-grey-matt-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt19-6132fl_ecomm.jpg",
           "date_checked": "2026-10-21",
@@ -413,13 +272,6 @@
           "size_mm": "300x600",
           "thickness_mm": "9",
           "finish": "Matt",
-          "price_per_m2": 54.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 79.13,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/regina-white-matt-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt19-6130fl_ecomm.jpg",
           "date_checked": "2026-10-21",
@@ -434,13 +286,6 @@
           "size_mm": "100x300",
           "thickness_mm": "8",
           "finish": "Matt",
-          "price_per_m2": 49.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 59.94,
-          "m2_per_box": 1.2,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/cafe-cool-grey-matt-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-1122wp-eccom_1.jpg",
           "date_checked": "2026-10-21",
@@ -455,18 +300,14 @@
           "name": "Posh Bristol MK2 750mm Wall Hung Vanity Unit Centre Bowl 1 Door and 2 Right Hand Drawers 1 Taphole White",
           "code": "9506050",
           "dimensions_mm": {
-            "width_mm": 750.0,
-            "height_mm": 543.0,
-            "depth_mm": 460.0
+            "width_mm": 750,
+            "height_mm": 543,
+            "depth_mm": 460
           },
           "colour": "White",
-          "rrp": 638.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-750mm-wall-hung-vanity-unit-9506050",
           "image_url": "https://digitalassets.reecegroup.com.au/m/be8038a56ef0276d/Web_1200x900-Posh-Bristol-MK2-Wall-Hung-Vanity-Unit-1-Taphole-750mm.jpg",
           "optional": false,
-          "note": "Also 900mm option: 9506060 ($774)",
           "date_checked": "2026-10-21",
           "image_file": "images/vanity_9506050.jpg"
         },
@@ -478,9 +319,6 @@
           "code": "2265204",
           "dimensions_mm": {},
           "colour": "Matte Black",
-          "rrp": 195.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-basin-mixer-matte-black-6-star-2265204",
           "image_url": "https://digitalassets.reecegroup.com.au/m/6803b16db12acb92/Web_1200x900-Mizu-Soothe-MK2-Basin-Mixer-Matte-Black-6-Star.jpg",
           "optional": false,
@@ -496,9 +334,6 @@
           "code": "9512381",
           "dimensions_mm": {},
           "colour": "Matte Black",
-          "rrp": 130.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-shower-mixer-kit-matte-black-9512381",
           "image_url": "https://digitalassets.reecegroup.com.au/m/46d6a2797ee34b4/Web_1200x900-Mizu-Soothe-MK2-Shower-Mixer-Trimset-Matte-Black.jpg",
           "optional": false,
@@ -514,9 +349,6 @@
           "code": "14942",
           "dimensions_mm": {},
           "colour": "Matte Black",
-          "rrp": 410.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-single-rail-shower-matte-black-5-star-14942",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ff8d64c439c12fb1/Web_1200x900-Hero-Roca-Ona-Single-Rail-Shower-Matte-Black-5-Star.jpg",
           "optional": false,
@@ -531,16 +363,13 @@
           "name": "Caroma Forma Close Coupled Back to Wall Back Inlet Over Height Rimless Toilet Suite with Soft Close Quick Release Seat White (4 Star)",
           "code": "9506685",
           "dimensions_mm": {
-            "width_mm": 350.0,
-            "height_mm": 862.0,
-            "pan_height_mm": 440.0,
-            "pan_projection_mm": 655.0,
-            "pan_width_mm": 360.0
+            "width_mm": 350,
+            "height_mm": 862,
+            "pan_height_mm": 440,
+            "pan_projection_mm": 655,
+            "pan_width_mm": 360
           },
           "colour": "White",
-          "rrp": 499.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/caroma-forma-close-coupled-back-to-wall-back-9506685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/794fd7b5625a4e32/Web_1200x900-Caroma-Forma-Close-Coupled-Back-To-Wall-Back-Inlet-Over-Height-Rimless-Toilet-Suite-with-Soft-Close-Quick-Release-Seat-White-4-Star.jpg",
           "optional": false,
@@ -555,14 +384,11 @@
           "name": "Posh Bristol Freestanding Bath 1560 x 750 x 560mm White",
           "code": "9504428",
           "dimensions_mm": {
-            "length_mm": 1560.0,
-            "width_mm": 750.0,
-            "height_mm": 560.0
+            "length_mm": 1560,
+            "width_mm": 750,
+            "height_mm": 560
           },
           "colour": "White",
-          "rrp": 1290.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-bristol-freestanding-bath-1560-x-750-x-9504428",
           "image_url": "https://digitalassets.reecegroup.com.au/m/d06aec99e3da6495/Web_1200x900-Posh-Bristol-Freestanding-Bath-White.jpg",
           "optional": true,
@@ -580,9 +406,6 @@
             "width_mm": 900
           },
           "colour": "Matte Black",
-          "rrp": 525.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-framed-shower-panel-900mm-matte-black-1705921",
           "image_url": "https://digitalassets.reecegroup.com.au/m/81ba612f857f7081/Web_1200x900-Kado-Lux-Frameless-Shower-Panel-900mm-Matte-Black.jpg",
           "optional": false,
@@ -601,9 +424,6 @@
             "depth_mm": 150
           },
           "colour": "",
-          "rrp": 438.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-750mm-mirror-cabinet-2-door-9502564",
           "image_url": "https://digitalassets.reecegroup.com.au/m/81da33f92a30db43/Web_1200x900-Posh-Dominique-MKII-Mirror-Cabinet-750mm-2-Door-White.jpg",
           "optional": false,
@@ -618,14 +438,11 @@
           "name": "Roca Ona Double Towel Rail 800mm Matte Black",
           "code": "15078",
           "dimensions_mm": {
-            "width_mm": 799.0,
-            "height_mm": 55.0,
+            "width_mm": 799,
+            "height_mm": 55,
             "projection_mm": 132.5
           },
           "colour": "Matte Black",
-          "rrp": 231.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-double-towel-rail-800mm-matte-black-15078",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ae8ca7542a4a448b/Web_1200x900-Roca-Ona-Double-Towel-Rail-800mm-Matte-Black.jpg",
           "optional": false,
@@ -640,14 +457,11 @@
           "name": "Mizu Soothe Toilet Roll Holder Matte Black",
           "code": "2268105",
           "dimensions_mm": {
-            "width_mm": 163.0,
+            "width_mm": 163,
             "height_mm": 23.6,
             "projection_mm": 73.5
           },
           "colour": "Matte Black",
-          "rrp": 57.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-matte-black-2268105",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3aedff91-aa39-46c6-ab08-b93f7abd1f0e/Web_1200x900/Mizu-Soothe-Toilet-Roll-Holder-Matte-Black.jpg",
           "optional": false,
@@ -662,14 +476,11 @@
           "name": "Kado Lux Square Floor Waste 97mm DN80 Matte Black",
           "code": "951032",
           "dimensions_mm": {
-            "width_mm": 97.0,
-            "depth_mm": 97.0,
-            "height_mm": 22.0
+            "width_mm": 97,
+            "depth_mm": 97,
+            "height_mm": 22
           },
           "colour": "Matte Black",
-          "rrp": 157.08,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-square-floor-waste-97mm-dn80-matte-951032",
           "image_url": "https://digitalassets.reecegroup.com.au/m/7332aaba5095efab/Web_1200x900-Kado-Lux-Square-Floor-Waste-97mm-DN80-Matte-Black.jpg",
           "optional": false,
@@ -678,54 +489,12 @@
           "image_file": "images/floor_waste_951032.jpg"
         }
       ],
-      "chrome_alternatives": [
-        "13481 Roca Ona Basin Mixer Chrome $224",
-        "13692 Roca Ona Shower Mixer Chrome $202",
-        "14941 Roca Ona Single Rail Shower Chrome $342",
-        "15077 Roca Ona Double Towel Rail 800 Chrome $193",
-        "15057 Roca Ona TRH Chrome $57",
-        "202528 Mizu Drift grate Chrome $32"
-      ],
       "pricing": {
         "base_fee": 23100,
         "rate_per_m2": 590,
         "formula": "price = base_fee + rate_per_m2 * floor_area_m2 (inc GST)",
-        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate.",
-        "examples": {
-          "5": {
-            "price": 26050,
-            "cost": 18991,
-            "margin_pct": 27.1
-          },
-          "6": {
-            "price": 26640,
-            "cost": 19441,
-            "margin_pct": 27.0
-          },
-          "7": {
-            "price": 27230,
-            "cost": 19867,
-            "margin_pct": 27.0
-          },
-          "8": {
-            "price": 27820,
-            "cost": 20279,
-            "margin_pct": 27.1
-          }
-        },
-        "breakdown_6m2": {
-          "tiles": 1484,
-          "tile_labour": 2207,
-          "waterproofing": 1300,
-          "screed": 270,
-          "fixed_trades": 10900,
-          "fixtures": 3280,
-          "total": 19441,
-          "wall_m2": 19
-        }
-      },
-      "fixtures_total_rrp": 3280.08,
-      "fttc_extra_6m2": 1160.0
+        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate."
+      }
     },
     {
       "id": "beige-copper",
@@ -742,13 +511,6 @@
           "size_mm": "600x600",
           "thickness_mm": "9",
           "finish": "Matt",
-          "price_per_m2": 39.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 57.53,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/concrete-fusion-sand-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-4141fl_ecomm_1_1.jpg",
           "date_checked": "2026-10-21",
@@ -763,13 +525,6 @@
           "size_mm": "300x600",
           "thickness_mm": "10",
           "finish": "Gloss",
-          "price_per_m2": 39.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 57.53,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/rectified-light-cream-gloss-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/m/a/maxwp010-eccom.jpg",
           "date_checked": "2026-10-21",
@@ -784,13 +539,6 @@
           "size_mm": "170x520",
           "thickness_mm": "9",
           "finish": "Structured",
-          "price_per_m2": 112.56,
-          "price_unit": "each",
-          "box_or_unit_price": 9.95,
-          "m2_per_box": null,
-          "price_note": "Sold per piece/sheet at $9.95 each (170x520 mm); per-m2 figure derived = price / 0.0884 m2",
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/ontario-sand-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-1074dt-eccom.jpg",
           "date_checked": "2026-10-21",
@@ -805,14 +553,11 @@
           "name": "Posh Bristol MK2 900mm Wall Hung Vanity Unit Centre Bowl 2 Door and 2 Right Hand Drawers 1 Taphole White",
           "code": "9506060",
           "dimensions_mm": {
-            "width_mm": 900.0,
-            "height_mm": 543.0,
-            "depth_mm": 460.0
+            "width_mm": 900,
+            "height_mm": 543,
+            "depth_mm": 460
           },
           "colour": "White",
-          "rrp": 774.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-900mm-wall-hung-vanity-unit-9506060",
           "image_url": "https://digitalassets.reecegroup.com.au/m/cdc3a2d7affafa79/Web_1200x900-Posh-Bristol-MK2-Wall-Hung-Vanity-Unit-Centre-Bowl-1-Taphole-900mm.jpg",
           "optional": false,
@@ -828,9 +573,6 @@
           "code": "13485",
           "dimensions_mm": {},
           "colour": "Brushed Brass",
-          "rrp": 337.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-basin-mixer-tap-brushed-brass-6-star-13485",
           "image_url": "https://digitalassets.reecegroup.com.au/m/7ea439785b2f3fc2/Web_1200x900-Roca-Ona-Basin-Mixer-Tap-Brushed-Brass-6-Star.jpg",
           "optional": false,
@@ -846,9 +588,6 @@
           "code": "13696",
           "dimensions_mm": {},
           "colour": "Brushed Brass",
-          "rrp": 317.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-shower-mixer-tap-brushed-brass-13696",
           "image_url": "https://digitalassets.reecegroup.com.au/m/d75992e529128ac6/Web_1200x900-Hero-Roca-Ona-Shower-Mixer-Tap-Brushed-Brass.jpg",
           "optional": false,
@@ -864,9 +603,6 @@
           "code": "14945",
           "dimensions_mm": {},
           "colour": "Brushed Brass",
-          "rrp": 514.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-single-rail-shower-brushed-brass-5-14945",
           "image_url": "https://digitalassets.reecegroup.com.au/m/a454f7bb220d05f4/Web_1200x900-Hero-Roca-Ona-Single-Rail-Shower-Brushed-Brass-5-Star.jpg",
           "optional": false,
@@ -881,16 +617,13 @@
           "name": "Kado Lux Close Coupled Back to Wall Rimless Overheight Back Inlet Toilet Suite with Thin Soft Close Quick Release Seat White (4 Star)",
           "code": "1805494",
           "dimensions_mm": {
-            "width_mm": 395.0,
-            "height_mm": 860.0,
-            "pan_height_mm": 435.0,
-            "pan_projection_mm": 650.0,
-            "pan_width_mm": 360.0
+            "width_mm": 395,
+            "height_mm": 860,
+            "pan_height_mm": 435,
+            "pan_projection_mm": 650,
+            "pan_width_mm": 360
           },
           "colour": "White",
-          "rrp": 590.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-close-coupled-back-to-wall-rimless-1805494",
           "image_url": "https://digitalassets.reecegroup.com.au/m/5a8c3016b28d2add/Web_1200x900-Kado-Lux-Close-Coupled-Back-To-Wall-Rimless-Overheight-Back-Inlet-Toilet-Suite-with-Thin-Soft-Close-Quick-Release-Seat-4-Star.jpg",
           "optional": false,
@@ -905,14 +638,11 @@
           "name": "Posh Domaine Back to Wall Freestanding Bath 1500 x 720mm White",
           "code": "9508056",
           "dimensions_mm": {
-            "length_mm": 1500.0,
-            "width_mm": 720.0,
-            "height_mm": 560.0
+            "length_mm": 1500,
+            "width_mm": 720,
+            "height_mm": 560
           },
           "colour": "White",
-          "rrp": 1610.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-domaine-back-to-wall-freestanding-bath-1500-9508056",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ca33d14c5b675217/Web_1200x900-Posh-Domaine-Back-to-Wall-Freestanding-Bath-White.jpg",
           "optional": true,
@@ -927,12 +657,9 @@
           "name": "Kado Lux Fixed Shower Screen Panel and Wall Support 1400mm Chrome",
           "code": "9506301",
           "dimensions_mm": {
-            "width_mm": 1400.0
+            "width_mm": 1400
           },
           "colour": "Chrome",
-          "rrp": 367.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-fixed-shower-screen-panel-and-wall-9506301",
           "image_url": "https://digitalassets.reecegroup.com.au/m/4607dc3d3e9ac645/Web_1200x900-Kado-Lux-Fixed-Shower-Screen-Panel-and-Wall-Support-1400mm-Chrome.jpg",
           "optional": false,
@@ -947,13 +674,10 @@
           "name": "Posh Domaine 600mm x 800mm Polished Edge Mirror",
           "code": "2304685",
           "dimensions_mm": {
-            "width_mm": 600.0,
-            "height_mm": 800.0
+            "width_mm": 600,
+            "height_mm": 800
           },
           "colour": "",
-          "rrp": 215.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/posh-domaine-600mm-x-800mm-polished-edge-mirror-2304685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/b76dec5a6faf5e8b/Web_1200x900-Posh-Domaine-600mm-x-800mm-Polished-Edge-Mirror.jpg",
           "optional": false,
@@ -968,14 +692,11 @@
           "name": "Roca Ona Double Towel Rail 800mm Brushed Brass",
           "code": "15081",
           "dimensions_mm": {
-            "width_mm": 799.0,
-            "height_mm": 55.0,
+            "width_mm": 799,
+            "height_mm": 55,
             "projection_mm": 132.5
           },
           "colour": "Brushed Brass",
-          "rrp": 289.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-double-towel-rail-800mm-brushed-brass-15081",
           "image_url": "https://digitalassets.reecegroup.com.au/m/576104cd6f75cda3/Web_1200x900-Hero-Roca-Ona-Double-Towel-Rail-800mm-Brushed-Brass.jpg",
           "optional": false,
@@ -990,14 +711,11 @@
           "name": "Roca Ona Toilet Roll Holder Brushed Brass",
           "code": "15061",
           "dimensions_mm": {
-            "width_mm": 170.0,
-            "height_mm": 55.0,
+            "width_mm": 170,
+            "height_mm": 55,
             "projection_mm": 80.4
           },
           "colour": "Brushed Brass",
-          "rrp": 85.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/roca-ona-toilet-roll-holder-brushed-brass-15061",
           "image_url": "https://digitalassets.reecegroup.com.au/m/4a3b0cabd25f6577/Web_1200x900-Hero-Roca-Ona-Toilet-Roll-Holder-Brushed-Brass.jpg",
           "optional": false,
@@ -1016,9 +734,6 @@
             "height_mm": 20
           },
           "colour": "",
-          "rrp": 66.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-drift-brass-trapscrew-grate-square-100mm-9512361",
           "image_url": "https://digitalassets.reecegroup.com.au/m/f4a253dd691d3b95/Web_1200x900-Mizu-Drift-Trapscrew-Grate-Square-100mm-Brushed-Brass.jpg",
           "optional": false,
@@ -1031,42 +746,8 @@
         "base_fee": 23600,
         "rate_per_m2": 560,
         "formula": "price = base_fee + rate_per_m2 * floor_area_m2 (inc GST)",
-        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate.",
-        "examples": {
-          "5": {
-            "price": 26400,
-            "cost": 19216,
-            "margin_pct": 27.2
-          },
-          "6": {
-            "price": 26960,
-            "cost": 19639,
-            "margin_pct": 27.2
-          },
-          "7": {
-            "price": 27520,
-            "cost": 20042,
-            "margin_pct": 27.2
-          },
-          "8": {
-            "price": 28080,
-            "cost": 20432,
-            "margin_pct": 27.2
-          }
-        },
-        "breakdown_6m2": {
-          "tiles": 1289,
-          "tile_labour": 2327,
-          "waterproofing": 1300,
-          "screed": 270,
-          "fixed_trades": 10900,
-          "fixtures": 3554,
-          "total": 19639,
-          "wall_m2": 19
-        }
-      },
-      "fixtures_total_rrp": 3554.0,
-      "fttc_extra_6m2": 1030.0
+        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate."
+      }
     },
     {
       "id": "marble-luxe",
@@ -1083,13 +764,6 @@
           "size_mm": "600x1200",
           "thickness_mm": "9",
           "finish": "Natural",
-          "price_per_m2": 129.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 187.13,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/statuario-venato-white-natural-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-708fl_ecomm.jpg",
           "date_checked": "2026-10-21",
@@ -1104,13 +778,6 @@
           "size_mm": "600x1200",
           "thickness_mm": "9",
           "finish": "Natural",
-          "price_per_m2": 129.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 187.13,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/statuario-venato-white-natural-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-708fl_ecomm.jpg",
           "date_checked": "2026-10-21",
@@ -1125,13 +792,6 @@
           "size_mm": "125x125",
           "thickness_mm": "11",
           "finish": "Gloss",
-          "price_per_m2": 149.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 189.79,
-          "m2_per_box": 1.2657,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page (schema.org offer, AUD inc GST)",
           "url": "https://www.nationaltiles.com.au/zellige-white-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt18-001dt-eccom.jpg",
           "date_checked": "2026-10-21",
@@ -1146,14 +806,11 @@
           "name": "Kado Lux All Door 900mm Wall Hung Vanity Centre Basin 20mm Cherry Pie Top",
           "code": "2351487",
           "dimensions_mm": {
-            "width_mm": 900.0,
-            "height_mm": 440.0,
-            "depth_mm": 500.0
+            "width_mm": 900,
+            "height_mm": 440,
+            "depth_mm": 500
           },
           "colour": "Matte White, Matte Black & Matte Feather Grey",
-          "rrp": 2358.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-all-door-900mm-wall-hung-vanity-centre-2351487",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/7cf7320a-a064-44bb-ac28-7657a244d1ea/Web_1200x900/Hero-Kado-Lux-All-Door-900mm-Wall-Hung-Vanity-Centre-Basin-20mm-Feather-Grey-Front.jpg",
           "optional": false,
@@ -1169,9 +826,6 @@
           "code": "2269220",
           "dimensions_mm": {},
           "colour": "Brushed Bronze",
-          "rrp": 250.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-basin-mixer-brushed-bronze-6-2269220",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3ebbfd74-39b1-4f30-b922-484be9484178/Web_1200x900/Hero-Mizu-Soothe-MK2-Basin-Mixer-Brushed-Bronze-6-Star-Lead-Free.jpg",
           "optional": false,
@@ -1187,9 +841,6 @@
           "code": "2295542",
           "dimensions_mm": {},
           "colour": "Brushed Bronze",
-          "rrp": 198.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-shower-mixer-kit-brushed-bronze-2295542",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/f49cd6e0-cad1-4b01-b5e6-c4dbf1586540/Web_1200x900/Hero-Mizu-Soothe-MK2-Shower-Mixer-Kit-Brushed-Bronze-Lead-Free.jpg",
           "optional": false,
@@ -1205,9 +856,6 @@
           "code": "21977",
           "dimensions_mm": {},
           "colour": "Brushed Bronze",
-          "rrp": 1161.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/milli-marq-edit-twin-rail-shower-brushed-bronze-3-21977",
           "image_url": "https://digitalassets.reecegroup.com.au/m/9b40c46409f1793b/Web_1200x900-Hero-Milli-Marq-Edit-Twin-Rail-Shower-Brushed-Bronze.jpg",
           "optional": false,
@@ -1222,16 +870,13 @@
           "name": "Kado Lux Close Coupled Back to Wall Rimless Overheight Back Inlet Toilet Suite with Thin Soft Close Quick Release Seat White (4 Star)",
           "code": "1805494",
           "dimensions_mm": {
-            "width_mm": 395.0,
-            "height_mm": 860.0,
-            "pan_height_mm": 435.0,
-            "pan_projection_mm": 650.0,
-            "pan_width_mm": 360.0
+            "width_mm": 395,
+            "height_mm": 860,
+            "pan_height_mm": 435,
+            "pan_projection_mm": 650,
+            "pan_width_mm": 360
           },
           "colour": "White",
-          "rrp": 590.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-close-coupled-back-to-wall-rimless-1805494",
           "image_url": "https://digitalassets.reecegroup.com.au/m/5a8c3016b28d2add/Web_1200x900-Kado-Lux-Close-Coupled-Back-To-Wall-Rimless-Overheight-Back-Inlet-Toilet-Suite-with-Thin-Soft-Close-Quick-Release-Seat-4-Star.jpg",
           "optional": false,
@@ -1246,14 +891,11 @@
           "name": "Kado Lux Freestanding Bath 1500mm x 700mm x 580mm with Overflow Gloss White",
           "code": "26954",
           "dimensions_mm": {
-            "length_mm": 1500.0,
-            "width_mm": 700.0,
-            "height_mm": 580.0
+            "length_mm": 1500,
+            "width_mm": 700,
+            "height_mm": 580
           },
           "colour": "Gloss White",
-          "rrp": 1800.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-freestanding-bath-1500mm-x-700mm-x-26954",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/74fa9d27-a31b-4ca7-918f-308db7e6d76e/Web_1200x900/Hero-Kado-Lux-Freestanding-Bath-1500mm-x-700mm-x-580mm-Gloss-White.jpg",
           "optional": true,
@@ -1268,12 +910,9 @@
           "name": "Kado Lux Fixed Shower Screen Panel with Side Panel and Wall Support 1400mm Chrome",
           "code": "9506304",
           "dimensions_mm": {
-            "width_mm": 1400.0
+            "width_mm": 1400
           },
           "colour": "Chrome",
-          "rrp": 472.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-fixed-shower-screen-panel-with-side-9506304",
           "image_url": "https://digitalassets.reecegroup.com.au/m/c9c2da91d62b037/Web_1200x900-Kado-Lux-Fixed-Shower-Screen-Panel-with-Side-Panel-and-Wall-Support-1400mm-Chrome.jpg",
           "optional": false,
@@ -1288,14 +927,11 @@
           "name": "Kado Lux Framed 2 Door Mirror Shaving Cabinet 600mm x 840mm",
           "code": "44751",
           "dimensions_mm": {
-            "width_mm": 600.0,
-            "height_mm": 840.0,
-            "depth_mm": 150.0
+            "width_mm": 600,
+            "height_mm": 840,
+            "depth_mm": 150
           },
           "colour": "Textured Boston Oak Woodmatt, Textured Blonde Oak Woodmatt, Matte White, Matte Black, Textured Florentine Walnut Woodmatt & Matte Feather Grey",
-          "rrp": 1504.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/kado-lux-framed-2-door-mirror-shaving-cabinet-44751",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/671bcd9c-d6ce-4804-9353-6016e2bc30d1/Web_1200x900/Hero-Kado-Lux-Framed-2-Door-Mirror-Shaving-Cabinet-600mm-x-840mm.jpg",
           "optional": false,
@@ -1310,14 +946,11 @@
           "name": "Mizu Soothe Towel Ring Brushed Bronze",
           "code": "2269430",
           "dimensions_mm": {
-            "width_mm": 180.0,
-            "height_mm": 150.0,
+            "width_mm": 180,
+            "height_mm": 150,
             "projection_mm": 70.5
           },
           "colour": "Brushed Bronze",
-          "rrp": 103.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-towel-ring-brushed-bronze-2269430",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/872590cd-f58e-445a-81de-51d28ecf8ec0/Web_1200x900/Hero-Mizu-Soothe-Towel-Ring-Brushed-Bronze.jpg",
           "optional": false,
@@ -1332,14 +965,11 @@
           "name": "Mizu Soothe Toilet Roll Holder Brushed Bronze",
           "code": "2269429",
           "dimensions_mm": {
-            "width_mm": 163.0,
+            "width_mm": 163,
             "height_mm": 23.6,
             "projection_mm": 73.5
           },
           "colour": "Brushed Bronze",
-          "rrp": 75.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-brushed-bronze-2269429",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/7caecf9c-352b-481f-90e1-1d30025ee6d8/Web_1200x900/Hero-Mizu-Soothe-Toilet-Roll-Holder-Brushed-Bronze.jpg",
           "optional": false,
@@ -1358,9 +988,6 @@
             "height_mm": 20
           },
           "colour": "",
-          "rrp": 66.0,
-          "price_verified": true,
-          "price_source": "reece.com.au public listed price (anonymous, postcode 4000, AUD inc GST)",
           "url": "https://www.reece.com.au/product/mizu-drift-brass-trapscrew-grate-square-100mm-201652",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/6dcbf8db-ff68-45ae-9d92-1a6ecfaff387/Web_1200x900/Hero-Mizu-Drift-Trapscrew-Grate-Square-100mm-Brushed-Bronze.jpg",
           "optional": false,
@@ -1373,42 +1000,8 @@
         "base_fee": 29150,
         "rate_per_m2": 970,
         "formula": "price = base_fee + rate_per_m2 * floor_area_m2 (inc GST)",
-        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate.",
-        "examples": {
-          "5": {
-            "price": 34000,
-            "cost": 24760,
-            "margin_pct": 27.2
-          },
-          "6": {
-            "price": 34970,
-            "cost": 25496,
-            "margin_pct": 27.1
-          },
-          "7": {
-            "price": 35940,
-            "cost": 26193,
-            "margin_pct": 27.1
-          },
-          "8": {
-            "price": 36910,
-            "cost": 26865,
-            "margin_pct": 27.2
-          }
-        },
-        "breakdown_6m2": {
-          "tiles": 3597,
-          "tile_labour": 2652,
-          "waterproofing": 1300,
-          "screed": 270,
-          "fixed_trades": 10900,
-          "fixtures": 6777,
-          "total": 25496,
-          "wall_m2": 19
-        }
-      },
-      "fixtures_total_rrp": 6777.0,
-      "fttc_extra_6m2": 1990.0
+        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate."
+      }
     },
     {
       "id": "accessible-care",
@@ -1426,13 +1019,6 @@
           "thickness_mm": "9",
           "finish": "Grip",
           "slip_rating": "P5",
-          "price_per_m2": 54.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 79.13,
-          "m2_per_box": 1.44,
-          "price_note": "URL slug says p4; the page spec says P5. Check the rating on the box label before ordering.",
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page",
           "url": "https://www.nationaltiles.com.au/orion-dark-grey-external-p4-tile",
           "date_checked": "2026-10-23"
         },
@@ -1446,13 +1032,6 @@
           "thickness_mm": "9",
           "finish": "Matt",
           "slip_rating": "P2",
-          "price_per_m2": 54.95,
-          "price_unit": "m2",
-          "box_or_unit_price": 79.13,
-          "m2_per_box": 1.44,
-          "price_note": null,
-          "price_verified": true,
-          "price_source": "nationaltiles.com.au product page",
           "url": "https://www.nationaltiles.com.au/regina-white-matt-tile",
           "image_url": "https://www.nationaltiles.com.au/media/catalog/product/n/t/nt19-6130fl_ecomm.jpg",
           "date_checked": "2026-10-23",
@@ -1470,9 +1049,6 @@
             "pan_projection_mm": 650
           },
           "colour": "White",
-          "rrp": 1416.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/toilets-c544028/care-ambulant-toilets-c544095/wolfen-ambulant-close-coupled-back-to-wall-1811611",
           "optional": false,
           "note": "The page says it meets AS1428.1-2009. Pan projection 650 mm. 4-star WELS.",
@@ -1489,9 +1065,6 @@
             "height_mm": 600
           },
           "colour": "Satin stainless steel",
-          "rrp": 172.73,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/mobi-940-x-600mm-x-90-degree-right-hand-grab-rail-9501877",
           "optional": false,
           "note": "GST free on Reece. Right hand. The left-hand rail is a different code and is not included.",
@@ -1508,9 +1081,6 @@
             "height_mm": 600
           },
           "colour": "Satin stainless steel",
-          "rrp": 172.73,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/mobi-940-x-600mm-x-90-degree-right-hand-grab-rail-9501877",
           "optional": false,
           "note": "GST free on Reece. Second rail, for the shower seat. Order the hand to suit the layout.",
@@ -1527,9 +1097,6 @@
             "diameter_mm": 32
           },
           "colour": "Polished stainless steel",
-          "rrp": 81.82,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/mobi-32mm-x-900mm-grab-rail-polished-stainless-9502624",
           "optional": false,
           "note": "GST free on Reece.",
@@ -1545,9 +1112,6 @@
             "width_mm": 600
           },
           "colour": "Stainless steel and white",
-          "rrp": 552.73,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/wolfen-folding-shower-seat-600mm-stainless-2260056",
           "optional": false,
           "note": "GST free on Reece. The page says it meets AS1428.1-2009 Amd.1.",
@@ -1563,9 +1127,6 @@
             "width_mm": 900
           },
           "colour": "",
-          "rrp": 488.73,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/showers-c543286/shower-heads-outlets-c543234/rail-showers-c543966/posh-solus-mk3-single-grab-rail-shower-1-function-2213368",
           "optional": false,
           "note": "GST free on Reece. 4-star WELS. 1500 mm hose. The page says it meets AS 1428.1.",
@@ -1579,9 +1140,6 @@
           "code": "9505251",
           "dimensions_mm": {},
           "colour": "Chrome",
-          "rrp": 138.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/shower-bath-tapware-c544025/posh-bristol-mk2-shower-mixer-tap-with-extended-9505251",
           "optional": false,
           "note": "Extended lever. The page says it has a temperature-limiting device.",
@@ -1599,9 +1157,6 @@
             "height_mm": 190
           },
           "colour": "White",
-          "rrp": 310.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/basins-c543130/wolfen-wall-basin-500-x-420-x-190mm-with-overflow-1851595",
           "optional": false,
           "note": "Wall-hung. The page says it complies with AS1428.1-2009.",
@@ -1615,9 +1170,6 @@
           "code": "10876",
           "dimensions_mm": {},
           "colour": "Chrome",
-          "rrp": 206.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/basin-tapware-c544043/mizu-soothe-mk2-basin-mixer-with-extended-10876",
           "optional": false,
           "note": "6-star WELS.",
@@ -1631,9 +1183,6 @@
           "code": "2263197",
           "dimensions_mm": {},
           "colour": "Chrome",
-          "rrp": 35.9,
-          "price_verified": true,
-          "price_source": "reece.com.au listing",
           "url": "https://www.reece.com.au/product/bathroom-c544063/basins-c543130/wastes-c543636/mizu-drift-universal-40mm-pop-up-plug-waste-2263197",
           "optional": false,
           "note": "Price from the Reece listing, not the product page. The plumber should check it suits the overflow basin.",
@@ -1647,9 +1196,6 @@
           "code": "2262546",
           "dimensions_mm": {},
           "colour": "Chrome",
-          "rrp": 130.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/mizu-drift-bottle-trap-40mm-chrome-2262546",
           "optional": false,
           "date_checked": "2026-10-23"
@@ -1664,9 +1210,6 @@
             "width_mm": 900
           },
           "colour": "Satin",
-          "rrp": 318.1,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/showers-c543286/wastes-channels-c543331/kado-lux-shower-channel-kit-satin-900mm-306272",
           "optional": false,
           "note": "The page says it is one-drain-for-the-whole-bathroom compliant.",
@@ -1683,9 +1226,6 @@
             "depth_mm": 1200
           },
           "colour": "",
-          "rrp": 375.51,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/aluminium-90-degree-shower-track-1200-x-1200-with-1712023",
           "optional": false,
           "note": "trade-only online.",
@@ -1698,13 +1238,10 @@
           "name": "Posh Domaine 600mm x 800mm Polished Edge Mirror",
           "code": "2304685",
           "dimensions_mm": {
-            "width_mm": 600.0,
-            "height_mm": 800.0
+            "width_mm": 600,
+            "height_mm": 800
           },
           "colour": "",
-          "rrp": 215.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/posh-domaine-600mm-x-800mm-polished-edge-mirror-2304685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/b76dec5a6faf5e8b/Web_1200x900-Posh-Domaine-600mm-x-800mm-Polished-Edge-Mirror.jpg",
           "optional": false,
@@ -1719,14 +1256,11 @@
           "name": "Mizu Soothe Toilet Roll Holder Matte Black",
           "code": "2268105",
           "dimensions_mm": {
-            "width_mm": 163.0,
+            "width_mm": 163,
             "height_mm": 23.6,
             "projection_mm": 73.5
           },
           "colour": "Matte Black",
-          "rrp": 57.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-matte-black-2268105",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3aedff91-aa39-46c6-ab08-b93f7abd1f0e/Web_1200x900/Mizu-Soothe-Toilet-Roll-Holder-Matte-Black.jpg",
           "optional": false,
@@ -1744,9 +1278,6 @@
             "pan_projection_mm": 805
           },
           "colour": "White",
-          "rrp": 2499.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/toilets-c544028/care-ambulant-toilets-c544095/wolfen-800-close-coupled-back-to-wall-rimless-9508924",
           "optional": true,
           "note": "The page says it meets AS1428.1-2021. Pan height 435 mm, projection 805 mm. Optional upgrade, not in the from price.",
@@ -1760,9 +1291,6 @@
           "code": "9507171",
           "dimensions_mm": {},
           "colour": "White",
-          "rrp": 360.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/wolfen-back-rest-with-fixed-arms-white-and-9507171",
           "optional": true,
           "note": "The page says it meets AS1428.1-2009 Amd.1 when used with a single-flap seat. Optional, not in the from price.",
@@ -1779,9 +1307,6 @@
             "height_mm": 450
           },
           "colour": "Brushed",
-          "rrp": 280.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/bathroom-accessories-c543221/grab-rails-backrests-c617897/mizu-drift-450-x-450-x-90-degree-ambulant-2266525",
           "optional": true,
           "note": "GST free on Reece. Optional, not in the from price.",
@@ -1795,9 +1320,6 @@
           "code": "1779024",
           "dimensions_mm": {},
           "colour": "",
-          "rrp": 522.0,
-          "price_verified": true,
-          "price_source": "reece.com.au product page, postcode 4000",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/rba-budget-shower-seat-to-as1428-1-2009-1779024",
           "optional": true,
           "note": "GST free on Reece. trade-only online. Optional, not in the from price.",
@@ -1807,43 +1329,9 @@
       "pricing": {
         "base_fee": 27500,
         "rate_per_m2": 620,
-        "formula": "27500 + 620 x floor m2 (incl. GST)",
-        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate. Accessible: wall reinforcement behind all rails/seat, hobless shower with linear drain, care fixtures fitted. Slab set-down, door widening and OT report not included. Three $600 allowances to confirm are inside this price: wall reinforcement, fitting the rails, seat and curtain track, and the hobless shower set-in.",
-        "examples": {
-          "5": {
-            "price": 30600,
-            "cost": 22295.58,
-            "margin_pct": 27.14
-          },
-          "6": {
-            "price": 31220,
-            "cost": 22763.98,
-            "margin_pct": 27.09
-          },
-          "7": {
-            "price": 31840,
-            "cost": 23211.55,
-            "margin_pct": 27.1
-          },
-          "8": {
-            "price": 32460,
-            "cost": 23642.65,
-            "margin_pct": 27.16
-          }
-        },
-        "breakdown_6m2": {
-          "tiles": 1497.57,
-          "tile_labour": 2326.16,
-          "waterproofing": 1300,
-          "screed": 270,
-          "fixed_trades": 12700,
-          "fixtures": 4670.25,
-          "total": 22763.98,
-          "wall_m2": 18.78
-        }
-      },
-      "fixtures_total_rrp": 4670.25,
-      "fttc_extra_6m2": 1160
+        "formula": "price = base_fee + rate_per_m2 * floor_area_m2 (inc GST)",
+        "includes": "Standard scope: strip-out, 1x 4m3 skip, AS 3740 waterproofing (QBCC Form 16/43), screed to falls, floor tiles + walls to 2.1 m incl. 2.5 m2 feature, plumbing rough-in & fit-off (existing layout), electrical allowance, sheeting repairs, ceiling patch/paint, all non-optional package fixtures. Bath and extras separate. Accessible: wall reinforcement behind all rails/seat, hobless shower with linear drain, care fixtures fitted. Slab set-down, door widening and OT report not included. Three $600 allowances to confirm are inside this price: wall reinforcement, fitting the rails, seat and curtain track, and the hobless shower set-in."
+      }
     }
   ],
   "extras": [
@@ -1851,268 +1339,184 @@
       "id": "bath_install",
       "name": "Bath install (labour, plumbing, extra waterproofing/tiling); add package bath RRP",
       "price": 1450,
-      "unit": "job",
-      "basis": "Plumber ~4h + crew 1 day + materials, /(1-27%)",
-      "sources": [
-        "https://www.homeimprovementaustralia.com.au/how-much-does-a-bathroom-renovation-cost-in-australia-2026-guide/"
-      ]
+      "unit": "job"
     },
     {
       "id": "bath_grey-modern",
       "name": "Bath supply+install - Grey Modern (Posh Bristol Freestanding Bath 1560 x 750 x 560mm White)",
-      "price": 2930.0,
-      "unit": "job",
-      "basis": "Install + Reece RRP + 15% handling",
-      "sources": [
-        "https://www.reece.com.au/product/posh-bristol-freestanding-bath-1560-x-750-x-9504428"
-      ]
+      "price": 2930,
+      "unit": "job"
     },
     {
       "id": "bath_budget-compact",
       "name": "Bath supply+install - Budget Compact (Posh Bristol Freestanding Bath 1560 x 750 x 560mm White)",
-      "price": 2930.0,
-      "unit": "job",
-      "basis": "Install + Reece RRP + 15% handling",
-      "sources": [
-        "https://www.reece.com.au/product/posh-bristol-freestanding-bath-1560-x-750-x-9504428"
-      ]
+      "price": 2930,
+      "unit": "job"
     },
     {
       "id": "bath_beige-copper",
       "name": "Bath supply+install - Beige Copper (Posh Domaine Back to Wall Freestanding Bath 1500 x 720mm White)",
-      "price": 3300.0,
-      "unit": "job",
-      "basis": "Install + Reece RRP + 15% handling",
-      "sources": [
-        "https://www.reece.com.au/product/posh-domaine-back-to-wall-freestanding-bath-1500-9508056"
-      ]
+      "price": 3300,
+      "unit": "job"
     },
     {
       "id": "bath_marble-luxe",
       "name": "Bath supply+install - Marble Luxe (suggested premium) (Kado Lux Freestanding Bath 1500mm x 700mm x 580mm with Overflow Gloss White)",
-      "price": 3520.0,
-      "unit": "job",
-      "basis": "Install + Reece RRP + 15% handling",
-      "sources": [
-        "https://www.reece.com.au/product/kado-lux-freestanding-bath-1500mm-x-700mm-x-26954"
-      ]
+      "price": 3520,
+      "unit": "job"
     },
     {
       "id": "niche",
       "name": "Recessed tiled shower niche (approx 600x300)",
       "price": 550,
-      "unit": "each",
-      "basis": "Market $300-$800 each",
-      "sources": [
-        "https://www.homeimprovementaustralia.com.au/how-much-does-a-bathroom-renovation-cost-in-australia-2026-guide/"
-      ]
+      "unit": "each"
     },
     {
       "id": "fttc_grey-modern",
       "name": "Floor-to-ceiling tiling - Grey Modern (6 m2 room; scales with wall area)",
-      "price": 1160.0,
-      "unit": "job",
-      "basis": "Extra ~5.9 m2 wall tile supply + labour at package rates, /(1-27%)",
-      "sources": [
-        "https://jtmasterbuilders.com.au/renovation-costs-gold-coast/bathroom-renovation-cost/"
-      ]
+      "price": 1160,
+      "unit": "job"
     },
     {
       "id": "fttc_budget-compact",
       "name": "Floor-to-ceiling tiling - Budget Compact (6 m2 room; scales with wall area)",
-      "price": 1030.0,
-      "unit": "job",
-      "basis": "Extra ~5.9 m2 Whoosh wall tile supply + standard wall labour, /(1-27%)",
-      "sources": [
-        "https://www.nationaltiles.com.au/whoosh-white-gloss-tile-nt18-4080wl"
-      ]
+      "price": 1030,
+      "unit": "job"
     },
     {
       "id": "fttc_beige-copper",
       "name": "Floor-to-ceiling tiling - Beige Copper (6 m2 room; scales with wall area)",
-      "price": 1030.0,
-      "unit": "job",
-      "basis": "Extra ~5.9 m2 wall tile supply + labour at package rates, /(1-27%)",
-      "sources": [
-        "https://jtmasterbuilders.com.au/renovation-costs-gold-coast/bathroom-renovation-cost/"
-      ]
+      "price": 1030,
+      "unit": "job"
     },
     {
       "id": "fttc_marble-luxe",
       "name": "Floor-to-ceiling tiling - Marble Luxe (suggested premium) (6 m2 room; scales with wall area)",
-      "price": 1990.0,
-      "unit": "job",
-      "basis": "Extra ~5.9 m2 wall tile supply + labour at package rates, /(1-27%)",
-      "sources": [
-        "https://jtmasterbuilders.com.au/renovation-costs-gold-coast/bathroom-renovation-cost/"
-      ]
+      "price": 1990,
+      "unit": "job"
     },
     {
       "id": "ufh",
       "name": "Electric underfloor heating (mat, thermostat, dedicated circuit)",
       "price": 190,
-      "unit": "m2 + $450 fixed",
-      "basis": "Market $80-$180/m2 installed",
-      "sources": [
-        "https://www.tfo.com.au/post/bathroom-renovation-cost/",
-        "https://jtmasterbuilders.com.au/renovation-costs-gold-coast/bathroom-renovation-cost/"
-      ]
+      "unit": "m2 + $450 fixed"
     },
     {
       "id": "move_toilet",
       "name": "Relocate toilet (slab cut, new drainage, re-pour)",
       "price": 3200,
-      "unit": "job",
-      "basis": "Market $1,500-$5,000+",
-      "sources": [
-        "https://www.elitetouchrenovations.au/blog/bathroom-layout-changes-renovation/",
-        "https://www.homeimprovementaustralia.com.au/how-much-does-a-bathroom-renovation-cost-in-australia-2026-guide/"
-      ]
+      "unit": "job"
     },
     {
       "id": "move_shower_waste",
       "name": "Relocate shower/floor waste",
       "price": 2000,
-      "unit": "job",
-      "basis": "Market $1,000-$3,000",
-      "sources": [
-        "https://www.elitetouchrenovations.au/blog/bathroom-layout-changes-renovation/"
-      ]
+      "unit": "job"
     },
     {
       "id": "move_basin",
       "name": "Relocate basin/vanity plumbing",
       "price": 1000,
-      "unit": "job",
-      "basis": "Market $500-$1,500",
-      "sources": [
-        "https://www.elitetouchrenovations.au/blog/bathroom-layout-changes-renovation/"
-      ]
+      "unit": "job"
     },
     {
       "id": "wall_hung_toilet",
       "name": "Upgrade to wall-hung toilet: Caroma Urbane Invisi II suite (Reece 1817272 RRP $1,973.17) incl. frame, stud wall & install, less package toilet",
-      "price": 3710.0,
-      "unit": "job",
-      "basis": "Suite RRP + $1,100 install/framing (market $600-$1,200), margin, credit ~$500",
-      "sources": [
-        "https://capbathrooms.com.au/bathroom-renovation-cost-in-australia/",
-        "https://www.tfo.com.au/post/bathroom-renovation-cost/",
-        "https://www.reece.com.au/product/caroma-urbane-invisi-series-ii-wall-hung-toilet-1817272"
-      ]
+      "price": 3710,
+      "unit": "job"
     },
     {
       "id": "heated_towel_rail",
       "name": "Heated towel rail Hydrotherm Pure 500x800 (Reece 2299545 matte black / 2299541 chrome, RRP $1,260) incl. electrician",
-      "price": 2140.0,
-      "unit": "each",
-      "basis": "RRP + $300 electrical connection",
-      "sources": [
-        "https://www.reece.com.au/product/hydrotherm-pure-heated-towel-rail-500-x-800mm-2299545",
-        "https://capbathrooms.com.au/bathroom-renovation-cost-in-australia/"
-      ]
+      "price": 2140,
+      "unit": "each"
     },
     {
       "id": "extra_skip",
       "name": "Additional 4m3 skip (mixed heavy)",
       "price": 600,
-      "unit": "each",
-      "basis": "Brisbane 4m3 $440-$660",
-      "sources": [
-        "https://skippybinsbrisbane.com.au/bin-sizes/4m3-skip-bin.php",
-        "https://www.shelbyskips.au/what-size-skip-bin-do-i-need"
-      ]
+      "unit": "each"
     },
     {
       "id": "asbestos",
       "name": "Asbestos removal allowance (licensed removalist, pre-1990 homes)",
       "price": 2500,
-      "unit": "from",
-      "basis": "Market $1,500-$5,000",
-      "sources": [
-        "https://www.homeimprovementaustralia.com.au/how-much-does-a-bathroom-renovation-cost-in-australia-2026-guide/"
-      ]
+      "unit": "from"
     },
     {
       "id": "extra_light",
       "name": "Extra downlight / LED mirror point",
       "price": 250,
-      "unit": "each",
-      "basis": "Market $120-$400 per point",
-      "sources": [
-        "https://www.tfo.com.au/post/bathroom-renovation-cost/"
-      ]
+      "unit": "each"
     },
     {
       "id": "exhaust_upgrade",
       "name": "Ducted exhaust fan upgrade to outside",
       "price": 650,
-      "unit": "job",
-      "basis": "Market $300-$600 installed",
-      "sources": [
-        "https://capbathrooms.com.au/bathroom-renovation-cost-in-australia/"
-      ]
+      "unit": "job"
     },
     {
       "id": "pattern_lay",
       "name": "Herringbone/diagonal floor lay",
-      "price": 25,
-      "unit": "% of tiling labour",
-      "basis": "+15-30% labour",
-      "sources": [
-        "https://jtmasterbuilders.com.au/renovation-costs-gold-coast/bathroom-renovation-cost/"
-      ]
+      "price": null,
+      "unit": "m2",
+      "patternSell": {
+        "budget-compact": {
+          "floor": 35.61643835616439,
+          "wall": 28.767123287671232,
+          "feature": 45.89041095890411
+        },
+        "grey-modern": {
+          "floor": 28.767123287671232,
+          "wall": 28.767123287671232,
+          "feature": 45.89041095890411
+        },
+        "beige-copper": {
+          "floor": 35.61643835616439,
+          "wall": 28.767123287671232,
+          "feature": 45.89041095890411
+        },
+        "marble-luxe": {
+          "floor": 35.61643835616439,
+          "wall": 28.767123287671232,
+          "feature": 45.89041095890411
+        },
+        "accessible-care": {
+          "floor": 35.61643835616439,
+          "wall": 28.767123287671232,
+          "feature": 45.89041095890411
+        }
+      }
     },
     {
       "id": "full_replumb",
       "name": "Full re-plumb (old galvanised/copper)",
       "price": 4500,
-      "unit": "from",
-      "basis": "QLD $6k-$12k full re-plumb vs $5k standard already included",
-      "sources": [
-        "https://www.thequoteyard.com.au/services/bathroom-renovation-plumbing-qld"
-      ]
+      "unit": "from"
     },
     {
       "id": "toilet-upgrade-wolfen-800_accessible-care",
       "name": "Toilet upgrade to Wolfen 800 suite with backrest (Reece 9508924)",
       "price": 1480,
-      "unit": "job",
-      "basis": "Supply difference $1,083 / 0.73. Install difference not included.",
-      "sources": [
-        "https://www.reece.com.au/product/bathroom-c544063/toilets-c544028/care-ambulant-toilets-c544095/wolfen-800-close-coupled-back-to-wall-rimless-9508924"
-      ]
+      "unit": "job"
     },
     {
       "id": "step-free-slab-setdown_accessible-care",
       "name": "Slab set-down for a step-free shower",
       "price": null,
-      "unit": "job",
-      "basis": "Price to confirm after site measure. Not included in the from price.",
-      "note": "price to confirm after site measure",
-      "price_verified": false,
-      "sources": []
+      "unit": "job"
     },
     {
       "id": "door-widening_accessible-care",
       "name": "Door widening",
       "price": null,
-      "unit": "job",
-      "basis": "Price to confirm after site measure. Not included in the from price.",
-      "note": "price to confirm after site measure",
-      "price_verified": false,
-      "sources": []
+      "unit": "job"
     },
     {
       "id": "fttc_accessible-care",
       "name": "Floor-to-ceiling tiling - Accessible Care (6 m2 room; scales with wall area)",
       "price": 1160,
-      "unit": "job",
-      "basis": "Extra ~5.88 m2 wall tile supply + labour at package rates, /(1-27%)",
-      "sources": [
-        "https://www.nationaltiles.com.au/regina-white-matt-tile"
-      ]
+      "unit": "job"
     }
-  ],
-  "unverified_prices": []
+  ]
 }
