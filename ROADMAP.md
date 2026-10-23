@@ -16,6 +16,7 @@
 - Referral codes. Each saved lead has its own code. A new lead can record someone else's code, and the pipeline shows the match. A $250 reward is considered only after that job is marked Won, and only if Nico approves the reward and any message. Nothing is paid or sent automatically, and the reward is not taken off the quote
 - Accessible Care package. From $30,600 incl. GST at 5 m² ($27,500 + $620/m²), subject to a free site measure. Grab rails and a fold-down seat can be placed in the planner, and the shower can be step-free. Slab set-down and door widening are extras to be quoted, not priced. Three $600 allowances sit inside the price and are labelled as allowances to confirm. Gert's Reno is not an NDIS-registered provider
 - A page for each Brisbane suburb the site quotes, with its own title and description, LocalBusiness details, a sitemap and robots.txt
+- A draft marketing kit: a local QR code, a one-page A4 flyer, eight social captions, and two outreach notes. Nothing is sent
 
 ## CHANGELOG
 
@@ -24,6 +25,7 @@
 - Suburb pages for 24 Brisbane suburbs, plus an index. Each page has its own title, meta description and copy. Prices are catalogue from-prices, incl. GST, subject to a site measure. No reviews or job counts are shown.
 - LocalBusiness JSON-LD names Gert's Reno and Brisbane. ABN and QBCC are left out of the markup because they are still blank. No phone number or email is invented.
 - `sitemap.xml` and `robots.txt` list the quote builder and the suburb pages.
+- Marketing drafts for Nico to approve: a QR code made on this computer for https://ndefe.github.io/Bath-reno-/, a printable A4 flyer, eight weekly Facebook and Instagram captions, and outreach drafts for real estate agents and for OTs and support coordinators. Captions do not claim finished jobs. Nothing is posted or sent.
 - Accessible Care package in the catalogue, the intake look list, the estimate, the planner, the quote and the PDF. The from price is $27,500 + $620 per m², so 5 m² is from $30,600 incl. GST, subject to a free site measure.
 - Products are the Reece and National Tiles items checked on 23 Oct 2026. No other package's prices changed.
 - Slab set-down and door widening show as extras with "Price to confirm". They are not in the from price. The three $600 allowances are labelled as allowances to confirm.
@@ -58,4 +60,4 @@
 
 ## Next
 
-- Marketing kit, the Google Business Profile checklist, and share and speed are separate drafts. They are not part of this branch.
+- The Google Business Profile checklist and share and speed are separate drafts. They are not part of this branch.
