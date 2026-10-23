@@ -55,6 +55,9 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font:inherit;cursor:pointer;min-height:40px}
 .chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .pipe{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.job-track{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.job-track select{margin:0 0 8px}
+.job-track input[readonly]{font-size:12px}
 .pipe .score{font-weight:700;margin:6px 0}
 .review-draft{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
 .review-draft h3{font-size:15px;margin:0 0 4px}
@@ -490,7 +493,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div id="pipe-board" hidden>
       <div class="card">
         <h2>Pipeline</h2>
-        <p class="hint">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final.</p>
+        <p class="hint">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. Nothing is sent.</p>
         <p class="hint" id="pipe-ref"></p>
         <div id="pipe-chips" class="chips"></div>
         <div id="pipe-list"></div>
@@ -1167,6 +1170,10 @@ async function saveQuote(){
   const t=Calc.totals(quote,settings);
   if(window.Planner) quote.design=Planner.getDesign();
   const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
+  if(!rec.job){
+    const prev=Store.get(K.quotes,[]).find(x=>x.id===rec.id);
+    if(prev&&prev.job) rec.job=structuredClone(prev.job);
+  }
   syncOne(rec,Store.get(K.quotes,[]).filter(x=>x.id!==rec.id).concat(rec));
   quote.referral=structuredClone(rec.referral);
   try{await Backend.submitLead(rec)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
@@ -1500,6 +1507,46 @@ function referralBlock(q,list){
   }
   return `<div class="ref-track"><p>Code <strong class="ref-code">${esc(own)}</strong> <button class="btn sec sm" type="button" data-ref-codecopy="${id}">Copy</button></p><p class="hint" data-ref-code-status="${id}"></p><label for="ref-used-${id}">Code they used</label><input id="ref-used-${id}" data-ref-used data-ref-id="${id}" value="${esc(used)}" autocomplete="off" spellcheck="false" autocapitalize="characters"><p class="hint">${esc(usedCodeHint(q,list))}</p><p class="hint">Used this code:<br>${userLine}</p>${reward}</div>`;
 }
+const JOB_STAGES=[
+  {id:'measure', label:'Site measure'},
+  {id:'design', label:'Design'},
+  {id:'demo', label:'Demolition'},
+  {id:'waterproofing', label:'Waterproofing'},
+  {id:'tiling', label:'Tiling'},
+  {id:'fitoff', label:'Fit-off'},
+  {id:'handover', label:'Handover'}
+];
+const JOB_STATES=['Not started','In progress','Done'];
+function jobOf(q){
+  const stages={};
+  JOB_STAGES.forEach(s=>{stages[s.id]='Not started'});
+  const saved=q&&q.job&&q.job.stages;
+  if(saved) JOB_STAGES.forEach(s=>{if(JOB_STATES.includes(saved[s.id])) stages[s.id]=saved[s.id]});
+  return {stages, updatedAt:q&&q.job&&typeof q.job.updatedAt==='string'?q.job.updatedAt:null};
+}
+function trackerPayload(q){
+  const job=jobOf(q);
+  const c=q.customer||{};
+  return {v:1, number:q.number||'', name:c.name||'', suburb:c.suburb||c.address||'', package:(q.pkgSnapshot&&q.pkgSnapshot.name)||'', updatedAt:job.updatedAt, stages:job.stages};
+}
+function trackerUrl(q){
+  const bytes=new TextEncoder().encode(JSON.stringify(trackerPayload(q)));
+  let bin='';
+  for(const b of bytes) bin+=String.fromCharCode(b);
+  const token=btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const url=new URL('tracker.html', location.href);
+  url.hash=token;
+  return url.toString();
+}
+function jobBlock(q){
+  const job=jobOf(q);
+  const id=esc(q.id);
+  const rows=JOB_STAGES.map(s=>{
+    const opts=JOB_STATES.map(st=>`<option${st===job.stages[s.id]?' selected':''}>${esc(st)}</option>`).join('');
+    return `<label>${esc(s.label)}</label><select data-job="${esc(s.id)}" data-job-lead="${id}">${opts}</select>`;
+  }).join('');
+  return `<div class="job-track"><p class="hint">Job stages. Set each one by hand. This does not change the sales stage, and nothing is sent.</p>${rows}<label>Tracker link</label><input readonly data-tracker-url="${id}" value="${esc(trackerUrl(q))}"><button class="btn sec sm" type="button" data-tracker="${id}">Copy tracker link</button><p class="hint" data-tracker-status="${id}">Anyone with this link can read these stages. It is not a live login. It has no phone number or email. It changes only when you copy a new link. Nothing is sent.</p></div>`;
+}
 function renderPipeline(){
   const pin=String(settings.ownerPin||'').trim();
   const lock=$('pipe-lock'), board=$('pipe-board');
@@ -1542,7 +1589,7 @@ function renderPipeline(){
     const asked=q.measure&&q.measure.status==='Measure requested'&&q.measure.date;
     const when=asked&&window.Measure?Measure.whenText(q.measure):'';
     const measureHtml=asked?`<p class="hint">Measure requested: ${esc(when)}. Status: Measure requested. Not confirmed. Nothing was sent.</p>${q.measure.ownerDraft?`<label>Draft for Nico</label><textarea readonly>${esc(q.measure.ownerDraft)}</textarea><p class="hint">This draft is saved with the lead. Nothing was sent.</p>`:''}`:'';
-    return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${measureHtml}${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${stage==='Won'?reviewBlock(q):''}</article>`;
+    return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${measureHtml}${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${jobBlock(q)}${stage==='Won'?reviewBlock(q):''}</article>`;
   }).join(''):'<p class="hint">No leads in this stage.</p>';
 }
 function galleryPath(p){
@@ -1686,6 +1733,19 @@ function recFor(id){
 }
 $('pipe-list').addEventListener('change',async e=>{
   if(!ownerOpen) return;
+  if(e.target.dataset.job){
+    const key=e.target.dataset.job;
+    const rec=recFor(e.target.dataset.jobLead);
+    if(!rec||!JOB_STAGES.some(s=>s.id===key)||!JOB_STATES.includes(e.target.value)) return;
+    const job=jobOf(rec);
+    job.stages[key]=e.target.value;
+    job.updatedAt=new Date().toISOString();
+    rec.job=job;
+    if(quote&&quote.id===rec.id) quote.job=structuredClone(job);
+    try{await Backend.submitLead(rec)}catch{$('pipe-err').textContent='Could not save that job stage on this phone. Nothing was sent.'}
+    renderPipeline();
+    return;
+  }
   if(e.target.dataset.refMsg){
     const rec=recFor(e.target.dataset.refMsg);
     if(!rec||!rec.referral||!rec.referral.reward||rec.referral.reward.status!=='approved') return;
@@ -1736,6 +1796,18 @@ $('pipe-list').addEventListener('change',async e=>{
   }
 });
 $('pipe-list').addEventListener('click',async e=>{
+  const trackerBtn=e.target.closest('[data-tracker]');
+  if(trackerBtn){
+    const rec=recFor(trackerBtn.dataset.tracker);
+    if(!rec||!ownerOpen) return;
+    const url=trackerUrl(rec);
+    const ok=await copyText(url);
+    const status=document.querySelector(`[data-tracker-status="${rec.id}"]`);
+    if(status) status.textContent=ok
+      ?'Link copied. It is a snapshot, not a live login. It updates only when you copy a new link. Nothing was sent.'
+      :'Could not copy. Select the link in the box. Nothing was sent.';
+    return;
+  }
   const rewardBtn=e.target.closest('[data-ref-reward]');
   if(rewardBtn){
     const rec=recFor(rewardBtn.dataset.refId);

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Job tracker | Gert's Reno</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A snapshot of bathroom job stages from Gert's Reno. It updates only when a new link is copied.">
+<meta name="theme-color" content="#1d2733">
+<link rel="icon" href="assets/icon-192.png" type="image/png">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0e7c86;--acc2:#e9f5f6;--line:#dde3ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px}
+header{background:var(--ink);color:#fff;padding:14px 18px}
+header a{color:#fff;text-decoration:none}
+h1{font-size:18px;margin:0}
+main{max-width:640px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 12px}
+h2{font-size:18px;margin:0 0 8px}
+.hint{color:var(--mute);font-size:14px;line-height:1.45;margin:0 0 8px}
+ol{list-style:none;margin:0;padding:0}
+li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+.name{font-weight:600}
+.mark{font-size:13px;border-radius:999px;padding:4px 10px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.mark.in{color:var(--acc);border-color:var(--acc);background:var(--acc2)}
+.mark.done{color:#fff;background:var(--acc);border-color:var(--acc)}
+</style>
+</head>
+<body>
+<header><h1><a href="index.html">Gert's Reno</a></h1></header>
+<main>
+  <div class="card">
+    <h2 id="title">Job tracker</h2>
+    <p class="hint" id="who"></p>
+    <p class="hint" id="limit">This link is a copy of the stages Nico last saved. It is not a live login. It changes only when Nico copies a new link. It does not include a phone number or email. Nothing is sent from this page.</p>
+    <p id="empty" hidden>This page needs a tracker link from Nico.</p>
+    <p id="bad" hidden>This tracker link could not be read. Ask Nico for a new one.</p>
+    <p class="hint" id="when"></p>
+    <ol id="stages"></ol>
+  </div>
+</main>
+<script>
+const STAGES=[
+  {id:'measure', label:'Site measure'},
+  {id:'design', label:'Design'},
+  {id:'demo', label:'Demolition'},
+  {id:'waterproofing', label:'Waterproofing'},
+  {id:'tiling', label:'Tiling'},
+  {id:'fitoff', label:'Fit-off'},
+  {id:'handover', label:'Handover'}
+];
+const STATES=['Not started','In progress','Done'];
+function readHash(){
+  const raw=location.hash.replace(/^#/,'');
+  if(!raw) return {empty:true};
+  try{
+    const b64=raw.replace(/-/g,'+').replace(/_/g,'/');
+    const pad=b64+'='.repeat((4-b64.length%4)%4);
+    const bin=atob(pad);
+    const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+    const data=JSON.parse(new TextDecoder().decode(bytes));
+    if(!data||data.v!==1||!data.stages||typeof data.stages!=='object') return {bad:true};
+    const stages={};
+    STAGES.forEach(s=>{stages[s.id]=STATES.includes(data.stages[s.id])?data.stages[s.id]:'Not started'});
+    return {
+      name:String(data.name||'').trim().slice(0,80),
+      suburb:String(data.suburb||'').trim().slice(0,80),
+      packageName:String(data.package||'').trim().slice(0,80),
+      number:String(data.number||'').trim().slice(0,40),
+      updatedAt:typeof data.updatedAt==='string'?data.updatedAt:'',
+      stages
+    };
+  }catch{return {bad:true}}
+}
+function show(data){
+  const empty=$('empty'), bad=$('bad'), list=$('stages'), who=$('who'), when=$('when'), title=$('title');
+  empty.hidden=true; bad.hidden=true; list.textContent=''; who.textContent=''; when.textContent='';
+  if(data.empty){empty.hidden=false; title.textContent='Job tracker'; return}
+  if(data.bad){bad.hidden=false; title.textContent='Job tracker'; return}
+  title.textContent=data.name||'Bathroom project';
+  const bits=[data.suburb, data.packageName, data.number].filter(Boolean);
+  who.textContent=bits.join(' · ');
+  if(data.updatedAt){
+    const d=new Date(data.updatedAt);
+    when.textContent=Number.isNaN(d.getTime())?'':'Nico last updated this copy on '+new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'}).format(d)+'.';
+  }else when.textContent='Nico has not updated these stages yet. Each one starts at Not started.';
+  STAGES.forEach(s=>{
+    const li=document.createElement('li');
+    const name=document.createElement('span');
+    name.className='name';
+    name.textContent=s.label;
+    const mark=document.createElement('span');
+    const state=data.stages[s.id];
+    mark.className='mark'+(state==='In progress'?' in':state==='Done'?' done':'');
+    mark.textContent=state;
+    li.append(name, mark);
+    list.append(li);
+  });
+}
+const $=id=>document.getElementById(id);
+show(readHash());
+window.addEventListener('hashchange',()=>show(readHash()));
+</script>
+</body>
+</html>
