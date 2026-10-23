@@ -90,4 +90,4 @@ These rules sit above the feature list. They do not change the site.
 
 ## Next
 
-- The lead-delivery wording, the chat licence answers, the chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
+- The lead-delivery wording, the chat privacy wording, the published cost data, the PIN wording, and the layout and image fixes are separate drafts. They are not part of this branch.
