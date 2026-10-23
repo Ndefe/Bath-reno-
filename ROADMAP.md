@@ -17,6 +17,7 @@
 - Accessible Care package. From $30,600 incl. GST at 5 m² ($27,500 + $620/m²), subject to a free site measure. Grab rails and a fold-down seat can be placed in the planner, and the shower can be step-free. Slab set-down and door widening are extras to be quoted, not priced. Three $600 allowances sit inside the price and are labelled as allowances to confirm. Gert's Reno is not an NDIS-registered provider
 - A page for each Brisbane suburb the site quotes, with its own title and description, LocalBusiness details, a sitemap and robots.txt
 - A draft marketing kit: a local QR code, a one-page A4 flyer, eight social captions, and two outreach notes. Nothing is sent
+- A 15-minute Google Business Profile checklist, with the description and service list written out
 
 ## CHANGELOG
 
@@ -26,6 +27,7 @@
 - LocalBusiness JSON-LD names Gert's Reno and Brisbane. ABN and QBCC are left out of the markup because they are still blank. No phone number or email is invented.
 - `sitemap.xml` and `robots.txt` list the quote builder and the suburb pages.
 - Marketing drafts for Nico to approve: a QR code made on this computer for https://ndefe.github.io/Bath-reno-/, a printable A4 flyer, eight weekly Facebook and Instagram captions, and outreach drafts for real estate agents and for OTs and support coordinators. Captions do not claim finished jobs. Nothing is posted or sent.
+- Google Business Profile checklist for Nico at `docs/google-business-profile.html`. It is a list to follow by hand. It does not create the profile, send anything, or start ads. The description and services are written. ABN, phone and reviews are left for Nico to add only when they are real.
 - Accessible Care package in the catalogue, the intake look list, the estimate, the planner, the quote and the PDF. The from price is $27,500 + $620 per m², so 5 m² is from $30,600 incl. GST, subject to a free site measure.
 - Products are the Reece and National Tiles items checked on 23 Oct 2026. No other package's prices changed.
 - Slab set-down and door widening show as extras with "Price to confirm". They are not in the from price. The three $600 allowances are labelled as allowances to confirm.
@@ -60,4 +62,4 @@
 
 ## Next
 
-- The Google Business Profile checklist and share and speed are separate drafts. They are not part of this branch.
+- Share and speed is a separate draft. It is not part of this branch.
