@@ -757,6 +757,15 @@ function productsHtml(pkgId){
   }).join('')}</div>`;
 }
 function lineAmount(e){return e&&e.quoteLater?'Price to confirm':(e&&e.amount?fromPrice(e.amount):'—')}
+function totalLabel(t){
+  if(!t||!t.total) return 'Enter the floor size';
+  const later=(t.lines||[]).some(e=>e.quoteLater);
+  return later?`${fromPrice(t.total)} plus items to confirm`:fromPrice(t.total);
+}
+function publicContact(){
+  const parts=String(settings.contact||'').split('·').map(s=>s.trim()).filter(s=>s && !/^(phone|email)$/i.test(s));
+  return parts.join(' · ');
+}
 function extraHint(ex){
   if(ex.price==null) return 'Price to confirm after a site measure. Not included in the from price.';
   if(String(ex.id).startsWith('fttc_')) return 'Scales with floor area from the 6 m² catalogue price';
@@ -1030,7 +1039,7 @@ function update(){
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. This is not a discount.`:''}</div>`;
   renderReferralPanel();
   updateBrand();
-  $('m-total-v').textContent=t.total?fromPrice(t.total):'Enter the floor size';
+  $('m-total-v').textContent=totalLabel(t);
   if(window.Estimate) Estimate.refreshFigures();
   renderFollowup();
   if(window.Measure) Measure.refresh();
@@ -1238,7 +1247,7 @@ function summaryTable(t){
   return `<table>
   <tr><td>${esc(t.pkg?.name||'No package')}<br><span class="hint">${formula}</span></td><td class="n" id="sum-base">${t.base?fromPrice(t.base):'—'}</td></tr>
   ${lines}
-  <tr class="total"><td>Total</td><td class="n" id="sum-total">${t.total?fromPrice(t.total):'Enter the floor size'}</td></tr>
+  <tr class="total"><td>Total</td><td class="n" id="sum-total">${totalLabel(t)}</td></tr>
   <tr><td class="hint">Includes GST</td><td class="n hint" id="sum-gst">${t.gst?fmt(t.gst):'—'}</td></tr>
   </table>`;
 }
@@ -1330,9 +1339,9 @@ function renderPrint(){
   const excluded=exclusionLines(quote.packageId, quote.picks).map(s=>`<li>${esc(s)}</li>`).join('');
   const size=quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:'';
   $('printArea').innerHTML=`<div class="quote-doc">
-   <div class="qd-head"><div>${logo}<h2>${esc(settings.bizName)}</h2><div class="hint">${esc(settings.contact)}</div><div class="hint">ABN ${esc(legal.abn)} · QBCC licence ${esc(legal.qbcc)}</div></div>
+   <div class="qd-head"><div>${logo}<h2>${esc(settings.bizName)}</h2>${publicContact()?`<div class="hint">${esc(publicContact())}</div>`:''}<div class="hint">ABN ${esc(legal.abn)} · QBCC licence ${esc(legal.qbcc)}</div></div>
    <div class="qd-meta"><strong style="font-size:18px">QUOTE</strong><br>No. ${esc(quote.number)}<br>Date: ${fmtDate(created)}<br>Valid until: ${fmtDate(valid)}</div></div>
-   <div class="qd-banner"><strong>${t.total?fromPrice(t.total):'Enter the floor size'}</strong><span>Estimate, subject to a free site measure. Valid for ${settings.validDays} days, until ${fmtDate(valid)}.</span></div>
+   <div class="qd-banner"><strong>${totalLabel(t)}</strong><span>Estimate, subject to a free site measure. Valid for ${settings.validDays} days, until ${fmtDate(valid)}.</span></div>
    <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name||'—')}<br>${esc(c.suburb||c.address||'')}<br>${esc(c.phone||'')}<br>${esc(c.email||'')}</div>
    <div><strong>Bathroom</strong><br>${size}Area: ${t.area.toFixed(2)} m²<br>Package: ${esc(t.pkg?.name||'—')}</div></div>
    <h3>Scope</h3>
@@ -1345,7 +1354,7 @@ function renderPrint(){
    <table><tr><th>Description</th><th class="n">Amount</th></tr>
    <tr><td><strong>${esc(t.pkg?.name||'')} bathroom renovation</strong><br><span class="hint">${formula}</span></td><td class="n">${t.base?fromPrice(t.base):'—'}</td></tr>
    ${lines}
-   <tr class="total"><td>Total</td><td class="n">${t.total?fromPrice(t.total):'—'}</td></tr>
+   <tr class="total"><td>Total</td><td class="n">${totalLabel(t)==='Enter the floor size'?'—':totalLabel(t)}</td></tr>
    <tr><td class="hint">Includes GST</td><td class="n hint">${t.gst?fmt(t.gst):'—'}</td></tr>
    <tr><td>Deposit before work starts${dep?` (${dep.pct}%)`:''} — verify with QBCC</td><td class="n">${dep?fromPrice(dep.amount):'—'}</td></tr></table>
    <h3>Exclusions</h3>
