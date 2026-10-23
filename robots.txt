@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ndefe.github.io/Bath-reno-/sitemap.xml
