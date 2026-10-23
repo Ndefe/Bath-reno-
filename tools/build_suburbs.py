@@ -87,7 +87,7 @@ SUBURBS = [
         "blurb": "Queenslanders and interwar houses around Honour Avenue.",
         "paras": [
             "Graceville sits between Sherwood and the river, with Honour Avenue as its shopping street and the station close by. The houses are often Queenslanders and interwar homes, with verandahs and smaller original bathrooms. Some have been extended. Some have not.",
-            "A character house can have a bathroom that was added under the house or tacked on at the back. Head height, the stair, and how we get tiles and a bath in are part of the measure. The quote builder can start from a length and width you type. It is still an estimate until the measure. Nothing is sent to anyone until Nico reviews it.",
+            "A character house can have a bathroom that was added under the house or tacked on at the back. Head height, the stair, and how we get tiles and a bath in are part of the measure. The quote builder can start from a length and width you type. It is still an estimate until the measure. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.",
         ],
     },
     {
@@ -222,7 +222,7 @@ SUBURBS = [
         "blurb": "River houses and cottages between Bulimba and Norman Park.",
         "paras": [
             "Hawthorne sits between Bulimba and Norman Park, with a small shopping strip and streets of cottages and Queenslanders running toward the river. Many of the older homes have one bathroom that has not been moved since the house was built.",
-            "If you want the new bathroom in the same place, the package from-price is the right starting figure. If you want the shower on a different wall, add the relocate extra only after the measure shows the floor can take it. Send nothing yourself. The quote stays on your phone until Nico reviews it.",
+            "If you want the new bathroom in the same place, the package from-price is the right starting figure. If you want the shower on a different wall, add the relocate extra only after the measure shows the floor can take it. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.",
         ],
     },
     {
@@ -339,7 +339,7 @@ def page(suburb, others):
     </ul>
   </div>
   <h2>How a quote works</h2>
-  <p>Start on the quote page. The assistant asks for the room size, a look, a budget, timing and this suburb, then your name and contact. The figure is the package base fee plus its rate per square metre. It is shown as a from-price, incl. GST, subject to a site measure. The lead stays on your phone. Nothing is sent until Nico reviews it.</p>
+  <p>Start on the quote page. The assistant asks for the room size, a look, a budget, timing and this suburb, then your name and contact. The figure is the package base fee plus its rate per square metre. It is shown as a from-price, incl. GST, subject to a site measure. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
   <p>Waterproofing on these quotes follows NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021). A curtain shower is waterproofed across the whole floor.</p>
   <p>Accessible Care suits self-managed and plan-managed NDIS participants and private clients. Gert's Reno is not an NDIS-registered provider. NDIS-funded work needs an OT assessment, and the OT's spec overrides the package. AS 1428.1 is used as a design reference.</p>
   <p><a href="../index.html">Start a quote</a></p>
@@ -415,7 +415,7 @@ def index_page():
 
 def main():
     OUT.mkdir(exist_ok=True)
-    urls = [SITE + "/", SITE + "/suburbs/index.html"]
+    urls = [SITE + "/", SITE + "/about.html", SITE + "/suburbs/index.html"]
     for i, suburb in enumerate(SUBURBS):
         others = [SUBURBS[(i + n) % len(SUBURBS)] for n in (1, 2, 3)]
         (OUT / f"{suburb['slug']}.html").write_text(page(suburb, others), encoding="utf-8")
