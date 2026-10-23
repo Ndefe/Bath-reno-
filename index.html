@@ -350,8 +350,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div class="measure-picker" data-measure="chat"></div>
       </div>
       </div>
-      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
-      <div id="chat-chips" class="chips"></div>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite"><div class="bubble bot">Hi, I'm the assistant for Gert's Reno. I'll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button.
+
+What you type in this chat is sent to Pollinations, a free third-party AI service. An AI render prompt is sent there too. Do not include personal details such as a phone number, email or street address. Photos stay on this phone. No price is final until Nico confirms it after a free site measure.
+
+How big is the bathroom? A length and width, or the floor area, is perfect.</div></div>
+      <div id="chat-chips" class="chips"><button type="button" class="chip" data-act="send" data-value="About 3-4 m2">About 3-4 m2</button><button type="button" class="chip" data-act="send" data-value="About 6 m2">About 6 m2</button><button type="button" class="chip" data-act="send" data-value="Not sure yet">Not sure yet</button></div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
         <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
