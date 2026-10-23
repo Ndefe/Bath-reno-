@@ -1016,8 +1016,6 @@ const Planner=(()=>{
     select(copy);
     toast(ITEMS[copy.type].name+' copied');
   }
-  const floatBox=new THREE.Box3(), floatPt=new THREE.Vector3();
-  function boxesHit(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top}
   function placeFloat(){
     const bar=$('pl-float');
     if(!bar) return;
@@ -1026,40 +1024,21 @@ const Planner=(()=>{
     if(hide||!renderer) return;
     const g=itemsGroup&&itemsGroup.children.find(c=>c.userData.item===selected);
     if(!g){bar.hidden=true;return}
-    floatBox.setFromObject(g);
-    floatBox.getCenter(floatPt);
-    floatPt.y=floatBox.max.y;
-    floatPt.project(camera);
-    const canvas=renderer.domElement.getBoundingClientRect();
     const stageEl=$('pl-stage');
     const stage=stageEl.getBoundingClientRect();
-    const x=(floatPt.x*0.5+0.5)*canvas.width+(canvas.left-stage.left);
-    const y=(-floatPt.y*0.5+0.5)*canvas.height+(canvas.top-stage.top);
     bar.style.maxHeight='';
-    const bw=bar.offsetWidth||220, bh=bar.scrollHeight||bar.offsetHeight||52;
+    bar.style.left='8px';
+    bar.style.right='8px';
+    const bh=bar.offsetHeight||56;
     const overlay=stageEl.querySelector('.pl-overlay');
-    let avoid=null;
+    let limit=8;
     if(overlay){
       const ob=overlay.getBoundingClientRect();
-      if(ob.width>0&&ob.height>0) avoid={left:ob.left-stage.left-4,top:ob.top-stage.top-4,right:ob.right-stage.left+4,bottom:ob.bottom-stage.top+4};
+      if(ob.width>0&&ob.height>0) limit=ob.bottom-stage.top+8;
     }
-    const margin=8;
-    const inside=(left,top,h)=>left>=margin&&top>=margin&&left+bw<=stage.width-margin&&top+h<=stage.height-margin;
-    const clear=(left,top,h)=>!avoid||!boxesHit({left,top,right:left+bw,bottom:top+h},avoid);
-    const preferLeft=Math.max(margin,Math.min(Math.max(margin,stage.width-bw-margin),x-bw/2));
-    const spots=[[preferLeft,y-bh-10],[preferLeft,y+18]];
-    if(avoid) spots.push([margin,avoid.bottom+8],[Math.max(margin,stage.width-bw-margin),avoid.bottom+8]);
-    spots.push([margin,stage.height-bh-margin]);
-    let placed=spots.find(([l,t])=>inside(l,t,bh)&&clear(l,t,bh));
-    if(!placed){
-      const floor=avoid?Math.max(margin,avoid.bottom+8):margin;
-      const room=Math.max(44,stage.height-floor-margin);
-      bar.style.maxHeight=Math.floor(room)+'px';
-      placed=[preferLeft,floor];
-      if(!inside(placed[0],placed[1],Math.min(bh,room))) placed=[margin,floor];
-    }
-    bar.style.left=Math.round(placed[0])+'px';
-    bar.style.top=Math.round(placed[1])+'px';
+    let top=Math.max(limit, stage.height-bh-8);
+    if(top+bh>stage.height-4) top=Math.max(8, stage.height-bh-8);
+    bar.style.top=Math.round(top)+'px';
   }
   function suggestLayout(){
     if(!design) return;
@@ -1247,7 +1226,7 @@ const Planner=(()=>{
   }
   let renderSlowTimer=null;
   async function runRender(){
-    if(renderState.busy){if(window.RenderService&&RenderService.cancel) RenderService.cancel();return}
+    if(renderState.busy){RenderService.cancel();return}
     if(!BQ.quote) return;
     if(!design) ensureDesign();
     const seed=Math.floor(Math.random()*1e9);
@@ -1274,10 +1253,18 @@ const Planner=(()=>{
       }
     }catch(err){
       renderState.busy=false;
+      if(err&&err.code==='cancel'){
+        renderState.failed=false;
+        setRenderStatus('','');
+        clearTimeout(renderSlowTimer);
+        setRenderBusy(false);
+        updateRenderActions();
+        return;
+      }
       renderState.failed=true;
-      const known=err&&(err.code==='cancel'||err.code==='timeout'||err.code==='network'||err.code==='http'||err.code==='type');
+      const known=err&&(err.code==='timeout'||err.code==='network'||err.code==='http'||err.code==='type');
       const msg=known&&err.message?err.message:'Pollinations is down or the render failed. Tap Render to try again.';
-      setRenderStatus(msg, err&&err.code==='cancel'?'':'error');
+      setRenderStatus(msg,'error');
     }
     clearTimeout(renderSlowTimer);
     setRenderBusy(false);

@@ -189,11 +189,12 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .pl-seg{display:flex;background:#fff;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
 .pl-seg button{min-height:44px;min-width:44px;border:0;background:#fff;color:var(--ink);font:inherit;font-size:14px;padding:8px 10px;cursor:pointer}
 .pl-seg button[aria-pressed="true"]{background:var(--acc);color:#fff}
-.pl-float{position:absolute;z-index:6;display:flex;flex-wrap:wrap;gap:6px;max-width:240px;background:#fff;border-radius:14px;padding:6px;box-shadow:0 8px 24px rgba(16,24,32,.18);overflow:auto}
-.pl-float-nudge{display:grid;grid-template-columns:repeat(3,44px);gap:4px}
+.pl-float{position:absolute;z-index:6;left:8px;right:8px;display:flex;flex-wrap:nowrap;align-items:center;gap:6px;max-width:none;background:#fff;border-radius:14px;padding:6px;box-shadow:0 8px 24px rgba(16,24,32,.18);overflow-x:auto;overflow-y:hidden;pointer-events:none;touch-action:none}
+.pl-float-nudge{display:flex;gap:4px;pointer-events:auto;flex:none}
+.pl-float-nudge span{display:none}
 .pl-float-nudge button{min-width:44px;min-height:44px}
 .pl-float[hidden]{display:none!important}
-.pl-float button{min-width:44px;min-height:44px;border:0;border-radius:10px;background:var(--acc2);color:var(--ink);font:inherit;font-size:13px;padding:8px 10px}
+.pl-float button{min-width:44px;min-height:44px;border:0;border-radius:10px;background:var(--acc2);color:var(--ink);font:inherit;font-size:13px;padding:8px 10px;pointer-events:auto;touch-action:manipulation}
 .pl-float button.danger{background:#fbeaea;color:var(--danger)}
 .pl-measure{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;margin:0;background:#fff;color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.3;box-shadow:0 4px 12px rgba(16,24,32,.12)}
 .pl-measure[hidden]{display:none!important}
@@ -2433,19 +2434,33 @@ const RenderService=(()=>{
       }
     }
   };
-  const api={timeoutMs:90000,providers:PROVIDERS};
+  const api={timeoutMs:60000,providers:PROVIDERS};
+  let active=null;
+  api.cancel=function(){
+    if(!active) return;
+    active.reason='cancel';
+    active.ctrl.abort();
+  };
   api.generate=async function({prompt,seed}){
     const id=(settings&&settings.renderProvider)||'pollinations';
     const provider=PROVIDERS[id]||PROVIDERS.pollinations;
     const ctrl=new AbortController();
+    const job={ctrl,reason:'timeout'};
+    active=job;
     const timer=setTimeout(()=>ctrl.abort(),api.timeoutMs);
     try{
       return await provider.generate({prompt,seed,apiKey:(settings&&settings.renderApiKey)||'',signal:ctrl.signal});
     }catch(err){
-      if(err&&err.name==='AbortError'){const e=new Error('The render took too long and was stopped. It can take up to a minute. Please try again.');e.code='timeout';throw e}
+      if(err&&(err.name==='AbortError'||ctrl.signal.aborted)){
+        if(job.reason==='cancel'){const e=new Error('Render cancelled.');e.code='cancel';throw e}
+        const e=new Error('The render took too long and was stopped. It can take up to a minute. Please try again.');e.code='timeout';throw e
+      }
       if(err instanceof TypeError){const e=new Error('Could not reach the render service. Check your connection and try again.');e.code='network';throw e}
       throw err;
-    }finally{clearTimeout(timer)}
+    }finally{
+      clearTimeout(timer);
+      if(active===job) active=null;
+    }
   };
   return api;
 })();
