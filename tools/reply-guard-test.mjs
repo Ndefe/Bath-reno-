@@ -53,6 +53,11 @@ const benign = [
   'Do you want a 5 star hotel look?',
   'Which suburb is the bathroom in?'
 ];
+const topics = [
+  ['Our licence number is 1234567', /licence/i],
+  ['NDIS registered since 2015', /NDIS/i],
+  ['Licenced builder number 99887', /licence/i]
+];
 const refusal = 'I can only repeat what is stored on this site';
 
 function findBrowser(){
@@ -137,6 +142,15 @@ try {
     const hidden = row.blocked && !row.shown.includes(row.text);
     report(hidden, 'replace ' + row.text);
     if (prices.has(row.text)) report(/GST-inclusive|subject to a site measure|from \$/.test(row.shown), 'stored price for ' + row.text);
+  }
+  const routed = await page.evaluate((lines) => lines.map((text) => {
+    const guarded = ReplyGuard.guard(text, 'ok');
+    return {text, shown: guarded.text};
+  }), topics.map(([text]) => text));
+  for (const [text, expect] of topics) {
+    const row = routed.find(item => item.text === text);
+    const ok = row && expect.test(row.shown) && !/GST-inclusive/.test(row.shown) && !row.shown.includes(text);
+    report(ok, 'route ' + text + (ok ? '' : ' shown=' + (row && row.shown || '').slice(0, 80)));
   }
   for (const row of flags.kept) {
     const passed = row.unsafe === false && row.shown === row.text;

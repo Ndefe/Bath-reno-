@@ -2277,9 +2277,29 @@ function statesPrice(text){
   if(/\bquote\b/i.test(s)&&/\d/.test(s)) return true;
   return /\b\d{4,}\b/.test(stripDimensions(s));
 }
+function claimIds(text){
+  const ids=[];
+  if(/\b(licen[cs]e[ds]?|qbcc|accredited|certified|insured)\b/i.test(text)) ids.push('licence');
+  if(/\b(reviews?|testimonials?|rated|awards?|best\b|number one|years experience|years of experience|bathrooms done|happy\s+(?:customers|clients|families)|trusted by|stars?\b)\b/i.test(text)) ids.push('reviews');
+  if(/\bndis\b/i.test(text)) ids.push('ndis');
+  if(/\btracker\b|\bjob stages?\b/i.test(text)) ids.push('tracker');
+  return ids;
+}
+function moneyClaim(text){
+  const s=String(text||'');
+  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b/i.test(s)) return true;
+  if(/\b(?:dollars?|thousand)\b/i.test(s)) return true;
+  if(/\b(?:price|priced|pricing)\b/i.test(s)) return true;
+  if(/\b\d+\s*%/.test(s)) return true;
+  return /\bquote\b/i.test(s)&&/\d/.test(s);
+}
 function storedReplacement(raw, userText){
   const text=String(raw||'').trim();
   const question=/\?\s*$/.test(text);
+  const ids=claimIds(text);
+  if(!question&&(ids.includes('licence')||ids.includes('ndis'))&&!moneyClaim(text)){
+    if(window.Faq) return Faq.answer(ids.filter(id=>id==='licence'||id==='ndis'), userText||text);
+  }
   if(!question&&statesPrice(text)){
     if(quote&&quote.estimate&&quote.estimate.priceText){
       const why=String(quote.estimate.explanation||'').trim();
@@ -2289,18 +2309,13 @@ function storedReplacement(raw, userText){
   }
   if(!window.Faq) return '';
   if(question){
-    const ids=Faq.match(text).filter(id=>{
+    const matched=Faq.match(text).filter(id=>{
       if(id==='cost') return false;
       if(id==='reviews') return /\breviews?\b|\btestimonials?\b/i.test(text);
       return true;
     });
-    return ids.length?Faq.answer(ids, userText||text):'';
+    return matched.length?Faq.answer(matched, userText||text):'';
   }
-  const ids=[];
-  if(/\b(licen[cs]e|qbcc|accredited|certified|insured)\b/i.test(text)) ids.push('licence');
-  if(/\b(reviews?|testimonials?|rated|awards?|best\b|number one|years experience|years of experience|bathrooms done|happy\s+(?:customers|clients|families)|trusted by|stars?\b)\b/i.test(text)) ids.push('reviews');
-  if(/\bndis\b/i.test(text)) ids.push('ndis');
-  if(/\btracker\b|\bjob stages?\b/i.test(text)) ids.push('tracker');
   if(ids.length) return Faq.answer(ids, userText||text);
   if(/\b(warrant(?:y|ee|ies)|guarantees?|promises?)\b/i.test(text)) return Faq.notFinal();
   return '';
