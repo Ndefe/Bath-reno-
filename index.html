@@ -46,9 +46,10 @@ nav button{background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-
 nav button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
 .view{display:none}.view.active{display:block}
-#view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0}
-.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:auto;margin-bottom:0}
-.chat-log{flex:1 1 180px;min-height:180px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+#view-assist.active{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.chat-card{display:flex;flex-direction:column;flex:1;min-height:0;height:auto;overflow:hidden;margin-bottom:0}
+.chat-side{flex:1 1 0;min-height:0;overflow:auto}
+.chat-log{flex:1 0 120px;min-height:120px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
@@ -79,8 +80,7 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .chat-bar .btn{min-height:44px}
 #chat-err:empty{display:none}
 #chat-err{color:var(--danger)}
-.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;max-height:none;overflow:visible;flex:0 0 auto}
-.photo-check[open]{max-height:min(36dvh, 220px);overflow:auto;min-height:120px}
+.photo-check{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;overflow:visible}
 .photo-check summary{font-weight:700;cursor:pointer;margin:0 0 6px}
 .chat-bar,.chips,.photo-list,.estimate{flex:none}
 #measure-box{max-height:36dvh;overflow:auto}
@@ -279,13 +279,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 <main>
   <section class="view active" id="view-assist" aria-label="Intake assistant">
     <div class="card chat-card">
+      <div class="chat-side">
       <h2>Assistant</h2>
       <p class="hint" id="assist-mode">Tell us about the bathroom in your own words. Nothing is sent until Nico reviews it.</p>
       <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Nothing is sent.</p>
       <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a></p>
       <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
-      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
-      <div id="chat-chips" class="chips"></div>
       <div id="chat-photos" class="photo-list"></div>
       <details id="photo-check" class="photo-check" hidden>
         <summary>Check the bathroom</summary>
@@ -316,6 +315,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <h3>Request a free site measure</h3>
         <div class="measure-picker" data-measure="chat"></div>
       </div>
+      </div>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
+      <div id="chat-chips" class="chips"></div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
         <input id="chat-text" autocomplete="off" placeholder="Type a reply" enterkeyhint="send">
@@ -2553,17 +2555,18 @@ const PhotoCheck=(()=>{
   }
   function alignDims(d){
     d=d||{};
-    let length=String(d.length||'').trim();
-    let width=String(d.width||'').trim();
+    const length=String(d.length||'').trim();
+    const width=String(d.width||'').trim();
     let area=String(d.area||'').trim();
-    const l=+length, w=+width, a=+area;
-    if(!(l>0)&&!(w>0)&&a>0){
-      width='2';
-      length=String(Math.round((a/2)*100)/100);
-    }else if(l>0&&w>0){
-      area=String(Math.round(l*w*100)/100);
-    }
+    const l=+length, w=+width;
+    if(l>0&&w>0) area=String(Math.round(l*w*100)/100);
     return {length,width,area};
+  }
+  function areaFromSides(){
+    const l=+String($('an-len').value||'').trim();
+    const w=+String($('an-wid').value||'').trim();
+    if(!(l>0&&w>0)) return;
+    $('an-area').value=String(Math.round(l*w*100)/100);
   }
   function ensureAnalysis(){
     if(!quote.analysis){
@@ -2714,7 +2717,8 @@ const PhotoCheck=(()=>{
     bound=true;
     $('an-confirm').onclick=()=>confirm();
     $('an-correct').onclick=()=>correct();
-    ['an-len','an-wid','an-area'].forEach(id=>$(id).addEventListener('input', markChanged));
+    ['an-len','an-wid'].forEach(id=>$(id).addEventListener('input', ()=>{areaFromSides(); markChanged()}));
+    $('an-area').addEventListener('input', markChanged);
     ['an-retile','an-relocate','an-waterproof'].forEach(id=>$(id).addEventListener('change', onFlag));
   }
   function sync(){bind(); show()}
