@@ -20,12 +20,14 @@
 - A 15-minute Google Business Profile checklist, with the description and service list written out
 - Share buttons, an add-to-home-screen prompt, and a smaller first load. The 3D planner loads only when it is opened
 - A client can request a free site measure after seeing an estimate. Nico sets the days and times. The request is saved on the lead as Measure requested. Nothing is booked or sent on its own
+- The assistant answers cost, inclusions, waterproofing, and timing from facts on this site before it calls the text model. It does not invent a week-by-week program
 
 ## CHANGELOG
 
 ### 2026-10-23
 
 - Site measure requests. After an estimate is on screen, the client picks a day and a time from the list in Settings. The lead is saved through the existing save adapter, with a local fallback, and the status is Measure requested. Nico sees the request and a draft in the pipeline. Nothing is sent.
+- Instant answers in the assistant for cost, what is included, waterproofing, and timing. The wording comes from `faq-facts.json` and the live catalogue, before any call to the text model. Prices stay "from $X incl. GST, subject to a site measure". The deposit line says verify with QBCC. There is no week-by-week schedule. If the facts file does not load, the assistant does not guess and does not ask the text model.
 - Suburb pages for 24 Brisbane suburbs, plus an index. Each page has its own title, meta description and copy. Prices are catalogue from-prices, incl. GST, subject to a site measure. No reviews or job counts are shown.
 - LocalBusiness JSON-LD names Gert's Reno and Brisbane. ABN and QBCC are left out of the markup because they are still blank. No phone number or email is invented.
 - `sitemap.xml` and `robots.txt` list the quote builder and the suburb pages.
@@ -69,4 +71,4 @@
 
 ## Next
 
-- The FAQ answers, the job tracker, the trust section, and the follow-up reminders are separate drafts. They are not part of this branch.
+- The job tracker, the trust section, and the follow-up reminders are separate drafts. They are not part of this branch.

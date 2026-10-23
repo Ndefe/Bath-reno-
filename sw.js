@@ -57,6 +57,7 @@ self.addEventListener('fetch', (event) => {
     || path.endsWith('/index.html')
     || path.endsWith('/catalogue.json')
     || path.endsWith('/gallery.json')
+    || path.endsWith('/faq-facts.json')
     || path.endsWith('/');
   if (doc || path.endsWith('.js') || path.endsWith('.webmanifest')) {
     event.respondWith(networkFirst(request));
