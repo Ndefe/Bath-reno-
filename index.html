@@ -273,6 +273,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div class="card chat-card">
       <h2>Assistant</h2>
       <p class="hint" id="assist-mode">Tell us about the bathroom in your own words. Nothing is sent until Nico reviews it.</p>
+      <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Nothing is sent.</p>
       <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a></p>
       <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
       <div id="chat-chips" class="chips"></div>
@@ -1941,6 +1942,63 @@ const TextLLM={
   }
 };
 
+const Faq=(()=>{
+  const PATTERNS=[
+    {id:'cost', re:/\b(costs?|prices?|pricing|how much|deposit)\b/i},
+    {id:'included', re:/\b(included|inclusions)\b|\bwhat(?:'s| is) included\b|\bwhat do you include\b/i},
+    {id:'waterproof', re:/waterproof/i},
+    {id:'timeline', re:/week[\s-]*by[\s-]*week|\bhow long\b|\btimeline\b|\bhow many weeks\b|\bwhat to expect\b/i}
+  ];
+  let facts=null;
+  function load(data){facts=data&&typeof data==='object'?data:null}
+  function match(text){
+    const t=String(text||'').trim();
+    if(!t) return [];
+    return PATTERNS.filter(p=>p.re.test(t)).map(p=>p.id);
+  }
+  function moneyLine(ex){
+    const p=(settings.packages||[]).find(x=>x.id===ex.packageId);
+    const area=+ex.area;
+    if(!p||!(area>0)) return '';
+    const total=Calc.round((+p.baseFee)+area*(+p.rate));
+    return `${p.name} at ${area} m² is ${fromPrice(total)}, subject to a site measure.`;
+  }
+  function depositLine(){
+    const under=Math.min(10,Math.max(0,+settings.depositUnderPct||0));
+    const over=Math.min(5,Math.max(0,+settings.depositOverPct||0));
+    return `Deposit is ${under}% under $20,000 and ${over}% from $20,000. Verify with QBCC.`;
+  }
+  function cost(text){
+    const depositOnly=/\bdeposit\b/i.test(text)&&!/\b(costs?|prices?|pricing|how much)\b/i.test(text);
+    if(depositOnly) return [depositLine(), settings.progressPayments||facts.progress, facts.notFinal].filter(Boolean).join('\n\n');
+    const lines=(facts.examples||[]).map(moneyLine).filter(Boolean);
+    return [facts.pricingModel, ...lines, depositLine(), facts.notFinal].filter(Boolean).join('\n\n');
+  }
+  function included(){
+    const packs=(catalogue&&catalogue.packages||[]).map(p=>`${p.name}. ${p.description}`).join('\n\n');
+    const care=(facts.care||[]).join('\n\n');
+    return [facts.includedLead, packs, care, facts.notFinal].filter(Boolean).join('\n\n');
+  }
+  function waterproof(){
+    return [facts.waterproofing, facts.curtain, facts.waterproofLimit, facts.notFinal].filter(Boolean).join('\n\n');
+  }
+  function timeline(){
+    const progress=settings.progressPayments||facts.progress;
+    return [facts.timeline, progress?`Payment stages on the quote: ${progress}`:'', facts.notFinal].filter(Boolean).join('\n\n');
+  }
+  function answer(ids, text){
+    if(!facts) return 'The facts file on this site did not load. I will not guess. Nothing was sent.';
+    const parts=[];
+    if(ids.includes('cost')) parts.push(cost(text));
+    if(ids.includes('included')) parts.push(included());
+    if(ids.includes('waterproof')) parts.push(waterproof());
+    if(ids.includes('timeline')) parts.push(timeline());
+    return parts.filter(Boolean).join('\n\n')||'The facts file on this site did not load. I will not guess. Nothing was sent.';
+  }
+  return {load, match, answer, get loaded(){return !!facts}};
+})();
+window.Faq=Faq;
+
 const Intake=(()=>{
   const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, Marble Luxe, or Accessible Care), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
 Never give a renovation price, a deposit figure, an ABN, or a QBCC licence number. Never say a price is final. If they ask the cost, say Nico confirms an estimate after a free site measure. If they mention NDIS, say Gert's Reno is not an NDIS-registered provider and can quote for self-managed and plan-managed participants. Do not say the bathroom is AS 1428.1 compliant. The OT's spec overrides the package.
@@ -2118,9 +2176,22 @@ Fill a field only when the client has stated it, using their words. Set done to 
     for(const m of quote.intake.messages.filter(m=>m.role==='user'||m.role==='assistant').slice(-12)) msgs.push({role:m.role,content:m.content});
     return msgs;
   }
+  function isChip(text){
+    const t=String(text||'').trim().toLowerCase();
+    return STEPS.some(step=>(step.chips||[]).some(c=>c.toLowerCase()===t));
+  }
+  function faqTurn(text, ids){
+    push('user', text);
+    const step=quote.intake.complete?null:nextField();
+    push('assistant', Faq.answer(ids, text));
+    if(step) push('assistant', step.ask);
+    render();
+  }
   function onSend(text){
     text=String(text||'').trim();
     if(!text||!quote||quote.intake.pending||quote.intake.finishing) return;
+    const ids=!isChip(text)&&window.Faq?Faq.match(text):[];
+    if(ids.length){faqTurn(text, ids);return}
     const step=nextField();
     if(quote.intake.mode==='script'||quote.intake.complete||(step&&step.id==='photos')) scriptTurn(text);
     else llmTurn(text);
@@ -2636,6 +2707,7 @@ const Measure=(()=>{
 window.Measure=Measure;
 
 async function boot(){
+  const factsPromise=fetch('faq-facts.json').then(r=>r.ok?r.json():null).catch(()=>null);
   try{
     const res=await fetch('catalogue.json');
     if(!res.ok) throw new Error('catalogue.json '+res.status);
@@ -2644,6 +2716,7 @@ async function boot(){
     $('summary').innerHTML='<p class="hint">Could not load catalogue.json. Reload the page.</p>';
     return;
   }
+  Faq.load(await factsPromise);
   defaults=buildDefaults(catalogue);
   const saved=Store.get(K.settings,null);
   const ratesOk=saved&&Array.isArray(saved.packages)&&saved.packages.length&&saved.packages.every(p=>typeof p.baseFee==='number'&&typeof p.rate==='number');

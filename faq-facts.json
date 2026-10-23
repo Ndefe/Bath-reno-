@@ -1,0 +1,23 @@
+{
+  "pricingModel": "The price is a GST-inclusive base fee plus a rate per square metre of floor. Baths and extras are separate. Every figure is from that amount, incl. GST, and is subject to a site measure.",
+  "notFinal": "Nothing is final until Nico confirms it after a free site measure. Nothing is sent.",
+  "examples": [
+    {"packageId": "budget-compact", "area": 3},
+    {"packageId": "grey-modern", "area": 5},
+    {"packageId": "beige-copper", "area": 5},
+    {"packageId": "marble-luxe", "area": 5},
+    {"packageId": "accessible-care", "area": 5}
+  ],
+  "waterproofing": "Waterproofing to NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021)",
+  "curtain": "A curtain setup is waterproofed across the whole floor.",
+  "waterproofLimit": "This site does not set out a step-by-step waterproofing method beyond that note.",
+  "includedLead": "What is included is the chosen package. The quote lists each included product by name and code. Baths and extras are separate and stay out of the from price until they are added.",
+  "care": [
+    "Gert's Reno is not an NDIS-registered provider. Self-managed and plan-managed participants only. NDIS-funded work needs an OT assessment, and the OT's spec overrides this package. AS 1428.1 is used as a design reference.",
+    "A curtain setup is waterproofed across the whole floor.",
+    "Three $600 allowances to confirm are inside this price: wall reinforcement behind the rails and seat, fitting the rails, seat and curtain track, and the hobless shower set-in."
+  ],
+  "progress": "Deposit before work starts, 40% at waterproofing sign-off, and the balance on completion.",
+  "timeline": "This site has no week-by-week program. The only timing choices it asks for are: as soon as we can, in a few months, or just looking. Nico confirms timing after a free site measure.",
+  "missing": "The facts file on this site did not load. I will not guess. Nothing was sent."
+}
