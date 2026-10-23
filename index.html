@@ -45,6 +45,7 @@ header.app h1{font-size:18px;margin:0}
 .brand-lockup{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-lockup img{height:36px;width:auto;max-width:96px;object-fit:contain;background:#fff;border-radius:6px}
 #brand-legal{margin:2px 0 0;color:#d5dde4;font-size:12px;line-height:1.3}
+#brand,#brand-legal{min-height:1.3em}
 .book{width:100%;margin:0 0 12px}
 #s-logo-preview{display:block;margin-top:8px;max-height:64px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
 #s-owner-preview{display:block;margin-top:8px;max-height:120px;max-width:120px;object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--line)}
@@ -279,8 +280,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <div class="brand-lockup">
     <img id="brand-logo" alt="" hidden>
     <div>
-      <h1 id="brand">Quote Builder</h1>
-      <p class="hint" id="brand-legal"></p>
+      <h1 id="brand">Gert's Reno · Quote Builder</h1>
+      <p class="hint" id="brand-legal">ABN (add your ABN) · QBCC licence (add your licence number)</p>
     </div>
   </div>
   <button class="btn sec sm" type="button" id="btn-share">Share</button>
@@ -297,7 +298,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 </header>
 <main>
 <div id="a2hs" class="a2hs" hidden>
-  <p id="a2hs-text"></p>
+  <p id="a2hs-text">Add this page from the Share menu. Nothing is sent.</p>
   <div class="actions" style="margin:0">
     <button class="btn sm" type="button" id="a2hs-install" hidden>Add</button>
     <button class="btn sec sm" type="button" id="a2hs-dismiss">Not now</button>
