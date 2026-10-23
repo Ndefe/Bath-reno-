@@ -731,6 +731,7 @@ const Planner=(()=>{
     if(lamp) lamp.position.set(c.x,h-0.02,c.z);
     setNum('pl-l',room.l);setNum('pl-w',room.w);setNum('pl-h',room.h);
     if($('pl-shape')&&document.activeElement!==$('pl-shape')) $('pl-shape').value=room.shape;
+    if($('pl-shape-more')&&room.shape==='l') $('pl-shape-more').open=true;
     if($('pl-notch')) $('pl-notch').hidden=room.shape!=='l';
     if(room.shape==='l'){setNum('pl-notch-l',room.notchL);setNum('pl-notch-w',room.notchW);if($('pl-notch-corner')&&document.activeElement!==$('pl-notch-corner')) $('pl-notch-corner').value=room.notchCorner}
     const pkgName=(window.BQ&&settings.packages.find(p=>p.id===BQ.quote.packageId)||{}).name||'';

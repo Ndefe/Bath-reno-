@@ -230,7 +230,7 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 .pl-walk-help{position:absolute;left:12px;bottom:148px;z-index:5;max-width:calc(100% - 24px);font-size:12px;line-height:1.35;color:#fff;background:rgba(16,24,32,.5);padding:4px 8px;border-radius:6px}
 .pl-walk-help[hidden]{display:none!important}
 body.walking{overflow:hidden}
-body.walking header.app,body.walking .pl-side,body.walking .pl-hint,body.walking .pl-fab,body.walking .pl-float,body.walking .pl-measure{display:none}
+body.walking header.app,body.walking .pl-side,body.walking .pl-hint,body.walking .pl-fab,body.walking .pl-float,body.walking .pl-measure,body.walking #pl-undo,body.walking #pl-redo{display:none}
 body.walking main{max-width:none;padding:0}
 body.walking .planner{display:block}
 body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
@@ -238,18 +238,19 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 6px;font-size:13px;line-height:1.2}
 .pl-tile svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
-.pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:8px 0}
+.pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
 .spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.spin{animation:none}}
 #pl-render-img{width:100%;height:auto;border-radius:8px;display:block;background:#eef2f5}
-#pl-render-status.is-error{color:var(--danger)}
+#pl-render-status{font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
+#pl-render-status.is-error{color:var(--danger);font-weight:600}
 #pl-render-status:empty{display:none}
 button:disabled{opacity:.6;cursor:progress}
 .qd-render{margin:10px 0}
 .qd-render img{width:100%;max-height:240px;object-fit:cover;border-radius:8px;display:block}
-body.client header.app,body.client .pl-panel,body.client .pl-hint,body.client .pl-fab,body.client .pl-float,body.client .pl-measure{display:none}
+body.client header.app,body.client .pl-panel,body.client .pl-hint,body.client .pl-fab,body.client .pl-float,body.client .pl-measure,body.client #pl-undo,body.client #pl-redo{display:none}
 body.client main{max-width:none;padding:0}
 body.client .planner{grid-template-columns:minmax(0,1fr) minmax(240px,400px);height:100vh;gap:0}
 body.client .pl-stage{height:100vh;border-radius:0}
@@ -311,9 +312,16 @@ header.app{position:sticky;top:0;z-index:20}
   #nav-owner-links button{flex:1 1 auto;min-height:44px}
   header.app .share-status{position:fixed;top:56px;left:8px;right:8px;flex:none;z-index:30;background:var(--ink);padding:4px 0}
   .flow button{font-size:12px;padding:4px 2px;min-width:0}
+  #view-planner:not([data-step="fixtures"]) #pl-suggest,
+  #view-planner:not([data-step="fixtures"]) #pl-fab-sel,
+  #view-planner:not([data-step="layout"]):not([data-step="fixtures"]) .pl-gesture,
+  #view-planner .pl-move{display:none}
   .row3{grid-template-columns:1fr 1fr 1fr}
   main{padding:10px}
   .pl-stage{height:34vh;min-height:200px}
+  .pl-side{gap:8px}
+  .pl-fab{padding:4px;margin-top:4px}
+  #view-planner:not([data-step="fixtures"]):not([data-step="render"]) #pl-fab{display:none}
   .product img{width:48px;height:48px}
   .extra{grid-template-columns:1fr 88px auto}
   .extra-opt{padding:12px 0}
@@ -332,7 +340,11 @@ header.app{position:sticky;top:0;z-index:20}
 .flow button{flex:1 1 0;min-height:44px;min-width:44px;border:1px solid var(--line);background:#fff;border-radius:8px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
 .flow button[aria-current="step"]{background:var(--acc);color:#fff;border-color:var(--acc)}
 .flow-progress{height:6px;background:#e1e7ee;border-radius:99px;margin:0 0 10px;overflow:hidden}
+@media(max-width:860px){.flow-progress{margin-bottom:4px}}
 .flow-progress span{display:block;height:100%;width:20%;background:var(--acc);border-radius:99px;transition:width .28s ease}
+.pl-more{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 10px 8px;background:#fff}
+.pl-more summary{min-height:44px;line-height:44px;cursor:pointer;font-weight:600}
+.pl-more:not([open]) > :not(summary){display:none!important}
 [data-flow]{animation:flow-in .28s ease}
 @keyframes flow-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){
@@ -351,6 +363,7 @@ button.text-link{background:none;border:0;padding:0;color:var(--acc);font:inheri
 nav a.nav-link{display:inline-flex;align-items:center;justify-content:center;background:transparent;color:#cfd8e3;border:1px solid #3a4756;border-radius:8px;padding:7px 12px;margin:0;text-decoration:none;font-size:14px;min-height:44px}
 .swatch{display:inline-block;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);vertical-align:middle;margin:6px 0 0 8px;background:#ddd}
 #pl-back-quote{min-height:44px;width:100%;margin:0 0 8px}
+@media(max-width:860px){#pl-back-quote{margin-top:16px}}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
@@ -532,7 +545,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </section>
 
   <!-- PLANNER VIEW -->
-  <section class="view" id="view-planner">
+  <section class="view" id="view-planner" data-step="size">
     <div class="planner">
       <div class="pl-col">
       <div class="pl-stage" id="pl-stage">
@@ -544,7 +557,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
             <button type="button" id="pl-walk" aria-pressed="false">Walk</button>
             <button type="button" id="pl-client" aria-pressed="false">Client</button>
           </div>
-          <button class="btn" type="button" id="pl-png">Save image</button>
+          <button class="btn sec" type="button" id="pl-png">Save image</button>
+          <button class="btn sec" type="button" id="pl-undo">Undo</button>
+          <button class="btn sec" type="button" id="pl-redo">Redo</button>
           <button class="btn sm" type="button" id="pl-ai" hidden>AI render</button>
           <button class="btn sm" type="button" id="pl-walk-exit" hidden>Exit</button>
           <button class="btn sec sm" type="button" id="pl-walk-reset" hidden>Look here</button>
@@ -571,15 +586,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="pl-fab" id="pl-fab">
         <p id="pl-fab-sel" class="pl-fab-status">Nothing selected</p>
         <p id="pl-fab-status" class="pl-fab-status" role="status"></p>
-        <button class="btn sec" type="button" id="pl-undo">Undo</button>
-        <button class="btn sec" type="button" id="pl-redo">Redo</button>
         <button class="btn sec" type="button" id="pl-suggest">Suggest layout</button>
-        <button class="btn" type="button" id="pl-fab-render">Render</button>
+        <button class="btn sec" type="button" id="pl-fab-render">Render</button>
       </div>
       <p class="pl-gesture" id="pl-gesture">Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. A swipe on empty space scrolls the page. Two fingers pinch and pan.</p>
       </div>
       <div class="pl-side">
-      <button class="btn sec" type="button" id="pl-back-quote">Back to quote</button>
       <div class="flow" id="flow" aria-label="Planner steps">
         <button type="button" data-flow-go="size" aria-current="step">Room</button>
         <button type="button" data-flow-go="layout">Layout</button>
@@ -607,14 +619,17 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div data-flow="size">
         <h2>Room size</h2>
         <div class="row3"><div><label for="pl-l">Length</label><input id="pl-l" type="number" step="0.1" min="1"></div><div><label for="pl-w">Width</label><input id="pl-w" type="number" step="0.1" min="1"></div><div><label for="pl-h">Height</label><input id="pl-h" type="number" step="0.1" min="2"></div></div>
-        <label for="pl-shape">Room shape</label>
-        <select id="pl-shape"><option value="rect">Rectangle</option><option value="l">L-shape</option></select>
+        <details class="pl-more" id="pl-shape-more">
+          <summary>More</summary>
+          <label for="pl-shape">Room shape</label>
+          <select id="pl-shape"><option value="rect">Rectangle</option><option value="l">L-shape</option></select>
         <div id="pl-notch" hidden>
           <div class="row"><div><label for="pl-notch-l">Notch length (m)</label><input id="pl-notch-l" type="number" step="0.1" min="0.4"></div><div><label for="pl-notch-w">Notch width (m)</label><input id="pl-notch-w" type="number" step="0.1" min="0.4"></div></div>
           <label for="pl-notch-corner">Missing corner</label>
           <select id="pl-notch-corner"><option value="nw">Far left</option><option value="ne" selected>Far right</option><option value="sw">Near left</option><option value="se">Near right</option></select>
           <p class="hint">The notch is the missing corner. Floor area is the L, not the full rectangle.</p>
         </div>
+        </details>
         <div class="hint" id="pl-area"></div>
         </div>
         <div data-flow="layout" hidden>
@@ -642,12 +657,16 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <h2>Style</h2>
         <label>Style preset</label><select id="pl-look"></select>
         <div class="checkline"><input id="pl-stepfree" type="checkbox"><label for="pl-stepfree">Step-free shower</label></div>
-        <div class="row"><div><label>Floor tiles</label><select id="pl-floor"></select><i class="swatch" id="sw-floor" aria-hidden="true"></i></div><div><label>Wall tiles</label><select id="pl-wall"></select><i class="swatch" id="sw-wall" aria-hidden="true"></i></div></div>
-        <label>Tapware finish</label><select id="pl-metal"></select><i class="swatch" id="sw-metal" aria-hidden="true"></i>
-        <p class="hint">The square matches the finish on the picture.</p>
+        <details class="pl-more" id="pl-finish-more">
+          <summary>More</summary>
+          <div class="row"><div><label>Floor tiles</label><select id="pl-floor"></select><i class="swatch" id="sw-floor" aria-hidden="true"></i></div><div><label>Wall tiles</label><select id="pl-wall"></select><i class="swatch" id="sw-wall" aria-hidden="true"></i></div></div>
+          <label>Tapware finish</label><select id="pl-metal"></select><i class="swatch" id="sw-metal" aria-hidden="true"></i>
+          <p class="hint">The square matches the finish on the picture.</p>
+        </details>
         </div>
         <button class="btn" type="button" id="flow-next">Next</button>
       </div>
+      <button class="btn sec" type="button" id="pl-back-quote">Back to quote</button>
       </div>
     </div>
   </section>
@@ -2052,6 +2071,12 @@ function setFlow(step){
     const span=bar.firstElementChild;
     if(span) span.style.width=((i+1)/FLOW.length*100)+'%';
   }
+  const view=$('view-planner');
+  if(view) view.dataset.step=step;
+  const renderBtn=$('pl-fab-render');
+  if(renderBtn) renderBtn.classList.toggle('sec', step!=='render');
+  const shapeMore=$('pl-shape-more');
+  if(shapeMore&&$('pl-shape')&&$('pl-shape').value==='l') shapeMore.open=true;
   document.querySelectorAll('[data-flow]').forEach(el=>{el.hidden=el.dataset.flow!==step});
   document.querySelectorAll('[data-flow-go]').forEach(btn=>{
     if(btn.dataset.flowGo===step) btn.setAttribute('aria-current','step');
