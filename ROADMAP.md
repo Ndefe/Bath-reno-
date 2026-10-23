@@ -39,7 +39,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
-- The quote table fits a 360px-wide phone, including after an extra is added. View quote stays fully visible in the bottom bar.
+- The quote table fits a 360px-wide phone, including after an extra is added. View quote is at least 44px tall and stays fully visible in the bottom bar.
 - A blank phone or email is left off the contact line. When an extra is priced after a measure, the total says the from-price plus items to confirm.
 - A model reply is shown only when it is a short intake question. Anything else, including a price, a warranty, a rating, or a superlative, is replaced with the stored answer or the next intake question. A licence number or an NDIS year uses that stored line, not the price answer. The chat says typed text and render prompts go to Pollinations.
 - Phone chat layout. The opening question is fully on screen at 360×740 and 375×667. With Check the bathroom open, the log stays visible (at least 120px at 360×740, 375×667, 390×844 and 412×915) and the form keeps the remaining height. The estimate is not sticky and does not cover Confirm details. Length and width update the area as you type, and Confirm writes that size onto the room and the total. An area-only size, such as 6 m², prices from that area. The planner uses a default shape and does not change the area.
