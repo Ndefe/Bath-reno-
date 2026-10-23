@@ -2232,26 +2232,85 @@ const Faq=(()=>{
     }
     return parts.filter(Boolean).join('\n\n')||'The facts file on this site did not load. I will not guess. Nothing was sent.';
   }
-  return {load, match, answer, get loaded(){return !!facts}};
+  function notFinal(){
+    return (facts&&facts.notFinal)||'Nothing is final until Nico confirms it after a free site measure.';
+  }
+  return {load, match, answer, notFinal, get loaded(){return !!facts}};
 })();
 window.Faq=Faq;
 
-function replyUnsafe(text){
+function stripDimensions(text){
+  return String(text||'')
+    .replace(/\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\s*(?:mm|cm|m²|m2|sq\.?\s*m|sqm)\b/gi,' ')
+    .replace(/\b\d+(?:\.\d+)?\s*(?:mm|cm|m²|m2|sq\.?\s*m|sqm)\b/gi,' ')
+    .replace(/\b\d+(?:\.\d+)?\s*(?:x|×|by)\s*\d+(?:\.\d+)?(?:\s*(?:mm|cm|m|m²|m2))?\b/gi,' ')
+    .replace(/\b\d+(?:\.\d+)?\s*m\b/gi,' ');
+}
+function replyClaims(text){
   const s=String(text||'');
-  if(/\b(licen[cs]e[ds]?|qbcc|ndis|reviews?|ratings?|testimonials?|guarantees?|warrant(?:y|ies)|promises?|awards?|insured)\b/i.test(s)) return true;
-  if(/\bstars?\b|\bout of\s*5\b|\d\s*[- ]?stars?\b/i.test(s)) return true;
-  if(/\bhappy\s+(?:customers|clients|families)\b|\btrusted by\b|\bfixed price\b/i.test(s)) return true;
-  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b|\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b/i.test(s)) return true;
+  if(/\b(licen[cs]e[ds]?|qbcc|ndis|reviews?|ratings?|testimonials?|guarantees?|warrant(?:y|ee|ies)|promises?|awards?|insured|accredited|certified)\b/i.test(s)) return true;
+  if(/\bstars?\b|\bout of\s*5\b|\d\s*[- ]?stars?\b|\brated\b|\b\d\s*\/\s*\d+\b/i.test(s)) return true;
+  if(/\bhappy\s+(?:customers|clients|families)\b|\btrusted by\b|\bfixed price\b|\bsatisfaction\b|\bnumber one\b|\byears experience\b|\byears of experience\b|\bhundreds of\b|\bbest\b/i.test(s)) return true;
+  if(/\b(?:dollars?|thousand)\b/i.test(s)) return true;
+  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b/i.test(s)) return true;
+  if(/\b\d+\s*%/.test(s)) return true;
+  const bare=stripDimensions(s);
+  if(/\b\d{4,}\b/.test(bare)) return true;
+  if(/\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b/.test(bare)) return true;
+  if(/\d/.test(bare)) return true;
   return false;
+}
+function replyAllowed(text){
+  const s=String(text||'').trim();
+  if(!s||s.length>200||!/\?\s*$/.test(s)) return false;
+  return !replyClaims(s);
+}
+function replyUnsafe(text){
+  return !replyAllowed(text);
+}
+function statesPrice(text){
+  const s=String(text||'');
+  if(/\$\s?\d|\baud\s*\d|\b\d[\d,]*(?:\.\d+)?\s*k\b/i.test(s)) return true;
+  if(/\b(?:dollars?|thousand)\b/i.test(s)) return true;
+  if(/\b(?:price|priced|pricing)\b/i.test(s)) return true;
+  if(/\b\d+\s*%/.test(s)) return true;
+  if(/\bquote\b/i.test(s)&&/\d/.test(s)) return true;
+  return /\b\d{4,}\b/.test(stripDimensions(s));
+}
+function storedReplacement(raw, userText){
+  const text=String(raw||'').trim();
+  const question=/\?\s*$/.test(text);
+  if(!question&&statesPrice(text)){
+    if(quote&&quote.estimate&&quote.estimate.priceText){
+      const why=String(quote.estimate.explanation||'').trim();
+      return why?`${quote.estimate.priceText}. ${why}`:quote.estimate.priceText;
+    }
+    if(window.Faq) return Faq.answer(['cost'], userText||text);
+  }
+  if(!window.Faq) return '';
+  if(question){
+    const ids=Faq.match(text).filter(id=>{
+      if(id==='cost') return false;
+      if(id==='reviews') return /\breviews?\b|\btestimonials?\b/i.test(text);
+      return true;
+    });
+    return ids.length?Faq.answer(ids, userText||text):'';
+  }
+  const ids=[];
+  if(/\b(licen[cs]e|qbcc|accredited|certified|insured)\b/i.test(text)) ids.push('licence');
+  if(/\b(reviews?|testimonials?|rated|awards?|best\b|number one|years experience|years of experience|bathrooms done|happy\s+(?:customers|clients|families)|trusted by|stars?\b)\b/i.test(text)) ids.push('reviews');
+  if(/\bndis\b/i.test(text)) ids.push('ndis');
+  if(/\btracker\b|\bjob stages?\b/i.test(text)) ids.push('tracker');
+  if(ids.length) return Faq.answer(ids, userText||text);
+  if(/\b(warrant(?:y|ee|ies)|guarantees?|promises?)\b/i.test(text)) return Faq.notFinal();
+  return '';
 }
 function guardedReply(shown, userText){
   const raw=String(shown||'').trim();
   if(!replyUnsafe(raw)) return {blocked:false, text:raw};
-  const ids=window.Faq?Faq.match(`${userText||''}\n${raw}`):[];
-  const local=ids.length&&window.Faq?Faq.answer(ids, userText):'';
-  return {blocked:true, text:local||'I can only repeat what is stored on this site. I will not state a licence number, an NDIS registration, reviews, a guarantee, or a price that did not come from the quote.'};
+  return {blocked:true, text:storedReplacement(raw, userText)};
 }
-window.ReplyGuard={unsafe:replyUnsafe, guard:guardedReply};
+window.ReplyGuard={unsafe:replyUnsafe, guard:guardedReply, claims:replyClaims};
 
 const Intake=(()=>{
   const SYSTEM=`You are the intake assistant for Gert's Reno in Brisbane. Ask one short question at a time about: room size in metres, style (Budget Compact, Grey Modern, Beige Copper, Marble Luxe, or Accessible Care), budget, timeline, suburb, name, phone, and email. Photos are added with a button; do not ask the client to describe a picture.
