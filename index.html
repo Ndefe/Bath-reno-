@@ -102,7 +102,10 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 #fu-mailto[hidden]{display:none}
 .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
 @media(max-width:860px){.grid{grid-template-columns:1fr}#view-quote .card{position:static!important}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:20px;box-shadow:0 10px 28px rgba(16,24,32,.06)}
+.reveal{opacity:0;transform:translateY(8px)}
+.reveal.revealed{opacity:1;transform:none;transition:opacity .4s ease,transform .4s ease}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
 .card h2{font-size:16px;margin:0 0 12px}
 label{display:block;font-size:13px;color:var(--mute);margin:8px 0 4px}
 input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
@@ -176,9 +179,9 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
 .pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mute);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
-.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+.pl-bob{width:22px;height:22px;color:var(--acc);flex:none;animation:pl-bob .6s ease-in-out infinite}
+@keyframes pl-bob{50%{transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){.pl-bob{animation:none}}
 #pl-render-img{width:100%;height:auto;border-radius:8px;display:block;background:#eef2f5}
 #pl-render-status.is-error{color:var(--danger)}
 #pl-render-status:empty{display:none}
@@ -433,7 +436,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div id="pl-render-view" hidden>
           <img id="pl-render-img" alt="AI illustration of this bathroom">
         </div>
-        <div class="pl-render-loading" id="pl-render-loading" hidden><span class="spin" aria-hidden="true"></span><span>Generating a photo-style render. This often takes 10–60 seconds.</span></div>
+        <div class="pl-render-loading" id="pl-render-loading" hidden><svg class="pl-bob" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><span>Generating a photo-style render. This often takes 10–60 seconds.</span></div>
         <p id="pl-render-status" class="hint" role="status" aria-live="polite"></p>
         <div class="actions">
           <button class="btn" type="button" id="pl-ai-card">AI render</button>
@@ -1731,6 +1734,25 @@ $('gallery-root').addEventListener('error',e=>{
   note.textContent='A photo file for this job is missing from the gallery folder.';
   ba.replaceWith(note);
 },true);
+function revealPassed(){
+  document.querySelectorAll('.reveal:not(.revealed)').forEach(el=>{
+    if(el.getBoundingClientRect().top<window.innerHeight*0.95) el.classList.add('revealed');
+  });
+}
+function armReveal(root){
+  if(!root||window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(!window.__revealBound){
+    window.__revealBound=true;
+    window.addEventListener('scroll',revealPassed,{passive:true});
+  }
+  root.querySelectorAll('.card').forEach(el=>{
+    if(el.classList.contains('chat-card')||el.classList.contains('reveal')||el.classList.contains('revealed')) return;
+    const r=el.getBoundingClientRect();
+    if(r.height<2||r.top<=window.innerHeight*0.98) return;
+    el.classList.add('reveal');
+  });
+  revealPassed();
+}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
@@ -1743,6 +1765,9 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='pipeline') renderPipeline();
   if(b.dataset.view==='planner') ensurePlanner().then(()=>Planner.show()).catch(()=>{});
   if(b.dataset.view==='settings') renderSettings();
+  const view=document.getElementById('view-'+b.dataset.view);
+  armReveal(view);
+  requestAnimationFrame(()=>armReveal(view));
 });
 $('view-quote').addEventListener('input',e=>{
   if(!quote||e.target.id==='fu-approve'||e.target.id==='fu-sms'||e.target.id==='fu-email'||e.target.id==='fu-subject') return;
@@ -3055,6 +3080,7 @@ $('a2hs-dismiss').onclick=()=>{
   $('a2hs').hidden=true;
 };
 window.addEventListener('load',()=>{
+  armReveal(document.querySelector('.view.active'));
   if(isIos()) showA2hs();
   if(!('serviceWorker' in navigator)) return;
   if(location.protocol!=='http:'&&location.protocol!=='https:') return;
