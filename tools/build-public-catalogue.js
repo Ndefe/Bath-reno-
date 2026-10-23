@@ -12,10 +12,13 @@ const a = src.cost_assumptions;
 function sellPerM2(labour) {
   return (labour + a.adhesive_grout) / (1 - MARGIN) * 0.25;
 }
+function cents(n) {
+  return Math.round(n * 100) / 100;
+}
 const SELL = {
-  standard: sellPerM2(a.tile_labour),
-  large: sellPerM2(a.tile_labour_large),
-  feature: sellPerM2(a.tile_labour_feature)
+  standard: cents(sellPerM2(a.tile_labour)),
+  large: cents(sellPerM2(a.tile_labour_large)),
+  feature: cents(sellPerM2(a.tile_labour_feature))
 };
 function isLarge(tile) {
   const m = String(tile && tile.size_mm || '').match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
@@ -24,11 +27,27 @@ function isLarge(tile) {
 }
 function patternSell(pkg) {
   const floor = (pkg.tiles || []).find(t => t.role === 'floor');
+  const wall = (pkg.tiles || []).find(t => t.role === 'wall');
   return {
     floor: isLarge(floor) ? SELL.large : SELL.standard,
-    wall: SELL.standard,
+    wall: isLarge(wall) ? SELL.large : SELL.standard,
     feature: SELL.feature
   };
+}
+function cleanPublicText(s) {
+  let t = String(s || '');
+  t = t.replace(/;\s*add package bath RRP/gi, '');
+  t = t.replace(/,?\s*RRP\s*\$[\d,]+(?:\.\d+)?/gi, '');
+  t = t.replace(/\btrade-only\b/gi, '');
+  t = t.replace(/\bonline\b/gi, '');
+  t = t.replace(/\(\s*\)/g, '');
+  t = t.replace(/\s+,/g, ',');
+  t = t.replace(/,\s*,/g, ',');
+  t = t.replace(/\s{2,}/g, ' ');
+  t = t.replace(/\s+([.;])/g, '$1');
+  t = t.replace(/([.;])\s*([.;])/g, '$1');
+  t = t.replace(/\s+$/g, '');
+  return t.trim();
 }
 const patternByPackage = {};
 for (const pkg of src.packages || []) patternByPackage[pkg.id] = patternSell(pkg);
@@ -38,7 +57,12 @@ function publicProduct(p) {
   const out = {};
   for (const [k, v] of Object.entries(p)) {
     if (PRICE_KEYS.includes(k)) continue;
-    if (k === 'note' && /\$|margin|0\.73/i.test(String(v || ''))) continue;
+    if (k === 'note' || k === 'name') {
+      const text = cleanPublicText(v);
+      if (k === 'note' && !/[a-z0-9]/i.test(text)) continue;
+      out[k] = text;
+      continue;
+    }
     out[k] = v;
   }
   return out;
@@ -61,7 +85,7 @@ function publicPackage(pkg) {
   };
 }
 function publicExtra(ex) {
-  const out = { id: ex.id, name: ex.name, price: ex.price, unit: ex.unit };
+  const out = { id: ex.id, name: cleanPublicText(ex.name), price: ex.price, unit: ex.unit };
   if (ex.id === 'pattern_lay') {
     out.price = null;
     out.unit = 'm2';
@@ -81,8 +105,8 @@ const pub = {
 };
 fs.writeFileSync(outPath, JSON.stringify(pub, null, 2) + '\n');
 const text = fs.readFileSync(outPath, 'utf8');
-if (/margin|cost_assumptions|rrp|price_per_m2|27%/.test(text)) {
-  console.error('Public catalogue still has a cost or margin field');
+if (/margin|cost_assumptions|rrp|price_per_m2|27%|0\.73|trade-only/i.test(text)) {
+  console.error('Public catalogue still has a cost, margin, or supplier RRP field');
   process.exit(1);
 }
 console.log('Wrote', outPath, 'bytes', text.length);

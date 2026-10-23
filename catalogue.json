@@ -71,6 +71,7 @@
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-750mm-wall-hung-vanity-unit-9506050",
           "image_url": "https://digitalassets.reecegroup.com.au/m/be8038a56ef0276d/Web_1200x900-Posh-Bristol-MK2-Wall-Hung-Vanity-Unit-1-Taphole-750mm.jpg",
           "optional": false,
+          "note": "Also 900mm option: 9506060 ($774)",
           "date_checked": "2026-10-21",
           "image_file": "images/vanity_9506050.jpg"
         },
@@ -85,7 +86,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-basin-mixer-matte-black-6-star-2265204",
           "image_url": "https://digitalassets.reecegroup.com.au/m/6803b16db12acb92/Web_1200x900-Mizu-Soothe-MK2-Basin-Mixer-Matte-Black-6-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/basin_mixer_2265204.jpg"
         },
@@ -100,7 +100,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-shower-mixer-kit-matte-black-9512381",
           "image_url": "https://digitalassets.reecegroup.com.au/m/46d6a2797ee34b4/Web_1200x900-Mizu-Soothe-MK2-Shower-Mixer-Trimset-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_mixer_9512381.jpg"
         },
@@ -121,7 +120,6 @@
           "url": "https://www.reece.com.au/product/caroma-forma-close-coupled-back-to-wall-back-9506685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/794fd7b5625a4e32/Web_1200x900-Caroma-Forma-Close-Coupled-Back-To-Wall-Back-Inlet-Over-Height-Rimless-Toilet-Suite-with-Soft-Close-Quick-Release-Seat-White-4-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_suite_9506685.jpg"
         },
@@ -140,7 +138,6 @@
           "url": "https://www.reece.com.au/product/posh-bristol-freestanding-bath-1560-x-750-x-9504428",
           "image_url": "https://digitalassets.reecegroup.com.au/m/d06aec99e3da6495/Web_1200x900-Posh-Bristol-Freestanding-Bath-White.jpg",
           "optional": true,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/bath_9504428.jpg"
         },
@@ -194,7 +191,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-double-towel-rail-800mm-matte-black-15078",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ae8ca7542a4a448b/Web_1200x900-Roca-Ona-Double-Towel-Rail-800mm-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/towel_rail_15078.jpg"
         },
@@ -213,7 +209,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-matte-black-2268105",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3aedff91-aa39-46c6-ab08-b93f7abd1f0e/Web_1200x900/Mizu-Soothe-Toilet-Roll-Holder-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_roll_holder_2268105.jpg"
         },
@@ -308,6 +303,7 @@
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-750mm-wall-hung-vanity-unit-9506050",
           "image_url": "https://digitalassets.reecegroup.com.au/m/be8038a56ef0276d/Web_1200x900-Posh-Bristol-MK2-Wall-Hung-Vanity-Unit-1-Taphole-750mm.jpg",
           "optional": false,
+          "note": "Also 900mm option: 9506060 ($774)",
           "date_checked": "2026-10-21",
           "image_file": "images/vanity_9506050.jpg"
         },
@@ -322,7 +318,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-basin-mixer-matte-black-6-star-2265204",
           "image_url": "https://digitalassets.reecegroup.com.au/m/6803b16db12acb92/Web_1200x900-Mizu-Soothe-MK2-Basin-Mixer-Matte-Black-6-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/basin_mixer_2265204.jpg"
         },
@@ -337,7 +332,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-shower-mixer-kit-matte-black-9512381",
           "image_url": "https://digitalassets.reecegroup.com.au/m/46d6a2797ee34b4/Web_1200x900-Mizu-Soothe-MK2-Shower-Mixer-Trimset-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_mixer_9512381.jpg"
         },
@@ -352,7 +346,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-single-rail-shower-matte-black-5-star-14942",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ff8d64c439c12fb1/Web_1200x900-Hero-Roca-Ona-Single-Rail-Shower-Matte-Black-5-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_rail_14942.jpg"
         },
@@ -373,7 +366,6 @@
           "url": "https://www.reece.com.au/product/caroma-forma-close-coupled-back-to-wall-back-9506685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/794fd7b5625a4e32/Web_1200x900-Caroma-Forma-Close-Coupled-Back-To-Wall-Back-Inlet-Over-Height-Rimless-Toilet-Suite-with-Soft-Close-Quick-Release-Seat-White-4-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_suite_9506685.jpg"
         },
@@ -392,7 +384,6 @@
           "url": "https://www.reece.com.au/product/posh-bristol-freestanding-bath-1560-x-750-x-9504428",
           "image_url": "https://digitalassets.reecegroup.com.au/m/d06aec99e3da6495/Web_1200x900-Posh-Bristol-Freestanding-Bath-White.jpg",
           "optional": true,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/bath_9504428.jpg"
         },
@@ -409,7 +400,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-framed-shower-panel-900mm-matte-black-1705921",
           "image_url": "https://digitalassets.reecegroup.com.au/m/81ba612f857f7081/Web_1200x900-Kado-Lux-Frameless-Shower-Panel-900mm-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_screen_1705921.jpg"
         },
@@ -427,7 +417,6 @@
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-750mm-mirror-cabinet-2-door-9502564",
           "image_url": "https://digitalassets.reecegroup.com.au/m/81da33f92a30db43/Web_1200x900-Posh-Dominique-MKII-Mirror-Cabinet-750mm-2-Door-White.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/mirror_cabinet_9502564.jpg"
         },
@@ -446,7 +435,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-double-towel-rail-800mm-matte-black-15078",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ae8ca7542a4a448b/Web_1200x900-Roca-Ona-Double-Towel-Rail-800mm-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/towel_rail_15078.jpg"
         },
@@ -465,7 +453,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-matte-black-2268105",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3aedff91-aa39-46c6-ab08-b93f7abd1f0e/Web_1200x900/Mizu-Soothe-Toilet-Roll-Holder-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_roll_holder_2268105.jpg"
         },
@@ -484,7 +471,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-square-floor-waste-97mm-dn80-matte-951032",
           "image_url": "https://digitalassets.reecegroup.com.au/m/7332aaba5095efab/Web_1200x900-Kado-Lux-Square-Floor-Waste-97mm-DN80-Matte-Black.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/floor_waste_951032.jpg"
         }
@@ -561,7 +547,6 @@
           "url": "https://www.reece.com.au/product/posh-bristol-mk2-900mm-wall-hung-vanity-unit-9506060",
           "image_url": "https://digitalassets.reecegroup.com.au/m/cdc3a2d7affafa79/Web_1200x900-Posh-Bristol-MK2-Wall-Hung-Vanity-Unit-Centre-Bowl-1-Taphole-900mm.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/vanity_9506060.jpg"
         },
@@ -576,7 +561,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-basin-mixer-tap-brushed-brass-6-star-13485",
           "image_url": "https://digitalassets.reecegroup.com.au/m/7ea439785b2f3fc2/Web_1200x900-Roca-Ona-Basin-Mixer-Tap-Brushed-Brass-6-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/basin_mixer_13485.jpg"
         },
@@ -591,7 +575,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-shower-mixer-tap-brushed-brass-13696",
           "image_url": "https://digitalassets.reecegroup.com.au/m/d75992e529128ac6/Web_1200x900-Hero-Roca-Ona-Shower-Mixer-Tap-Brushed-Brass.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_mixer_13696.jpg"
         },
@@ -606,7 +589,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-single-rail-shower-brushed-brass-5-14945",
           "image_url": "https://digitalassets.reecegroup.com.au/m/a454f7bb220d05f4/Web_1200x900-Hero-Roca-Ona-Single-Rail-Shower-Brushed-Brass-5-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_rail_14945.jpg"
         },
@@ -627,7 +609,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-close-coupled-back-to-wall-rimless-1805494",
           "image_url": "https://digitalassets.reecegroup.com.au/m/5a8c3016b28d2add/Web_1200x900-Kado-Lux-Close-Coupled-Back-To-Wall-Rimless-Overheight-Back-Inlet-Toilet-Suite-with-Thin-Soft-Close-Quick-Release-Seat-4-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_suite_1805494.jpg"
         },
@@ -646,7 +627,6 @@
           "url": "https://www.reece.com.au/product/posh-domaine-back-to-wall-freestanding-bath-1500-9508056",
           "image_url": "https://digitalassets.reecegroup.com.au/m/ca33d14c5b675217/Web_1200x900-Posh-Domaine-Back-to-Wall-Freestanding-Bath-White.jpg",
           "optional": true,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/bath_9508056.jpg"
         },
@@ -681,7 +661,6 @@
           "url": "https://www.reece.com.au/product/posh-domaine-600mm-x-800mm-polished-edge-mirror-2304685",
           "image_url": "https://digitalassets.reecegroup.com.au/m/b76dec5a6faf5e8b/Web_1200x900-Posh-Domaine-600mm-x-800mm-Polished-Edge-Mirror.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/mirror_2304685.jpg"
         },
@@ -700,7 +679,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-double-towel-rail-800mm-brushed-brass-15081",
           "image_url": "https://digitalassets.reecegroup.com.au/m/576104cd6f75cda3/Web_1200x900-Hero-Roca-Ona-Double-Towel-Rail-800mm-Brushed-Brass.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/towel_rail_15081.jpg"
         },
@@ -719,7 +697,6 @@
           "url": "https://www.reece.com.au/product/roca-ona-toilet-roll-holder-brushed-brass-15061",
           "image_url": "https://digitalassets.reecegroup.com.au/m/4a3b0cabd25f6577/Web_1200x900-Hero-Roca-Ona-Toilet-Roll-Holder-Brushed-Brass.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_roll_holder_15061.jpg"
         },
@@ -829,7 +806,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-basin-mixer-brushed-bronze-6-2269220",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/3ebbfd74-39b1-4f30-b922-484be9484178/Web_1200x900/Hero-Mizu-Soothe-MK2-Basin-Mixer-Brushed-Bronze-6-Star-Lead-Free.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/basin_mixer_2269220.jpg"
         },
@@ -844,7 +820,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-mk2-shower-mixer-kit-brushed-bronze-2295542",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/f49cd6e0-cad1-4b01-b5e6-c4dbf1586540/Web_1200x900/Hero-Mizu-Soothe-MK2-Shower-Mixer-Kit-Brushed-Bronze-Lead-Free.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_mixer_2295542.jpg"
         },
@@ -859,7 +834,6 @@
           "url": "https://www.reece.com.au/product/milli-marq-edit-twin-rail-shower-brushed-bronze-3-21977",
           "image_url": "https://digitalassets.reecegroup.com.au/m/9b40c46409f1793b/Web_1200x900-Hero-Milli-Marq-Edit-Twin-Rail-Shower-Brushed-Bronze.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_rail_21977.jpg"
         },
@@ -880,7 +854,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-close-coupled-back-to-wall-rimless-1805494",
           "image_url": "https://digitalassets.reecegroup.com.au/m/5a8c3016b28d2add/Web_1200x900-Kado-Lux-Close-Coupled-Back-To-Wall-Rimless-Overheight-Back-Inlet-Toilet-Suite-with-Thin-Soft-Close-Quick-Release-Seat-4-Star.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_suite_1805494.jpg"
         },
@@ -899,7 +872,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-freestanding-bath-1500mm-x-700mm-x-26954",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/74fa9d27-a31b-4ca7-918f-308db7e6d76e/Web_1200x900/Hero-Kado-Lux-Freestanding-Bath-1500mm-x-700mm-x-580mm-Gloss-White.jpg",
           "optional": true,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/bath_26954.jpg"
         },
@@ -916,7 +888,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-fixed-shower-screen-panel-with-side-9506304",
           "image_url": "https://digitalassets.reecegroup.com.au/m/c9c2da91d62b037/Web_1200x900-Kado-Lux-Fixed-Shower-Screen-Panel-with-Side-Panel-and-Wall-Support-1400mm-Chrome.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/shower_screen_9506304.jpg"
         },
@@ -935,7 +906,6 @@
           "url": "https://www.reece.com.au/product/kado-lux-framed-2-door-mirror-shaving-cabinet-44751",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/671bcd9c-d6ce-4804-9353-6016e2bc30d1/Web_1200x900/Hero-Kado-Lux-Framed-2-Door-Mirror-Shaving-Cabinet-600mm-x-840mm.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/mirror_cabinet_44751.jpg"
         },
@@ -973,7 +943,6 @@
           "url": "https://www.reece.com.au/product/mizu-soothe-toilet-roll-holder-brushed-bronze-2269429",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/7caecf9c-352b-481f-90e1-1d30025ee6d8/Web_1200x900/Hero-Mizu-Soothe-Toilet-Roll-Holder-Brushed-Bronze.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/toilet_roll_holder_2269429.jpg"
         },
@@ -991,7 +960,6 @@
           "url": "https://www.reece.com.au/product/mizu-drift-brass-trapscrew-grate-square-100mm-201652",
           "image_url": "https://digitalassets.reecegroup.com.au/asset/6dcbf8db-ff68-45ae-9d92-1a6ecfaff387/Web_1200x900/Hero-Mizu-Drift-Trapscrew-Grate-Square-100mm-Brushed-Bronze.jpg",
           "optional": false,
-          "note": null,
           "date_checked": "2026-10-21",
           "image_file": "images/floor_waste_201652.jpg"
         }
@@ -1228,7 +1196,6 @@
           "colour": "",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/aluminium-90-degree-shower-track-1200-x-1200-with-1712023",
           "optional": false,
-          "note": "trade-only online.",
           "date_checked": "2026-10-23"
         },
         {
@@ -1322,7 +1289,7 @@
           "colour": "",
           "url": "https://www.reece.com.au/product/bathroom-c544063/tapware-accessories-c543934/commercial-care-tapware-accessories-c543811/care-accessories-c543932/rba-budget-shower-seat-to-as1428-1-2009-1779024",
           "optional": true,
-          "note": "GST free on Reece. trade-only online. Optional, not in the from price.",
+          "note": "GST free on Reece. Optional, not in the from price.",
           "date_checked": "2026-10-23"
         }
       ],
@@ -1337,7 +1304,7 @@
   "extras": [
     {
       "id": "bath_install",
-      "name": "Bath install (labour, plumbing, extra waterproofing/tiling); add package bath RRP",
+      "name": "Bath install (labour, plumbing, extra waterproofing/tiling)",
       "price": 1450,
       "unit": "job"
     },
@@ -1421,13 +1388,13 @@
     },
     {
       "id": "wall_hung_toilet",
-      "name": "Upgrade to wall-hung toilet: Caroma Urbane Invisi II suite (Reece 1817272 RRP $1,973.17) incl. frame, stud wall & install, less package toilet",
+      "name": "Upgrade to wall-hung toilet: Caroma Urbane Invisi II suite (Reece 1817272) incl. frame, stud wall & install, less package toilet",
       "price": 3710,
       "unit": "job"
     },
     {
       "id": "heated_towel_rail",
-      "name": "Heated towel rail Hydrotherm Pure 500x800 (Reece 2299545 matte black / 2299541 chrome, RRP $1,260) incl. electrician",
+      "name": "Heated towel rail Hydrotherm Pure 500x800 (Reece 2299545 matte black / 2299541 chrome) incl. electrician",
       "price": 2140,
       "unit": "each"
     },
@@ -1462,29 +1429,29 @@
       "unit": "m2",
       "patternSell": {
         "budget-compact": {
-          "floor": 35.61643835616439,
-          "wall": 28.767123287671232,
-          "feature": 45.89041095890411
+          "floor": 35.62,
+          "wall": 28.77,
+          "feature": 45.89
         },
         "grey-modern": {
-          "floor": 28.767123287671232,
-          "wall": 28.767123287671232,
-          "feature": 45.89041095890411
+          "floor": 28.77,
+          "wall": 28.77,
+          "feature": 45.89
         },
         "beige-copper": {
-          "floor": 35.61643835616439,
-          "wall": 28.767123287671232,
-          "feature": 45.89041095890411
+          "floor": 35.62,
+          "wall": 28.77,
+          "feature": 45.89
         },
         "marble-luxe": {
-          "floor": 35.61643835616439,
-          "wall": 28.767123287671232,
-          "feature": 45.89041095890411
+          "floor": 35.62,
+          "wall": 35.62,
+          "feature": 45.89
         },
         "accessible-care": {
-          "floor": 35.61643835616439,
-          "wall": 28.767123287671232,
-          "feature": 45.89041095890411
+          "floor": 35.62,
+          "wall": 28.77,
+          "feature": 45.89
         }
       }
     },

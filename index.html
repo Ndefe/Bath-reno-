@@ -687,7 +687,10 @@ const Calc={
     const walls=this.wallM2(area);
     const feat=Math.min(2.5,walls);
     const wallStd=Math.max(0,walls-feat);
-    return this.round((+rates.floor||0)*area+(+rates.wall||0)*wallStd+(+rates.feature||0)*feat);
+    const step=25/73;
+    const units=sell=>Math.round((+sell||0)/step);
+    const allowance=units(rates.floor)*area+units(rates.wall)*wallStd+units(rates.feature)*feat;
+    return this.round(Math.round(allowance)*step);
   },
   priceExtra(ex,area,pkgId,qty){
     const q=Math.max(1,+qty||1);
