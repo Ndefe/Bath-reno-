@@ -114,6 +114,9 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .checkline{display:flex;gap:8px;align-items:center;color:var(--ink);margin:6px 0}
 .checkline input{width:auto}
 .checkline label{margin:0;color:var(--ink)}
+#view-quote .checkline,#view-assist .checkline{align-items:stretch;min-height:44px}
+#view-quote .checkline input,#view-assist .checkline input{width:22px;height:22px;flex:none;margin:0;padding:0;align-self:center}
+#view-quote .checkline label,#view-assist .checkline label{flex:1;display:flex;align-items:center;min-height:44px;cursor:pointer}
 .follow textarea{min-height:88px;font-size:16px}
 .follow input{font-size:16px}
 .nudge{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
@@ -295,6 +298,9 @@ body.client .pl-side{max-height:100vh;overflow:auto;padding:12px;background:var(
 .extra-opt{display:flex;gap:8px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
 .extra-opt label{display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0;cursor:pointer;margin:0}
 .extra-opt label input{width:auto;margin-top:3px;flex:none}
+#view-quote .extra-opt{align-items:stretch;min-height:44px}
+#view-quote .extra-opt label{align-items:center;min-height:44px}
+#view-quote .extra-opt label input{width:22px;height:22px;margin:0;padding:0}
 .extra-opt .ename{display:block;font-size:14px;line-height:1.35;overflow-wrap:anywhere;color:var(--ink)}
 .extra-opt .price{font-weight:700;white-space:nowrap;flex:none;padding-top:2px}
 .extra-opt input.qty{width:64px;flex:none;padding:6px 8px}
@@ -539,10 +545,14 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <label for="fu-email">Email</label>
           <textarea id="fu-email" readonly></textarea>
           <div class="checkline"><input id="fu-approve" type="checkbox"><label for="fu-approve">I approve this wording</label></div>
+          <p class="hint">Copy a draft</p>
           <div class="actions">
             <button class="btn sec" type="button" id="fu-copy-sms" disabled>Copy SMS</button>
             <button class="btn sec" type="button" id="fu-copy-email" disabled>Copy email</button>
             <a class="btn sec" id="fu-mailto" hidden>Email draft</a>
+          </div>
+          <p class="hint">Print the quote</p>
+          <div class="actions">
             <button class="btn" type="button" id="fu-pdf">Print / Save as PDF</button>
           </div>
           <p class="hint">Copy request and Download request make a plain-text note of the details, the estimate, and any requested measure time. Nothing is sent from this page.</p>

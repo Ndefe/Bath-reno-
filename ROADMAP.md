@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-23
 
+- Tap rows. On the quote and in the chat, a tick row is at least 44px tall and the label toggles it. Copy a draft and Print the quote are separate buttons. Prices are unchanged.
 - Calm motion. Cards that are already on screen stay visible. A card that starts below the fold fades and slides in, and a newly opened section does the same. Buttons outside the chat and the planner grow slightly on hover and press in. Chat and planner cards do not lift. The render mark and the chat "One moment" line pulse gently. The quote total counts up only when the figure changes, in whole dollars, and it finishes on the same price. A polite note announces that final figure. Reduced motion turns all of this off. Prices, wording, the chat size, and the planner pad are unchanged.
 
 - Planner steps. Room, Layout, Fixtures, Style, and Render show one at a time at every width. Starting a render opens the Render step and leaves the picture there. Moving to a step announces it and puts focus on that step's heading. Style preset, floor, wall, and tapware each have a label. The folds say More room options and More finishes. On a phone, the room size and Next fit on the first screen, Suggest layout shows on Fixtures, and the drag note shows on Layout and Fixtures. Undo and Redo stay on the picture. Prices are unchanged.
