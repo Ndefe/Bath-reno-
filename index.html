@@ -124,6 +124,7 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 @media(max-width:860px){.grid{grid-template-columns:1fr}#view-quote .card{position:static!important}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
 .card:not(.chat-card){box-shadow:0 8px 22px rgba(16,24,32,.05)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .card h2{font-size:16px;margin:0 0 12px}
 label{display:block;font-size:13px;color:var(--mute);margin:8px 0 4px}
 input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
@@ -249,7 +250,7 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
   .spin{animation:soft-pulse .3s ease-in-out infinite alternate}
   .bubble.wait{animation:soft-fade .3s ease-in-out infinite alternate}
   button:not(#view-planner button):not(#view-assist button),
-  .card:not(.chat-card):not([data-flow]){transition:transform .18s ease,box-shadow .18s ease}
+  .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]){transition:transform .18s ease,box-shadow .18s ease}
   button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
   button:disabled,button:disabled:active{transform:none;transition:none}
   .reveal{opacity:0;transform:translateY(6px)}
@@ -258,7 +259,7 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 }
 @media (prefers-reduced-motion:no-preference) and (hover:hover) and (pointer:fine){
   button:not(:disabled):not(#view-planner button):not(#view-assist button):hover{transform:scale(1.03)}
-  .card:not(.chat-card):not([data-flow]):hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(16,24,32,.08)}
+  .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]):hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(16,24,32,.08)}
 }
 @media (prefers-reduced-motion:reduce){
   .spin,.bubble.wait,.reveal,.arrive .card{animation:none;transform:none}
@@ -551,6 +552,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div>
         <div class="card" style="position:sticky;top:10px"><h2>Quote summary</h2>
           <div id="summary"><p class="hint">Loading catalogue…</p></div>
+          <p id="quote-total-live" class="sr" aria-live="polite"></p>
           <div id="quote-estimate"></div>
           <div class="actions">
             <button class="btn" id="btn-save">Save project</button>
@@ -1279,18 +1281,19 @@ function paintQuoteTotal(t){
   paintQuoteTotal.vis=to;
   const token=++quoteCount;
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce||from==null||from===to||!(to>0)||text==='Enter the floor size') return;
+  if(reduce||from==null||from===to||!(to>0)||text==='Enter the floor size'){sayQuote(text);return}
   const tail=text.endsWith(' plus items to confirm')?' plus items to confirm':'';
   const t0=performance.now();
   const finish=()=>{
     if(token!==quoteCount) return;
     nodes.forEach(el=>{if(el.isConnected) el.textContent=text});
+    sayQuote(text);
   };
   const step=now=>{
     if(token!==quoteCount) return;
     const p=Math.min(1,(now-t0)/280);
     if(p>=1){finish();return}
-    const vis=Math.round((from+(to-from)*(1-Math.pow(1-p,3)))*100)/100;
+    const vis=Math.round(from+(to-from)*(1-Math.pow(1-p,3)));
     nodes.forEach(el=>{if(el.isConnected) el.textContent=fromPrice(vis)+tail});
     requestAnimationFrame(step);
   };
@@ -1298,6 +1301,10 @@ function paintQuoteTotal(t){
   setTimeout(finish,320);
 }
 paintQuoteTotal.vis=null;
+function sayQuote(text){
+  const live=$('quote-total-live');
+  if(live&&live.textContent!==text) live.textContent=text;
+}
 function settleReveal(){
   document.querySelectorAll('.reveal:not(.revealed)').forEach(el=>{
     if(el.getBoundingClientRect().top<window.innerHeight-8) el.classList.add('revealed');
