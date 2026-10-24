@@ -72,6 +72,7 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .bubble.wait{opacity:.7}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 #chat-chips{flex:0 0 88px;height:88px;min-height:88px;overflow:auto;align-content:flex-start}
+#chat-open-note{flex:0 0 auto;margin:0 0 4px}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font:inherit;cursor:pointer;min-height:40px}
 .chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .pipe{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
@@ -431,11 +432,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div class="measure-picker" data-measure="chat"></div>
       </div>
       </div>
-      <div id="chat-log" class="chat-log" role="log" aria-live="polite"><div class="bubble bot">Hi, I'm the assistant for Gert's Reno. I'll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button.
-
-What you type in this chat is sent to Pollinations, a free third-party AI service. An AI render prompt is sent there too. Do not include personal details such as a phone number, email or street address. Photos stay on this phone. No price is final until Nico confirms it after a free site measure.
-
-How big is the bathroom? A length and width, or the floor area, is perfect.</div></div>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite"><div class="bubble bot">How big is the bathroom? A length and width, or the floor area, is perfect.</div></div>
+      <p class="hint" id="chat-open-note">You can add photos with the Photo button. Photos stay on this phone. No price is final until Nico confirms it after a free site measure.</p>
       <div id="chat-chips" class="chips"><button type="button" class="chip" data-act="send" data-value="About 3-4 m2">About 3-4 m2</button><button type="button" class="chip" data-act="send" data-value="About 6 m2">About 6 m2</button><button type="button" class="chip" data-act="send" data-value="Not sure yet">Not sure yet</button></div>
       <form id="chat-form" class="chat-bar">
         <label class="sr" for="chat-text" style="position:absolute;left:-999px">Your reply</label>
@@ -2694,7 +2692,7 @@ Never give a renovation price, a deposit figure, an ABN, or a QBCC licence numbe
 End every reply with one line:
 FIELDS: {"roomSize":"","style":"","budget":"","timeline":"","suburb":"","name":"","phone":"","email":"","done":false}
 Fill a field only when the client has stated it, using their words. Set done to true only when every field has a value. The lines before FIELDS: are the only words the client sees.`;
-  const GREETING='Hi, I\'m the assistant for Gert\'s Reno. I\'ll ask about the room, the look, your budget, timing and suburb, then your name and contact. You can add photos with the Photo button.\n\nWhat you type in this chat is sent to Pollinations, a free third-party AI service. An AI render prompt is sent there too. Do not include personal details such as a phone number, email or street address. Photos stay on this phone. No price is final until Nico confirms it after a free site measure.\n\nHow big is the bathroom? A length and width, or the floor area, is perfect.';
+  const GREETING='How big is the bathroom? A length and width, or the floor area, is perfect.';
   const STEPS=[
     {id:'roomSize', ask:'How big is the bathroom? A length and width, or the floor area, is perfect.', invalid:'Tell me a size, even a rough one, or tap Not sure yet.', chips:['About 3-4 m2','About 6 m2','Not sure yet']},
     {id:'style', ask:'Which look is closest?', invalid:'Choose a look, or describe it in a few words.', chips:['Budget Compact','Grey Modern','Beige Copper','Marble Luxe','Accessible Care']},
@@ -2958,7 +2956,24 @@ Fill a field only when the client has stated it, using their words. Set done to 
     const intake=ensureIntake();
     const log=$('chat-log');
     log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
-    const pinLog=()=>{log.scrollTop=log.scrollHeight};
+    const showTop=!intake.pending && !intake.messages.some(m=>m.role==='user');
+    const pinLog=()=>{
+      if(!showTop){log.scrollTop=log.scrollHeight;return;}
+      log.scrollTop=0;
+      const node=log.querySelector('.bubble')?.firstChild;
+      if(!node||node.nodeType!==3) return;
+      const text=node.textContent||'';
+      const idx=text.lastIndexOf('How big is the bathroom?');
+      if(idx<0) return;
+      const range=document.createRange();
+      range.setStart(node, idx);
+      range.setEnd(node, text.length);
+      let bottom=-Infinity;
+      for(const r of range.getClientRects()) bottom=Math.max(bottom, r.bottom);
+      if(!isFinite(bottom)) return;
+      const extra=bottom-(log.getBoundingClientRect().bottom-2);
+      if(extra>0) log.scrollTop+=extra;
+    };
     pinLog();
     requestAnimationFrame(pinLog);
     const chips=$('chat-chips');
@@ -3212,8 +3227,12 @@ window.PhotoCheck=PhotoCheck;
 
 /* The figure always comes from the package base fee and rate per m². The text model may only explain it. */
 const Estimate={
-  priceLine(total){
-    return total>0?`from ${fmt(total)} incl. GST, subject to site measure`:'Enter the floor size to price this package';
+  priceLine(t){
+    const total=t&&typeof t==='object'?+t.total:+t;
+    if(!(total>0)) return 'Enter the floor size to price this package';
+    const later=!!(t&&typeof t==='object'&&(t.lines||[]).some(e=>e.quoteLater));
+    const base=`from ${fmt(total)} incl. GST`;
+    return later?`${base} plus items to confirm, subject to site measure`:`${base}, subject to site measure`;
   },
   ceiling(text){
     const s=String(text||'').toLowerCase();
@@ -3248,7 +3267,7 @@ const Estimate={
       total:t.total,
       baseFee:t.baseFee,
       rate:t.rate,
-      priceText:this.priceLine(t.total),
+      priceText:this.priceLine(t),
       explanation:explanation||this.scripted(t),
       source:'calc',
       explanationSource:explanationSource||'script',
