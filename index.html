@@ -526,7 +526,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
         <div class="card" id="lead-card"><h2>Client</h2>
-          <p class="hint">Name, phone, email, suburb, room and photos are collected in the assistant. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
+          <p class="hint" id="lead-keep">Name, phone, email, suburb, room and photos are collected in the assistant. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
           <p id="lead-summary">No client details yet.</p>
           <p id="analysis-summary" class="hint"></p>
           <button class="btn book" id="btn-book" type="button">Open assistant</button>
@@ -566,7 +566,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div class="actions">
             <button class="btn" type="button" id="fu-pdf">Print / Save as PDF</button>
           </div>
-          <p class="hint">Copy request and Download request make a plain-text note of the details, the estimate, and any requested measure time. Nothing is sent from this page.</p>
+          <p class="hint" id="fu-request-note">Copy request and Download request make a plain-text note of the details, the estimate, and any requested measure time. Nothing is sent from this page.</p>
           <p class="hint" id="fu-status" role="status"></p>
         </div>
       </div>
@@ -750,7 +750,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div id="pipe-board" hidden>
       <div class="card">
         <h2>Pipeline</h2>
-        <p class="hint">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. A quote with no reply after 3 days can have a draft nudge. You approve it before it is copied or opened. Nothing is sent.</p>
+        <p class="hint" id="pipe-keep">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. A quote with no reply after 3 days can have a draft nudge. You approve it before it is copied or opened. Nothing is sent.</p>
         <p class="hint" id="pipe-ref"></p>
         <p class="hint" id="pipe-nudge"></p>
         <div id="pipe-chips" class="chips"></div>
@@ -764,7 +764,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <section class="view" id="view-setup" aria-label="Owner setup">
     <div class="card">
       <h2>Setup</h2>
-      <p class="hint">Saved on this phone only. Leave a field blank and the public pages keep the wording they already have. ABN and QBCC stay empty until you type them. This screen does not invent a number or claim a licence. Nothing is sent.</p>
+      <p class="hint" id="o-keep">Saved on this phone only. Leave a field blank and the public pages keep the wording they already have. ABN and QBCC stay empty until you type them. This screen does not invent a number or claim a licence. Nothing is sent.</p>
       <label for="o-biz">Business name</label>
       <input id="o-biz" autocomplete="organization">
       <div class="row">
@@ -785,8 +785,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <img id="o-photo-preview" alt="" hidden>
       <button class="btn sec sm" id="o-photo-clear" type="button">Remove photo</button>
       <p class="ph-box" id="o-photo-note">Photo placeholder. No photo is shown until you add one here.</p>
-      <label for="o-story">Short story</label>
+            <label for="o-story">Short story</label>
       <textarea id="o-story" maxlength="2000" placeholder="Add a short story. Leave this blank until then."></textarea>
+      <label for="o-worker">Worker URL</label>
+      <input id="o-worker" type="url" inputmode="url" autocomplete="off" placeholder="Leave blank">
+      <label for="o-token">Worker token</label>
+      <input id="o-token" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank">
+      <p class="hint">Leave both blank and nothing is posted. When a valid https Worker URL is saved, the text of a new lead is sent to that worker and photos stay on this phone. Follow docs/lead-sync/SETUP.md yourself. This page does not deploy a worker or create an account.</p>
       <div class="actions"><button class="btn" id="o-save" type="button">Save on this phone</button><span class="hint" id="o-msg"></span></div>
     </div>
   </section>
@@ -836,7 +841,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="hint">Leave this blank until you paste the link from your Google Business profile. When a lead is marked Won, the pipeline can draft a review request. Nothing is sent automatically. This app does not show star ratings or testimonials.</p>
       <label for="s-nico">Send to Nico (email)</label>
       <input id="s-nico" type="email" autocomplete="off" placeholder="name@example.com">
-      <p class="hint">Leave this blank and Send to Nico stays hidden. A lead is saved on this device only. Nothing is posted. A Cloudflare Worker post stays off unless workerPost is set to true in this browser's saved settings, which it is not.</p>
+      <p class="hint">Leave this blank and Send to Nico stays hidden. A lead is saved on this device only. Nothing is posted until a Worker URL is saved on the Setup screen.</p>
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
@@ -877,7 +882,7 @@ let catalogue=null, settings, quote, defaults, shownPkg=null;
 function buildDefaults(cat){
   return {
     bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email', validDays:30,
-    phone:'', email:'', serviceSuburbs:'', jobTiming:'',
+    phone:'', email:'', serviceSuburbs:'', jobTiming:'', workerUrl:'', leadToken:'',
     abn:'', qbcc:'', logo:'', ownerPhoto:'', ownerStory:'', googleReviewUrl:'',
     depositUnderPct:10, depositOverPct:5,
     progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
@@ -1289,7 +1294,7 @@ function nicoBody(q){
     ...(q.measure&&q.measure.date?[
       `Site measure request: ${q.measure.date} ${q.measure.time}`,
       `Status: ${q.measure.status||'Measure requested'}`,
-      'Nothing has been sent. Nico confirms the time.'
+      (lastLeadPost==='sent'?LEAD_SENT+' Photos stay on this phone. Nico confirms the time.':lastLeadPost==='failed'?LEAD_MISSED+' Nico confirms the time.':'Nothing has been sent. Nico confirms the time.')
     ]:[])
   ].join('\n');
 }
@@ -1311,7 +1316,7 @@ function requestText(q){
   const price=t.total>0?`${fromPrice(t.total)}, subject to a site measure`:'Floor size not set';
   return [
     "Gert's Reno request",
-    'Saved on this device only. Nothing has been sent.',
+    requestSyncLine(),
     '',
     `Name: ${c.name||''}`,
     `Phone: ${c.phone||''}`,
@@ -1340,10 +1345,45 @@ function downloadRequest(q){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-/* Off unless this browser's saved settings set workerPost to true and a workerUrl. The public form does not set either. */
+function workerUrlProblem(raw){
+  const url=String(raw||'').trim();
+  if(!url) return '';
+  let parsed;
+  try{ parsed=new URL(url); }
+  catch{ return 'That Worker URL is not valid. Use an https address, or leave it blank.'; }
+  if(parsed.protocol==='http:') return 'http is not accepted. Use an https address, or leave it blank.';
+  if(parsed.protocol!=='https:' || !parsed.hostname) return 'That Worker URL is not valid. Use an https address, or leave it blank.';
+  return '';
+}
+function workerEndpoint(){
+  const url=String(settings&&settings.workerUrl||'').trim();
+  if(!url || workerUrlProblem(url)) return '';
+  return url;
+}
+function syncing(){ return !!workerEndpoint(); }
+const LEAD_SENT='The lead was sent to the worker saved on this phone.';
+const LEADS_SENT='Leads are sent to the worker saved on this phone. Photos stay on this phone.';
+const LEAD_MISSED='The worker did not receive this lead. Photos stay on this phone.';
+let lastLeadPost=null;
+function leadPostLine(local){
+  if(lastLeadPost==='sent') return LEAD_SENT+' Photos stay on this phone.';
+  if(lastLeadPost==='failed') return LEAD_MISSED;
+  if(syncing()) return LEADS_SENT;
+  return local;
+}
+function requestSyncLine(){
+  if(lastLeadPost==='sent') return LEAD_SENT+' Photos stay on this phone.';
+  if(lastLeadPost==='failed') return 'Saved on this phone. '+LEAD_MISSED;
+  return 'Saved on this device only. Nothing has been sent.';
+}
+function requestNote(action){
+  if(lastLeadPost==='sent') return action+'. '+LEAD_SENT+' Photos stay on this phone.';
+  if(lastLeadPost==='failed') return action+'. '+LEAD_MISSED;
+  return action+'. It is still only on this device. Nothing was sent.';
+}
+/* No post until an https Worker URL is saved on this phone. Photos are never posted. */
 async function postLead(rec,t){
-  if(!settings||settings.workerPost!==true) return 'local';
-  const url=String(settings.workerUrl||'').trim();
+  const url=workerEndpoint();
   if(!url) return 'local';
   const fd=new FormData();
   const c=rec.customer||{};
@@ -1359,13 +1399,10 @@ async function postLead(rec,t){
   fd.append('floor_area_m2',String(t.area));
   fd.append('quote_total',String(t.total));
   fd.append('quote_number',rec.number||'');
-  const key=(settings.leadAccessKey||'').trim();
-  if(key) fd.append('access_key',key);
-  (rec.photos||[]).forEach((p,i)=>{
-    const blob=dataUrlToBlob(p.dataUrl);
-    if(blob) fd.append('photos',blob,p.name||`photo-${i+1}.jpg`);
-  });
-  const res=await fetch(url,{method:'POST',body:fd});
+  const headers={};
+  const token=String(settings.leadToken||'').trim();
+  if(token) headers['X-Lead-Token']=token;
+  const res=await fetch(url,{method:'POST',body:fd,headers});
   if(!res.ok) throw new Error('HTTP '+res.status);
   return 'sent';
 }
@@ -1626,7 +1663,8 @@ function nudgeBlock(q){
   const id=esc(q.id);
   if(q.clientReply&&q.clientReply.at){
     const when=fmtDate(new Date(q.clientReply.at));
-    return `<div class="nudge"><p class="hint">Marked as replied${Number.isNaN(Date.parse(q.clientReply.at))?'':` on ${esc(when)}`}. No nudge. Nothing was sent.</p><button class="btn sec sm" type="button" data-nudge-clear="${id}">Clear the reply mark</button></div>`;
+    const replyNote=leadPostLine('Nothing was sent.');
+    return `<div class="nudge"><p class="hint">Marked as replied${Number.isNaN(Date.parse(q.clientReply.at))?'':` on ${esc(when)}`}. No nudge. ${esc(replyNote)}</p><button class="btn sec sm" type="button" data-nudge-clear="${id}">Clear the reply mark</button></div>`;
   }
   if(!needsNudge(q)) return '';
   const d=nudgeDraft(q);
@@ -1736,10 +1774,15 @@ async function saveQuote(){
   }
   syncOne(rec,Store.get(K.quotes,[]).filter(x=>x.id!==rec.id).concat(rec));
   quote.referral=structuredClone(rec.referral);
-  try{await Backend.submitLead(rec)}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
+  let posted={sent:false};
+  try{posted=await Backend.submitLead(rec)||posted}catch(err){$('save-msg').textContent='Could not save in this browser. Remove photos or the AI render and try again.';return false}
   update();
-  $('save-msg').textContent='Saved '+quote.number+' on this device. The lead stays here until you copy or send it. Chat text and render prompts go to Pollinations.';
-  return true;
+  $('save-msg').textContent=posted.sent
+    ?'Saved '+quote.number+' on this phone. '+LEAD_SENT+' Photos stay on this phone. Chat text and render prompts go to Pollinations.'
+    :(syncing()
+      ?'Saved '+quote.number+' on this phone. The worker did not receive this lead. Photos stay on this phone. Chat text and render prompts go to Pollinations.'
+      :'Saved '+quote.number+' on this device. The lead stays here until you copy or send it. Chat text and render prompts go to Pollinations.');
+  return posted.sent?'sent':true;
 }
 
 function renderFigure(q){
@@ -2144,7 +2187,11 @@ function jobBlock(q){
     const opts=JOB_STATES.map(st=>`<option${st===job.stages[s.id]?' selected':''}>${esc(st)}</option>`).join('');
     return `<label>${esc(s.label)}</label><select data-job="${esc(s.id)}" data-job-lead="${id}">${opts}</select>`;
   }).join('');
-  return `<div class="job-track"><p class="hint">Job stages. Set each one by hand. This does not change the sales stage, and nothing is sent.</p>${rows}<label>Tracker link</label><input readonly data-tracker-url="${id}" value="${esc(trackerUrl(q))}"><button class="btn sec sm" type="button" data-tracker="${id}">Copy tracker link</button><p class="hint" data-tracker-status="${id}">Anyone with this link can read these stages. It is not a live login. It has no phone number or email. It changes only when you copy a new link. Nothing is sent.</p></div>`;
+  const jobNote=leadPostLine('Nothing is sent.');
+  const jobLine=jobNote==='Nothing is sent.'
+    ?'Job stages. Set each one by hand. This does not change the sales stage, and nothing is sent.'
+    :'Job stages. Set each one by hand. This does not change the sales stage. '+jobNote;
+  return `<div class="job-track"><p class="hint">${esc(jobLine)}</p>${rows}<label>Tracker link</label><input readonly data-tracker-url="${id}" value="${esc(trackerUrl(q))}"><button class="btn sec sm" type="button" data-tracker="${id}">Copy tracker link</button><p class="hint" data-tracker-status="${id}">Anyone with this link can read these stages. It is not a live login. It has no phone number or email. It changes only when you copy a new link. Nothing is sent.</p></div>`;
 }
 function renderPipeline(){
   const pin=String(settings.ownerPin||'').trim();
@@ -2164,6 +2211,11 @@ function renderPipeline(){
     return;
   }
   lock.hidden=true; board.hidden=false;
+  const pipeKeep=$('pipe-keep');
+  if(pipeKeep){
+    const tail=leadPostLine('Nothing is sent.');
+    pipeKeep.textContent='Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. A quote with no reply after 3 days can have a draft nudge. You approve it before it is copied or opened. '+tail;
+  }
   const list=Store.get(K.quotes,[]);
   const before=list.map(q=>JSON.stringify(q.referral||null)).join('|');
   list.forEach(q=>syncOne(q,list));
@@ -2189,7 +2241,8 @@ function renderPipeline(){
     const opts=STAGES.map(s=>`<option${s===stage?' selected':''}>${esc(s)}</option>`).join('');
     const asked=q.measure&&q.measure.status==='Measure requested'&&q.measure.date;
     const when=asked&&window.Measure?Measure.whenText(q.measure):'';
-    const measureHtml=asked?`<p class="hint">Measure requested: ${esc(when)}. Status: Measure requested. Not confirmed. Nothing was sent.</p>${q.measure.ownerDraft?`<label>Draft for Nico</label><textarea readonly>${esc(q.measure.ownerDraft)}</textarea><p class="hint">This draft is saved with the lead. Nothing was sent.</p>`:''}`:'';
+    const sentNote=leadPostLine('Nothing was sent.');
+    const measureHtml=asked?`<p class="hint">Measure requested: ${esc(when)}. Status: Measure requested. Not confirmed. ${esc(sentNote)}</p>${q.measure.ownerDraft?`<label>Draft for Nico</label><textarea readonly>${esc(q.measure.ownerDraft)}</textarea><p class="hint">This draft is saved with the lead. ${esc(sentNote)}</p>`:''}`:'';
     return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${measureHtml}${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${jobBlock(q)}${nudgeBlock(q)}${stage==='Won'?reviewBlock(q):''}</article>`;
   }).join(''):'<p class="hint">No leads in this stage.</p>';
 }
@@ -2423,19 +2476,36 @@ $('fu-copy-email').onclick=()=>{if(quote&&quote.followup&&quote.followup.approve
 function refreshDelivery(){
   const on=nicoReady();
   if($('btn-nico')) $('btn-nico').hidden=!on;
-  if($('nico-note')) $('nico-note').hidden=on;
+  if($('nico-note')){
+    $('nico-note').hidden=on;
+    if(!on) $('nico-note').textContent=syncing()
+      ?'No email is saved on this device, so Send to Nico is not available. Copy or download the request. '+LEADS_SENT
+      :'No email is saved on this device, so Send to Nico is not available. Copy or download the request. It stays here until you send it yourself.';
+  }
+  const keep=$('lead-keep');
+  if(keep) keep.textContent=syncing()
+    ?'Name, phone, email, suburb, room and photos are collected in the assistant. '+LEADS_SENT+' Chat text and render prompts go to Pollinations.'
+    :'Name, phone, email, suburb, room and photos are collected in the assistant. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.';
+  const fu=$('fu-request-note');
+  if(fu) fu.textContent=syncing()
+    ?'Copy request and Download request make a plain-text note of the details, the estimate, and any requested measure time. '+LEADS_SENT
+    :'Copy request and Download request make a plain-text note of the details, the estimate, and any requested measure time. Nothing is sent from this page.';
+  const setup=$('o-keep');
+  if(setup) setup.textContent=syncing()
+    ?'Saved on this phone. Leave a field blank and the public pages keep the wording they already have. ABN and QBCC stay empty until you type them. This screen does not invent a number or claim a licence. '+LEADS_SENT
+    :'Saved on this phone only. Leave a field blank and the public pages keep the wording they already have. ABN and QBCC stay empty until you type them. This screen does not invent a number or claim a licence. Nothing is sent.';
 }
 $('btn-copy-request').onclick=async()=>{
   if(!quote) return;
   readForm();
   const ok=await copyRequest(quote);
-  $('save-msg').textContent=ok?'Request copied. It is still only on this device. Nothing was sent.':'Could not copy. Use Download request. Nothing was sent.';
+  $('save-msg').textContent=ok?requestNote('Request copied'):'Could not copy. Use Download request. Nothing was sent.';
 };
 $('btn-download-request').onclick=()=>{
   if(!quote) return;
   readForm();
   downloadRequest(quote);
-  $('save-msg').textContent='Request downloaded. It is still only on this device. Nothing was sent.';
+  $('save-msg').textContent=requestNote('Request downloaded');
 };
 $('btn-nico').onclick=async()=>{if(!nicoReady())return;if(await saveQuote()) nicoMailto(quote)};
 $('btn-new').onclick=()=>{
@@ -2684,6 +2754,8 @@ function fillSetup(){
   $('o-qbcc').value=settings.qbcc||'';
   $('o-timing').value=settings.jobTiming||'';
   $('o-story').value=settings.ownerStory||'';
+  if($('o-worker')) $('o-worker').value=settings.workerUrl||'';
+  if($('o-token')) $('o-token').value=settings.leadToken||'';
   const img=$('o-photo-preview');
   const note=$('o-photo-note');
   if(settings.ownerPhoto){img.src=settings.ownerPhoto;img.hidden=false;img.alt='Photo added on this phone';if(note) note.hidden=true}
@@ -2699,6 +2771,8 @@ function readSetup(){
   settings.qbcc=($('o-qbcc').value||'').trim();
   settings.jobTiming=($('o-timing').value||'').trim().slice(0,500);
   settings.ownerStory=($('o-story').value||'').trim().slice(0,2000);
+  settings.workerUrl=($('o-worker')&&$('o-worker').value||'').trim();
+  settings.leadToken=($('o-token')&&$('o-token').value||'').trim();
 }
 function fillSettingsShared(){
   if(!$('s-biz')) return;
@@ -2712,7 +2786,15 @@ function fillSettingsShared(){
   if(settings.ownerPhoto){owner.src=settings.ownerPhoto;owner.hidden=false;owner.alt='Photo added in Settings';if(ownerNote) ownerNote.hidden=true}
   else{owner.removeAttribute('src');owner.hidden=true;owner.alt='';if(ownerNote) ownerNote.hidden=false}
 }
-$('o-save').onclick=()=>{readSetup();Store.set(K.settings,settings);fillSettingsShared();update();$('o-msg').textContent='Saved on this phone. Nothing was sent.'};
+$('o-save').onclick=()=>{
+  const problem=workerUrlProblem($('o-worker')&&$('o-worker').value);
+  if(problem){$('o-msg').textContent=problem;return}
+  readSetup();
+  Store.set(K.settings,settings);
+  fillSettingsShared();
+  update();
+  $('o-msg').textContent=syncing()?'Saved on this phone. '+LEADS_SENT:'Saved on this phone. Nothing was sent.';
+};
 $('o-photo').addEventListener('change',async e=>{
   const file=(e.target.files||[])[0];
   e.target.value='';
@@ -2731,7 +2813,7 @@ $('avail-slots').addEventListener('click',e=>{
   renderAvailability();
 });
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerUrl:settings.workerUrl||'',leadToken:settings.leadToken||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillSetup();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
@@ -2825,18 +2907,20 @@ const RenderService=(()=>{
 })();
 window.RenderService=RenderService;
 
-/* Backend adapter. A Cloudflare Worker can replace these three methods later.
-   Nothing here sends email, SMS, or a form post. A person approves before a price is final or anything goes out. */
+/* Backend adapter. A form post runs only when an https Worker URL is saved.
+   Nothing here sends email or SMS. A person approves before a price is final or anything goes out. */
 const Backend={
   async submitLead(lead){
     const list=Store.get(K.quotes,[]);
     const i=list.findIndex(x=>x.id===lead.id);
     if(i>=0) list[i]=lead; else list.unshift(lead);
     Store.set(K.quotes,list);
-    if(settings&&settings.workerPost===true){
-      try{await postLead(lead, Calc.totals(lead, settings))}catch{/* the copy on this device remains */}
-    }
-    return {ok:true, via:'local', sent:false};
+    let sent=false;
+    if(workerEndpoint()){
+      try{sent=(await postLead(lead, Calc.totals(lead, settings)))==='sent'}catch{sent=false}
+      lastLeadPost=sent?'sent':'failed';
+    }else lastLeadPost='local';
+    return {ok:true, via:sent?'worker':'local', sent};
   },
   async analysePhotos(photos){
     const provider=window.PhotoVision?PhotoVision.current():null;
@@ -3311,7 +3395,11 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(!ok){quote.intake.complete=false; push('assistant','I could not save this on the phone. Check the details and try again.'); render(); return}
     const why=quote.estimate&&quote.estimate.explanation;
     if(why) push('assistant', why);
-    push('assistant', `Saved ${quote.number} on this device only for ${quote.customer.name}. Their referral code is ${quote.referral&&quote.referral.code||''}. That code stays on this device and only matches another lead in this same browser. A $250 thank-you is not promised. Nico does not have this quote until you copy or download the request. The price is not final.`);
+    const code=quote.referral&&quote.referral.code||'';
+    const local=`Saved ${quote.number} on this device only for ${quote.customer.name}. Their referral code is ${code}. That code stays on this device and only matches another lead in this same browser. A $250 thank-you is not promised. Nico does not have this quote until you copy or download the request. The price is not final.`;
+    const sent=`Saved ${quote.number} for ${quote.customer.name}. Their referral code is ${code}. That code stays on this device and only matches another lead in this same browser. A $250 thank-you is not promised. ${LEAD_SENT} Photos stay on this phone. The price is not final.`;
+    const missed=`Saved ${quote.number} on this phone for ${quote.customer.name}. Their referral code is ${code}. That code stays on this device and only matches another lead in this same browser. A $250 thank-you is not promised. The worker did not receive this lead. Photos stay on this phone. The price is not final.`;
+    push('assistant', ok==='sent'?sent:(syncing()?missed:local));
     render();
   }
   function resetChat(){
@@ -3720,7 +3808,7 @@ function readAvailability(){
   settings.availability={days:[...new Set(days)],slots:[...new Set(slots)].sort()};
 }
 const Measure=(()=>{
-  let pick={date:'',time:''}, bound=false, lastStatus='';
+  let pick={date:'',time:''}, bound=false, lastStatus='', postedOk=null;
   function avail(){
     const a=settings&&settings.availability;
     const days=a&&Array.isArray(a.days)?a.days.map(Number).filter(n=>n>=0&&n<=6):[1,2,3,4,5];
@@ -3759,12 +3847,17 @@ const Measure=(()=>{
     const saved=quote&&quote.measure&&quote.measure.status==='Measure requested'?quote.measure:null;
     const dateBtns=dates.length?dates.map(iso=>`<button type="button" class="chip${pick.date===iso?' on':''}" data-measure-date="${iso}">${esc(labelDate(iso))}</button>`).join(''):'<p class="hint">No days are ticked in Settings yet.</p>';
     const slotBtns=slots.length?slots.map(s=>`<button type="button" class="chip${pick.time===s?' on':''}" data-measure-slot="${esc(s)}">${esc(labelTime(s))}</button>`).join(''):'<p class="hint">No times are listed in Settings yet.</p>';
-    const savedLine=saved?`<p class="hint">Current request: ${esc(whenText(saved))}. Status: Measure requested. Saved on this device only. Not confirmed. Nothing was sent.</p>`:'';
-    return `${savedLine}<p class="hint">Pick a day and a time from the list. This is a request, not a confirmed booking. It is saved on this device only. Nothing is sent.</p><div class="chips">${dateBtns}</div><div class="chips">${slotBtns}</div><button class="btn" type="button" data-measure-go>Request this time</button><div class="actions"><button class="btn sec" type="button" data-request-copy>Copy request</button><button class="btn sec" type="button" data-request-download>Download request</button></div><p class="hint">Copy or download includes your details, the estimate, and the requested measure time. Nico does not receive it from this page.</p><p class="hint measure-status" role="status">${esc(lastStatus)}</p>`;
+    const savedNote=!syncing()?'Saved on this device only. Nothing was sent.':(postedOk===false?'The worker did not receive this lead. Photos stay on this phone.':LEAD_SENT+' Photos stay on this phone.');
+    const savedLine=saved?`<p class="hint">Current request: ${esc(whenText(saved))}. Status: Measure requested. Not confirmed. ${esc(savedNote)}</p>`:'';
+    const kept=syncing()?LEADS_SENT:'It is saved on this device only. Nothing is sent.';
+    const handoff=syncing()?LEADS_SENT:'Nico does not receive it from this page.';
+    return `${savedLine}<p class="hint">Pick a day and a time from the list. This is a request, not a confirmed booking. ${kept}</p><div class="chips">${dateBtns}</div><div class="chips">${slotBtns}</div><button class="btn" type="button" data-measure-go>Request this time</button><div class="actions"><button class="btn sec" type="button" data-request-copy>Copy request</button><button class="btn sec" type="button" data-request-download>Download request</button></div><p class="hint">Copy or download includes your details, the estimate, and the requested measure time. ${handoff}</p><p class="hint measure-status" role="status">${esc(lastStatus)}</p>`;
   }
   async function persist(rec){
-    try{await Backend.submitLead(rec);return 'adapter'}
-    catch{
+    try{
+      const res=await Backend.submitLead(rec);
+      return res&&res.sent?'sent':'local';
+    }catch{
       const list=Store.get(K.quotes,[]);
       const i=list.findIndex(x=>x.id===rec.id);
       if(i>=0) list[i]=rec; else list.unshift(rec);
@@ -3788,14 +3881,22 @@ const Measure=(()=>{
     const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
     syncOne(rec,Store.get(K.quotes,[]).filter(x=>x.id!==rec.id).concat(rec));
     quote.referral=structuredClone(rec.referral);
+    const via=await persist(rec);
     let draft='';
     try{const note=await Backend.notifyOwner(rec);draft=(note&&note.draft)||nicoBody(rec)}
     catch{draft=nicoBody(rec)}
     rec.measure.ownerDraft=draft;
-    rec.measure.sent=false;
+    rec.measure.sent=via==='sent';
     quote.measure=structuredClone(rec.measure);
-    await persist(rec);
-    lastStatus='Saved on this device only. Status: Measure requested. Nothing was sent. Copy or download the request if you want Nico to have it.';
+    const saved=Store.get(K.quotes,[]);
+    const at=saved.findIndex(x=>x.id===rec.id);
+    if(at>=0){saved[at].measure=structuredClone(rec.measure);Store.set(K.quotes,saved)}
+    postedOk=syncing()?via==='sent':null;
+    lastStatus=via==='sent'
+      ?'Status: Measure requested. '+LEAD_SENT+' Photos stay on this phone.'
+      :(syncing()
+        ?'Saved on this phone. Status: Measure requested. The worker did not receive this lead. Photos stay on this phone.'
+        :'Saved on this device only. Status: Measure requested. Nothing was sent. Copy or download the request if you want Nico to have it.');
     if($('save-msg')) $('save-msg').textContent=lastStatus;
     paint();
   }
@@ -3820,13 +3921,13 @@ const Measure=(()=>{
       if(e.target.closest('[data-request-copy]')){
         if(!quote) return;
         readForm();
-        copyRequest(quote).then(ok=>{lastStatus=ok?'Request copied. It is still only on this device. Nothing was sent.':'Could not copy. Use Download request. Nothing was sent.';paint()});
+        copyRequest(quote).then(ok=>{lastStatus=ok?requestNote('Request copied'):'Could not copy. Use Download request. Nothing was sent.';paint()});
       }
       if(e.target.closest('[data-request-download]')){
         if(!quote) return;
         readForm();
         downloadRequest(quote);
-        lastStatus='Request downloaded. It is still only on this device. Nothing was sent.';
+        lastStatus=requestNote('Request downloaded');
         paint();
       }
     });
@@ -3864,6 +3965,8 @@ async function boot(){
     if(settings.email==null) settings.email='';
     if(settings.serviceSuburbs==null) settings.serviceSuburbs='';
     if(settings.jobTiming==null) settings.jobTiming='';
+    if(settings.workerUrl==null) settings.workerUrl='';
+    if(settings.leadToken==null) settings.leadToken='';
     if(settings.depositUnderPct==null) settings.depositUnderPct=10;
     if(settings.depositOverPct==null) settings.depositOverPct=5;
     if(!settings.progressPayments) settings.progressPayments=DEFAULT_PROGRESS;

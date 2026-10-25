@@ -45,6 +45,9 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-25
 
+- Lead result wording. The copied request says the lead was sent only after that post succeeds. A failed post says the worker did not receive it. The pipeline stage note, the job-stage note, and the replied note follow the same result.
+- Lead text only. A saved https Worker URL posts the text of a lead and never a photo. The token goes in the X-Lead-Token header only. An http address or an invalid address is refused on Setup, and that screen does not say it was saved. When the URL is set, the lead lines say the lead was sent to the worker saved on this phone. When it is blank, they still say nothing was sent. The worker allows only the GitHub Pages origin.
+- Lead sync prep. A Cloudflare Worker script and a plain setup guide sit in docs/lead-sync. Nothing is deployed and no account is created. Leads stay on this phone until a Worker URL is saved on the Setup screen.
 - Quote photo. The quote and the FAQ use the same jpeg, png, and webp check as the PDF. A gif is left out.
 - Setup wording. The photo note on Setup points at the photo field on that screen. The story placeholder does not name anyone. The PDF includes the photo only when the address is a plain image, and that address is escaped.
 - Owner setup. The owner menu has a screen for the business name, phone, email, service suburbs, ABN, QBCC, job timing, a photo and a short story. They stay on this phone. ABN and QBCC start blank, with the placeholder "add yours", and no licence is claimed. A filled field shows on the quote, the PDF, About and FAQ. Existing placeholders stay until that field is filled.
