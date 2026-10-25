@@ -1060,7 +1060,7 @@ function filledOwner(){
     qbcc:String(settings.qbcc||'').trim(),
     timing:String(settings.jobTiming||'').trim(),
     story:String(settings.ownerStory||'').trim(),
-    photo:photo.startsWith('data:image/')?photo:''
+    photo:safeImageSrc(photo)
   };
 }
 function paintQuoteBiz(){
@@ -1076,12 +1076,13 @@ function paintQuoteBiz(){
   if(o.timing) lines.push(o.timing);
   if(o.story) lines.push(o.story);
   host.replaceChildren();
-  if(!lines.length && !o.photo){host.hidden=true;return}
+  const photo=safeImageSrc(o.photo);
+  if(!lines.length && !photo){host.hidden=true;return}
   host.hidden=false;
-  if(o.photo){
+  if(photo){
     const img=document.createElement('img');
     img.className='owner-portrait';
-    img.src=o.photo;
+    img.src=photo;
     img.alt='Photo added on this phone';
     host.append(img);
   }
@@ -1098,12 +1099,13 @@ function paintFaqMeet(){
   if(!host) return;
   const o=filledOwner();
   host.replaceChildren();
-  if(!o.photo && !o.story){host.hidden=true;return}
+  const photo=safeImageSrc(o.photo);
+  if(!photo && !o.story){host.hidden=true;return}
   host.hidden=false;
-  if(o.photo){
+  if(photo){
     const img=document.createElement('img');
     img.className='owner-portrait';
-    img.src=o.photo;
+    img.src=photo;
     img.alt='Photo added on this phone';
     host.append(img);
   }
@@ -1822,7 +1824,7 @@ function exclusionLines(pkgId, picks){
 }
 function safeImageSrc(src){
   const s=String(src||'');
-  return /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(s)?s:'';
+  return /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s)?s:'';
 }
 function ownerPdfExtra(){
   const o=filledOwner();
