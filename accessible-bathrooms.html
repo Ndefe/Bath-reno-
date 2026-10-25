@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<title>Accessible bathrooms | Gert's Reno</title>
+<meta name="description" content="The Accessible Care package for a bathroom in Brisbane. The from-price is incl. GST and subject to a free site measure. Gert's Reno is not an NDIS-registered provider.">
+<link rel="canonical" href="https://ndefe.github.io/Bath-reno-/accessible-bathrooms.html">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mute:#66758a;--acc:#0a5f68;--line:#dde3ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+a{color:var(--acc)}
+header,footer{background:var(--ink);color:#fff}
+header{padding:14px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+header a{color:#fff;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;min-height:44px}
+header nav a{font-weight:500;font-size:14px;text-decoration:underline}
+main{max-width:760px;margin:0 auto;padding:18px 16px 32px}
+h1{font-size:1.45rem;line-height:1.25;margin:0 0 12px}
+h2{font-size:1.15rem;margin:22px 0 8px}
+h3{font-size:1rem;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.price{font-weight:700}
+ul{margin:8px 0;padding-left:18px}
+li{margin:6px 0}
+.hint{color:var(--mute);font-size:.92rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 14px;background:var(--acc);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;max-width:100%}
+footer{padding:16px;font-size:.85rem}
+footer a{color:#fff;display:inline-flex;align-items:center;min-height:44px}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">Gert's Reno</a>
+  <nav><a href="about.html">About</a></nav>
+</header>
+<main>
+  <h1>Accessible bathrooms</h1>
+  <p>This page is the Accessible Care package. The figures use the same catalogue formula as the quote. A bath and any other extras are on top.</p>
+  <p class="hint">This page does not book a job. Nothing is sent from this page.</p>
+  <div id="prices"></div>
+  <h2>What the quote already says</h2>
+  <div class="card">
+    <p>Gert's Reno is not an NDIS-registered provider. Self-managed and plan-managed participants only. NDIS-funded work needs an OT assessment, and the OT's spec overrides this package. AS 1428.1 is used as a design reference.</p>
+    <p>A curtain setup is waterproofed across the whole floor.</p>
+    <p>Three $600 allowances to confirm are inside this price: wall reinforcement behind the rails and seat, fitting the rails, seat and curtain track, and the hobless shower set-in.</p>
+  </div>
+  <h2>Step-free shower, rails, seat and doors</h2>
+  <article class="card">
+    <h3>Step-free shower</h3>
+    <p>The package includes a hobless shower with a linear channel, and a curtain rather than a glass screen.</p>
+    <p id="slab-extra"></p>
+  </article>
+  <article class="card">
+    <h3>Grab rails and fold-down seat</h3>
+    <p>Fitting three grab rails, the fold-down seat and the curtain track is inside this price. A $600 allowance to confirm with the trades.</p>
+    <p>Wall reinforcement behind the rails and seat is inside this price. A $600 allowance to confirm with the trades.</p>
+  </article>
+  <article class="card">
+    <h3>Wider doors</h3>
+    <p id="door-extra"></p>
+  </article>
+  <p><a class="btn" href="index.html">Start a quote</a></p>
+  <p class="hint" id="status" role="status"></p>
+  <noscript><p>Prices load from the catalogue on this site. Turn on JavaScript to see them. This page does not guess a number.</p></noscript>
+</main>
+<footer>
+  <p>Gert's Reno, Brisbane. This page does not book a job. Nothing is sent from this page.</p>
+  <p><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
+</footer>
+<script>
+const SIZES=[3,4,5];
+const CONFIRM='Price to confirm after a site measure. Not included in the from price.';
+const MISSING='That extra is not in the catalogue on this site. This page will not guess a price.';
+const round=n=>Math.round((+n||0)*100)/100;
+const money=n=>new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(+n||0);
+const fromLine=n=>`from ${money(n)} incl. GST, subject to a free site measure`;
+function displayName(p){return String(p.name||'').replace(/\s*\(suggested premium\)\s*/i,'').trim()}
+function priceOf(p,area){
+  const fee=p&&p.pricing?p.pricing.base_fee:undefined;
+  const rate=p&&p.pricing?p.pricing.rate_per_m2:undefined;
+  if(typeof fee!=='number'||typeof rate!=='number') return null;
+  return round(fee+area*rate);
+}
+function extraById(cat,id){return (cat.extras||[]).find(e=>e.id===id)||null}
+function extraPhrase(ex){
+  if(!ex||ex.patternSell) return MISSING;
+  if(ex.price==null) return CONFIRM;
+  if(typeof ex.price!=='number') return MISSING;
+  if(String(ex.id).startsWith('fttc_')) return MISSING;
+  if(/m2|m²/i.test(ex.unit||'')) return MISSING;
+  return fromLine(round(ex.price));
+}
+function el(tag,text){
+  const node=document.createElement(tag);
+  if(text!=null) node.textContent=text;
+  return node;
+}
+function showError(){
+  document.getElementById('status').textContent='The catalogue on this site did not load. This page will not guess a price. Nothing was sent.';
+}
+function render(cat){
+  const pkg=(cat.packages||[]).find(p=>p.id==='accessible-care');
+  if(!pkg||SIZES.some(a=>priceOf(pkg,a)==null)){showError();return}
+  const card=el('article');
+  card.className='card';
+  card.append(el('h2',displayName(pkg)));
+  const list=el('ul');
+  SIZES.forEach(area=>{
+    const li=el('li');
+    li.append(el('span',area+' m²: '));
+    const strong=el('span',fromLine(priceOf(pkg,area)));
+    strong.className='price';
+    li.append(strong);
+    list.append(li);
+  });
+  card.append(list);
+  document.getElementById('prices').append(card);
+  const slab=extraById(cat,'step-free-slab-setdown_accessible-care');
+  document.getElementById('slab-extra').textContent=slab
+    ?`${slab.name}. ${extraPhrase(slab)}`
+    :'A slab set-down is not in the catalogue on this site. This page will not guess a price.';
+  const door=extraById(cat,'door-widening_accessible-care');
+  document.getElementById('door-extra').textContent=door
+    ?`${door.name}. ${extraPhrase(door)}`
+    :'Door widening is not in the catalogue on this site. This page will not guess a price.';
+}
+fetch('catalogue.json').then(res=>{
+  if(!res.ok) throw new Error('status');
+  return res.json();
+}).then(render).catch(showError);
+</script>
+</body>
+</html>
