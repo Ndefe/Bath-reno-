@@ -345,6 +345,7 @@ def page(suburb, others):
   <p>Start on the quote page. The assistant asks for the room size, a look, a budget, timing and this suburb, then your name and contact. The figure is the package base fee plus its rate per square metre. It is shown as a from-price, incl. GST, subject to a site measure. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
   <p>Waterproofing on these quotes follows NCC 2022 Part H4 / Housing Provisions 10.2 (AS 3740:2021). A curtain shower is waterproofed across the whole floor.</p>
   <p>Accessible Care suits self-managed and plan-managed NDIS participants and private clients. Gert's Reno is not an NDIS-registered provider. NDIS-funded work needs an OT assessment, and the OT's spec overrides the package. AS 1428.1 is used as a design reference.</p>
+  <p><a href="../accessible-bathrooms.html">Accessible bathrooms</a></p>
   <p><a href="../cost-guide.html">How much does a bathroom renovation cost in Brisbane?</a></p>
   <p><a href="../index.html">Start a quote</a></p>
   <h2>Other suburbs</h2>
@@ -410,6 +411,7 @@ def index_page():
   <ul class="suburb-list card">
     {items}
   </ul>
+  <p><a href="../accessible-bathrooms.html">Accessible bathrooms</a></p>
   <p><a href="../cost-guide.html">How much does a bathroom renovation cost in Brisbane?</a></p>
   <p><a href="../index.html">Start a quote</a></p>
 </main>
@@ -423,7 +425,7 @@ def index_page():
 
 def main():
     OUT.mkdir(exist_ok=True)
-    urls = [SITE + "/", SITE + "/about.html", SITE + "/cost-guide.html", SITE + "/suburbs/index.html"]
+    urls = [SITE + "/", SITE + "/about.html", SITE + "/cost-guide.html", SITE + "/accessible-bathrooms.html", SITE + "/suburbs/index.html"]
     for i, suburb in enumerate(SUBURBS):
         others = [SUBURBS[(i + n) % len(SUBURBS)] for n in (1, 2, 3)]
         (OUT / f"{suburb['slug']}.html").write_text(page(suburb, others), encoding="utf-8")
@@ -433,7 +435,7 @@ def main():
     for url in urls:
         body.append("  <url>")
         body.append(f"    <loc>{esc(url)}</loc>")
-        body.append("    <lastmod>2026-10-23</lastmod>")
+        body.append("    <lastmod>2026-10-25</lastmod>")
         body.append("  </url>")
     body.append("</urlset>")
     (ROOT / "sitemap.xml").write_text("\n".join(body) + "\n", encoding="utf-8")
