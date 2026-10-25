@@ -377,6 +377,7 @@ header.app{position:sticky;top:0;z-index:20}
 .flow-progress span{display:block;height:100%;width:20%;background:var(--acc);border-radius:99px;transition:width .28s ease}
 .pl-more{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 10px 8px;background:#fff}
 .pl-more summary{min-height:44px;line-height:44px;cursor:pointer;font-weight:600}
+#view-settings details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .pl-more:not([open]) > :not(summary){display:none!important}
 [data-flow]{animation:flow-in .28s ease}
 @keyframes flow-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -1321,7 +1322,14 @@ function paintQuoteTotal(t){
 paintQuoteTotal.vis=null;
 function sayQuote(text){
   const live=$('quote-total-live');
-  if(!live||!text||text==='Enter the floor size') return;
+  if(!live) return;
+  if(!text||text==='Enter the floor size'){
+    if(!live.textContent) return;
+    live.setAttribute('aria-live','off');
+    live.textContent='';
+    return;
+  }
+  if(live.getAttribute('aria-live')!=='polite') live.setAttribute('aria-live','polite');
   if(live.textContent!==text) live.textContent=text;
 }
 sayQuote.on=false;
