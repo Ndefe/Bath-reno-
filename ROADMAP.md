@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-25
 
+- Day targets. The seven settings day boxes, Sunday to Saturday, are at least 44px, and the suburb and job-tracker links in the assistant are at least 44px tall. Prices are unchanged.
 - Accessibility leftovers. The quote total stays quiet until the figure changes. A planner step is focused without jumping the page. Dimension choices, chips, text fields, and the about link are at least 44px tall. The package list has a name, and the chat log can be focused. Prices are unchanged.
 
 ### 2026-10-23
