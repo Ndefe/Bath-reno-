@@ -33,7 +33,10 @@ a{color:var(--acc)}
 <main>
   <div class="card">
     <h2>Warranty and the process</h2>
-    <p>Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure.</p>
+    <p id="intro">Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure.</p>
+    <p class="hint" id="contact" hidden></p>
+    <p class="hint" id="suburbs" hidden></p>
+    <p class="hint" id="timing" hidden></p>
     <ol id="process"></ol>
     <p class="hint" id="legal"></p>
   </div>
@@ -74,6 +77,23 @@ function show(){
   const progress=String(s.progressPayments||'').trim()||DEFAULT_PROGRESS;
   const abn=String(s.abn||'').trim()||'(add your ABN)';
   const qbcc=String(s.qbcc||'').trim()||'(add your licence number)';
+  const name=String(s.bizName||'').trim()||"Gert's Reno";
+  const phone=String(s.phone||'').trim();
+  const email=String(s.email||'').trim();
+  const suburbs=String(s.serviceSuburbs||'').trim();
+  const timing=String(s.jobTiming||'').trim();
+  document.querySelector('header h1 a').textContent=name;
+  document.getElementById('intro').textContent=name+' quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure.';
+  const contact=document.getElementById('contact');
+  const contactText=[phone,email].filter(Boolean).join(' · ');
+  contact.textContent=contactText;
+  contact.hidden=!contactText;
+  const suburbsEl=document.getElementById('suburbs');
+  suburbsEl.textContent=suburbs?('Service suburbs: '+suburbs):'';
+  suburbsEl.hidden=!suburbs;
+  const timingEl=document.getElementById('timing');
+  timingEl.textContent=timing;
+  timingEl.hidden=!timing;
   const list=document.getElementById('process');
   list.textContent='';
   addItem(list, 'The quote shows a from-price, incl. GST, subject to a site measure.');
