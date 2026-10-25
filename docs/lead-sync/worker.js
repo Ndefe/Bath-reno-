@@ -1,13 +1,11 @@
 /* Gert's Reno lead worker.
    Paste this into a Cloudflare Worker you create yourself.
    It does not send email or SMS, and it does not invent an ABN or a licence.
-   Photo files are counted and then dropped. The bytes stay on the phone. */
+   Only text fields are stored. Photo files are ignored. */
 const PAGES_ORIGIN='https://ndefe.github.io';
 
 function allowedOrigin(origin){
   if(origin===PAGES_ORIGIN) return origin;
-  if(/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) return origin;
-  if(/^http:\/\/localhost:\d+$/.test(origin)) return origin;
   return '';
 }
 function cors(request){
@@ -40,9 +38,7 @@ export default {
     try{form=await request.formData()}
     catch{return json(request, 400, {ok:false, error:'Expected a form post.'})}
     const sent=clip(request.headers.get('X-Lead-Token'), 200);
-    const access=clip(form.get('access_key'), 200);
-    if(sent!==expected && access!==expected) return json(request, 401, {ok:false, error:'Token does not match.'});
-    const photos=form.getAll('photos');
+    if(sent!==expected) return json(request, 401, {ok:false, error:'Token does not match.'});
     const lead={
       customer_name:clip(form.get('customer_name')||form.get('name'), 200),
       phone:clip(form.get('phone'), 40),
@@ -55,7 +51,6 @@ export default {
       floor_area_m2:clip(form.get('floor_area_m2'), 40),
       quote_total:clip(form.get('quote_total'), 40),
       quote_number:clip(form.get('quote_number'), 40),
-      photo_count:photos.length,
       received_at:new Date().toISOString()
     };
     const kv=env&&env.LEADS;

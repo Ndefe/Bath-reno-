@@ -14,7 +14,9 @@ The quote page keeps saving leads on the phone. It does not post anywhere until 
 6. Deploy the worker yourself. Copy its `https://` address.
 7. On the phone, open Owner, then Setup. Paste that address into Worker URL. Paste the same token into Worker token. Tap Save on this phone.
 
-After that, saving a project still keeps the lead on the phone, and also posts the text fields to your worker. Photo files are not stored by the worker. The worker does not email or text anyone, and it does not add an ABN or a QBCC number.
+After that, saving a project still keeps the lead on the phone, and also posts the text fields to your worker. Photos are never uploaded. The token is sent once, in the `X-Lead-Token` header, and it is not added to the form. The worker does not email or text anyone, and it does not add an ABN or a QBCC number.
+
+Setup refuses an `http://` address and any address that is not a valid `https://` URL. The screen shows the error and does not say the address was saved. Leave the Worker URL blank and nothing is posted.
 
 If the post fails, the lead remains on the phone. Copy request and Download request work either way.
 
