@@ -43,6 +43,10 @@ These rules sit above the feature list. They do not change the site.
 
 ## CHANGELOG
 
+### 2026-10-25
+
+- Accessibility leftovers. The quote total stays quiet until the figure changes. A planner step is focused without jumping the page. Dimension choices, chips, text fields, and the about link are at least 44px tall. The package list has a name, and the chat log can be focused. Prices are unchanged.
+
 ### 2026-10-23
 
 - Tap rows. On the quote and in the chat, a tick row is at least 44px tall and the label toggles it. Copy a draft and Print the quote are separate buttons. Prices are unchanged.
