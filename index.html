@@ -750,7 +750,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div id="pipe-board" hidden>
       <div class="card">
         <h2>Pipeline</h2>
-        <p class="hint">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. A quote with no reply after 3 days can have a draft nudge. You approve it before it is copied or opened. Nothing is sent.</p>
+        <p class="hint" id="pipe-keep">Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. A quote with no reply after 3 days can have a draft nudge. You approve it before it is copied or opened. Nothing is sent.</p>
         <p class="hint" id="pipe-ref"></p>
         <p class="hint" id="pipe-nudge"></p>
         <div id="pipe-chips" class="chips"></div>
@@ -1294,7 +1294,7 @@ function nicoBody(q){
     ...(q.measure&&q.measure.date?[
       `Site measure request: ${q.measure.date} ${q.measure.time}`,
       `Status: ${q.measure.status||'Measure requested'}`,
-      (syncing()?LEAD_SENT+' Photos stay on this phone. Nico confirms the time.':'Nothing has been sent. Nico confirms the time.')
+      (lastLeadPost==='sent'?LEAD_SENT+' Photos stay on this phone. Nico confirms the time.':lastLeadPost==='failed'?LEAD_MISSED+' Nico confirms the time.':'Nothing has been sent. Nico confirms the time.')
     ]:[])
   ].join('\n');
 }
@@ -1316,7 +1316,7 @@ function requestText(q){
   const price=t.total>0?`${fromPrice(t.total)}, subject to a site measure`:'Floor size not set';
   return [
     "Gert's Reno request",
-    'Saved on this device only. Nothing has been sent.',
+    requestSyncLine(),
     '',
     `Name: ${c.name||''}`,
     `Phone: ${c.phone||''}`,
@@ -1363,10 +1363,23 @@ function workerEndpoint(){
 function syncing(){ return !!workerEndpoint(); }
 const LEAD_SENT='The lead was sent to the worker saved on this phone.';
 const LEADS_SENT='Leads are sent to the worker saved on this phone. Photos stay on this phone.';
+const LEAD_MISSED='The worker did not receive this lead. Photos stay on this phone.';
+let lastLeadPost=null;
+function leadPostLine(local){
+  if(lastLeadPost==='sent') return LEAD_SENT+' Photos stay on this phone.';
+  if(lastLeadPost==='failed') return LEAD_MISSED;
+  if(syncing()) return LEADS_SENT;
+  return local;
+}
+function requestSyncLine(){
+  if(lastLeadPost==='sent') return LEAD_SENT+' Photos stay on this phone.';
+  if(lastLeadPost==='failed') return 'Saved on this phone. '+LEAD_MISSED;
+  return 'Saved on this device only. Nothing has been sent.';
+}
 function requestNote(action){
-  return syncing()
-    ?action+'. '+LEAD_SENT+' Photos stay on this phone.'
-    :action+'. It is still only on this device. Nothing was sent.';
+  if(lastLeadPost==='sent') return action+'. '+LEAD_SENT+' Photos stay on this phone.';
+  if(lastLeadPost==='failed') return action+'. '+LEAD_MISSED;
+  return action+'. It is still only on this device. Nothing was sent.';
 }
 /* No post until an https Worker URL is saved on this phone. Photos are never posted. */
 async function postLead(rec,t){
@@ -1650,7 +1663,8 @@ function nudgeBlock(q){
   const id=esc(q.id);
   if(q.clientReply&&q.clientReply.at){
     const when=fmtDate(new Date(q.clientReply.at));
-    return `<div class="nudge"><p class="hint">Marked as replied${Number.isNaN(Date.parse(q.clientReply.at))?'':` on ${esc(when)}`}. No nudge. Nothing was sent.</p><button class="btn sec sm" type="button" data-nudge-clear="${id}">Clear the reply mark</button></div>`;
+    const replyNote=leadPostLine('Nothing was sent.');
+    return `<div class="nudge"><p class="hint">Marked as replied${Number.isNaN(Date.parse(q.clientReply.at))?'':` on ${esc(when)}`}. No nudge. ${esc(replyNote)}</p><button class="btn sec sm" type="button" data-nudge-clear="${id}">Clear the reply mark</button></div>`;
   }
   if(!needsNudge(q)) return '';
   const d=nudgeDraft(q);
@@ -2173,7 +2187,11 @@ function jobBlock(q){
     const opts=JOB_STATES.map(st=>`<option${st===job.stages[s.id]?' selected':''}>${esc(st)}</option>`).join('');
     return `<label>${esc(s.label)}</label><select data-job="${esc(s.id)}" data-job-lead="${id}">${opts}</select>`;
   }).join('');
-  return `<div class="job-track"><p class="hint">Job stages. Set each one by hand. This does not change the sales stage, and nothing is sent.</p>${rows}<label>Tracker link</label><input readonly data-tracker-url="${id}" value="${esc(trackerUrl(q))}"><button class="btn sec sm" type="button" data-tracker="${id}">Copy tracker link</button><p class="hint" data-tracker-status="${id}">Anyone with this link can read these stages. It is not a live login. It has no phone number or email. It changes only when you copy a new link. Nothing is sent.</p></div>`;
+  const jobNote=leadPostLine('Nothing is sent.');
+  const jobLine=jobNote==='Nothing is sent.'
+    ?'Job stages. Set each one by hand. This does not change the sales stage, and nothing is sent.'
+    :'Job stages. Set each one by hand. This does not change the sales stage. '+jobNote;
+  return `<div class="job-track"><p class="hint">${esc(jobLine)}</p>${rows}<label>Tracker link</label><input readonly data-tracker-url="${id}" value="${esc(trackerUrl(q))}"><button class="btn sec sm" type="button" data-tracker="${id}">Copy tracker link</button><p class="hint" data-tracker-status="${id}">Anyone with this link can read these stages. It is not a live login. It has no phone number or email. It changes only when you copy a new link. Nothing is sent.</p></div>`;
 }
 function renderPipeline(){
   const pin=String(settings.ownerPin||'').trim();
@@ -2193,6 +2211,11 @@ function renderPipeline(){
     return;
   }
   lock.hidden=true; board.hidden=false;
+  const pipeKeep=$('pipe-keep');
+  if(pipeKeep){
+    const tail=leadPostLine('Nothing is sent.');
+    pipeKeep.textContent='Stages stay on this phone. Changing a stage does not send a message, and it does not make a price final. Job stages are separate. You set each one by hand. The tracker link is a snapshot. A quote with no reply after 3 days can have a draft nudge. You approve it before it is copied or opened. '+tail;
+  }
   const list=Store.get(K.quotes,[]);
   const before=list.map(q=>JSON.stringify(q.referral||null)).join('|');
   list.forEach(q=>syncOne(q,list));
@@ -2218,7 +2241,7 @@ function renderPipeline(){
     const opts=STAGES.map(s=>`<option${s===stage?' selected':''}>${esc(s)}</option>`).join('');
     const asked=q.measure&&q.measure.status==='Measure requested'&&q.measure.date;
     const when=asked&&window.Measure?Measure.whenText(q.measure):'';
-    const sentNote=syncing()?LEAD_SENT+' Photos stay on this phone.':'Nothing was sent.';
+    const sentNote=leadPostLine('Nothing was sent.');
     const measureHtml=asked?`<p class="hint">Measure requested: ${esc(when)}. Status: Measure requested. Not confirmed. ${esc(sentNote)}</p>${q.measure.ownerDraft?`<label>Draft for Nico</label><textarea readonly>${esc(q.measure.ownerDraft)}</textarea><p class="hint">This draft is saved with the lead. ${esc(sentNote)}</p>`:''}`:'';
     return `<article class="pipe" data-lead="${esc(q.id)}"><strong>${esc(c.name||'(no name)')}</strong><div class="hint">${esc([c.suburb||c.address,q.pkgSnapshot?.name||q.packageId,price].filter(Boolean).join(' · '))}</div><div class="score">Score ${sc.score} · budget ${sc.fit} · timing ${sc.time} · details ${sc.complete}</div><div>${esc(nextAction(q,sc))}</div>${measureHtml}${referralBlock(q,list)}<label>Stage</label><select data-pipe="${esc(q.id)}">${opts}</select>${jobBlock(q)}${nudgeBlock(q)}${stage==='Won'?reviewBlock(q):''}</article>`;
   }).join(''):'<p class="hint">No leads in this stage.</p>';
@@ -2895,7 +2918,8 @@ const Backend={
     let sent=false;
     if(workerEndpoint()){
       try{sent=(await postLead(lead, Calc.totals(lead, settings)))==='sent'}catch{sent=false}
-    }
+      lastLeadPost=sent?'sent':'failed';
+    }else lastLeadPost='local';
     return {ok:true, via:sent?'worker':'local', sent};
   },
   async analysePhotos(photos){
@@ -3857,13 +3881,16 @@ const Measure=(()=>{
     const rec={...structuredClone(quote),total:t.total,updatedAt:new Date().toISOString(),pkgSnapshot:t.pkg?{...t.pkg}:null};
     syncOne(rec,Store.get(K.quotes,[]).filter(x=>x.id!==rec.id).concat(rec));
     quote.referral=structuredClone(rec.referral);
+    const via=await persist(rec);
     let draft='';
     try{const note=await Backend.notifyOwner(rec);draft=(note&&note.draft)||nicoBody(rec)}
     catch{draft=nicoBody(rec)}
     rec.measure.ownerDraft=draft;
-    rec.measure.sent=false;
+    rec.measure.sent=via==='sent';
     quote.measure=structuredClone(rec.measure);
-    const via=await persist(rec);
+    const saved=Store.get(K.quotes,[]);
+    const at=saved.findIndex(x=>x.id===rec.id);
+    if(at>=0){saved[at].measure=structuredClone(rec.measure);Store.set(K.quotes,saved)}
     postedOk=syncing()?via==='sent':null;
     lastStatus=via==='sent'
       ?'Status: Measure requested. '+LEAD_SENT+' Photos stay on this phone.'
