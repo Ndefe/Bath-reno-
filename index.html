@@ -787,6 +787,11 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="ph-box" id="o-photo-note">Photo placeholder — add Nico's real photo in Settings. No photo is shown until then.</p>
       <label for="o-story">Short story</label>
       <textarea id="o-story" maxlength="2000" placeholder="Add Nico's real story. Leave this blank until then."></textarea>
+      <label for="o-worker">Worker URL</label>
+      <input id="o-worker" type="url" inputmode="url" autocomplete="off" placeholder="Leave blank">
+      <label for="o-token">Worker token</label>
+      <input id="o-token" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank">
+      <p class="hint">Leave both blank. Leads stay on this phone and nothing is posted. When you want sync, follow docs/lead-sync/SETUP.md yourself. This page does not deploy a worker or create an account.</p>
       <div class="actions"><button class="btn" id="o-save" type="button">Save on this phone</button><span class="hint" id="o-msg"></span></div>
     </div>
   </section>
@@ -836,7 +841,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="hint">Leave this blank until you paste the link from your Google Business profile. When a lead is marked Won, the pipeline can draft a review request. Nothing is sent automatically. This app does not show star ratings or testimonials.</p>
       <label for="s-nico">Send to Nico (email)</label>
       <input id="s-nico" type="email" autocomplete="off" placeholder="name@example.com">
-      <p class="hint">Leave this blank and Send to Nico stays hidden. A lead is saved on this device only. Nothing is posted. A Cloudflare Worker post stays off unless workerPost is set to true in this browser's saved settings, which it is not.</p>
+      <p class="hint">Leave this blank and Send to Nico stays hidden. A lead is saved on this device only. Nothing is posted until a Worker URL is saved on the Setup screen.</p>
     </div>
     <div class="card"><h2>Packages</h2>
       <p class="hint">Sell price inc GST = base fee + rate × floor m². Reset restores the catalogue rates.</p>
@@ -877,7 +882,7 @@ let catalogue=null, settings, quote, defaults, shownPkg=null;
 function buildDefaults(cat){
   return {
     bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email', validDays:30,
-    phone:'', email:'', serviceSuburbs:'', jobTiming:'',
+    phone:'', email:'', serviceSuburbs:'', jobTiming:'', workerUrl:'', leadToken:'',
     abn:'', qbcc:'', logo:'', ownerPhoto:'', ownerStory:'', googleReviewUrl:'',
     depositUnderPct:10, depositOverPct:5,
     progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
@@ -1338,10 +1343,13 @@ function downloadRequest(q){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-/* Off unless this browser's saved settings set workerPost to true and a workerUrl. The public form does not set either. */
+function workerEndpoint(){
+  const url=String(settings&&settings.workerUrl||'').trim();
+  return /^https:\/\/\S+$/i.test(url)?url:'';
+}
+/* No post until an https Worker URL is saved on this phone. The public form does not set one. */
 async function postLead(rec,t){
-  if(!settings||settings.workerPost!==true) return 'local';
-  const url=String(settings.workerUrl||'').trim();
+  const url=workerEndpoint();
   if(!url) return 'local';
   const fd=new FormData();
   const c=rec.customer||{};
@@ -1357,13 +1365,16 @@ async function postLead(rec,t){
   fd.append('floor_area_m2',String(t.area));
   fd.append('quote_total',String(t.total));
   fd.append('quote_number',rec.number||'');
-  const key=(settings.leadAccessKey||'').trim();
+  const key=(settings.leadAccessKey||settings.leadToken||'').trim();
   if(key) fd.append('access_key',key);
   (rec.photos||[]).forEach((p,i)=>{
     const blob=dataUrlToBlob(p.dataUrl);
     if(blob) fd.append('photos',blob,p.name||`photo-${i+1}.jpg`);
   });
-  const res=await fetch(url,{method:'POST',body:fd});
+  const headers={};
+  const token=String(settings.leadToken||'').trim();
+  if(token) headers['X-Lead-Token']=token;
+  const res=await fetch(url,{method:'POST',body:fd,headers});
   if(!res.ok) throw new Error('HTTP '+res.status);
   return 'sent';
 }
@@ -2677,6 +2688,8 @@ function fillSetup(){
   $('o-qbcc').value=settings.qbcc||'';
   $('o-timing').value=settings.jobTiming||'';
   $('o-story').value=settings.ownerStory||'';
+  if($('o-worker')) $('o-worker').value=settings.workerUrl||'';
+  if($('o-token')) $('o-token').value=settings.leadToken||'';
   const img=$('o-photo-preview');
   const note=$('o-photo-note');
   if(settings.ownerPhoto){img.src=settings.ownerPhoto;img.hidden=false;img.alt='Photo added on this phone';if(note) note.hidden=true}
@@ -2692,6 +2705,8 @@ function readSetup(){
   settings.qbcc=($('o-qbcc').value||'').trim();
   settings.jobTiming=($('o-timing').value||'').trim().slice(0,500);
   settings.ownerStory=($('o-story').value||'').trim().slice(0,2000);
+  settings.workerUrl=($('o-worker')&&$('o-worker').value||'').trim();
+  settings.leadToken=($('o-token')&&$('o-token').value||'').trim();
 }
 function fillSettingsShared(){
   if(!$('s-biz')) return;
@@ -2724,7 +2739,7 @@ $('avail-slots').addEventListener('click',e=>{
   renderAvailability();
 });
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerUrl:settings.workerUrl||'',leadToken:settings.leadToken||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillSetup();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
@@ -2818,15 +2833,15 @@ const RenderService=(()=>{
 })();
 window.RenderService=RenderService;
 
-/* Backend adapter. A Cloudflare Worker can replace these three methods later.
-   Nothing here sends email, SMS, or a form post. A person approves before a price is final or anything goes out. */
+/* Backend adapter. A form post runs only when an https Worker URL is saved.
+   Nothing here sends email or SMS. A person approves before a price is final or anything goes out. */
 const Backend={
   async submitLead(lead){
     const list=Store.get(K.quotes,[]);
     const i=list.findIndex(x=>x.id===lead.id);
     if(i>=0) list[i]=lead; else list.unshift(lead);
     Store.set(K.quotes,list);
-    if(settings&&settings.workerPost===true){
+    if(workerEndpoint()){
       try{await postLead(lead, Calc.totals(lead, settings))}catch{/* the copy on this device remains */}
     }
     return {ok:true, via:'local', sent:false};
@@ -3857,6 +3872,8 @@ async function boot(){
     if(settings.email==null) settings.email='';
     if(settings.serviceSuburbs==null) settings.serviceSuburbs='';
     if(settings.jobTiming==null) settings.jobTiming='';
+    if(settings.workerUrl==null) settings.workerUrl='';
+    if(settings.leadToken==null) settings.leadToken='';
     if(settings.depositUnderPct==null) settings.depositUnderPct=10;
     if(settings.depositOverPct==null) settings.depositOverPct=5;
     if(!settings.progressPayments) settings.progressPayments=DEFAULT_PROGRESS;
