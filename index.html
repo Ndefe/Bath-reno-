@@ -784,9 +784,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <input id="o-photo" type="file" accept="image/*">
       <img id="o-photo-preview" alt="" hidden>
       <button class="btn sec sm" id="o-photo-clear" type="button">Remove photo</button>
-      <p class="ph-box" id="o-photo-note">Photo placeholder — add Nico's real photo in Settings. No photo is shown until then.</p>
+      <p class="ph-box" id="o-photo-note">Photo placeholder. No photo is shown until you add one here.</p>
       <label for="o-story">Short story</label>
-      <textarea id="o-story" maxlength="2000" placeholder="Add Nico's real story. Leave this blank until then."></textarea>
+<textarea id="o-story" maxlength="2000" placeholder="Add a short story. Leave this blank until then."></textarea>
       <label for="o-worker">Worker URL</label>
       <input id="o-worker" type="url" inputmode="url" autocomplete="off" placeholder="Leave blank">
       <label for="o-token">Worker token</label>
@@ -1802,13 +1802,18 @@ function exclusionLines(pkgId, picks){
   }
   return lines;
 }
+function safeImageSrc(src){
+  const s=String(src||'');
+  return /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(s)?s:'';
+}
 function ownerPdfExtra(){
   const o=filledOwner();
   const lines=[];
   if(o.suburbs) lines.push('Service suburbs: '+o.suburbs);
   if(o.timing) lines.push(o.timing);
   if(o.story) lines.push(o.story);
-  const photo=o.photo?`<img class="owner-portrait" src="${o.photo}" alt="">`:'';
+  const src=safeImageSrc(o.photo);
+  const photo=src?`<img class="owner-portrait" src="${esc(src)}" alt="">`:'';
   const text=lines.length?`<div class="hint">${lines.map(esc).join('<br>')}</div>`:'';
   return photo+text;
 }
