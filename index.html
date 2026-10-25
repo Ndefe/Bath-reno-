@@ -146,6 +146,11 @@ textarea{min-height:70px;resize:vertical}
 .hint{font-size:12px;color:var(--mute)}
 .hint a{color:var(--acc)}
 .hint a[href="about.html"]{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
+#hint-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px}
+#hint-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;max-width:100%}
+#avail-days.seg{flex-direction:column;align-items:stretch}
+#avail-days.seg label{width:100%;min-height:44px}
+#avail-days.seg input{width:44px;height:44px}
 .badge{display:inline-block;background:#fff4d6;color:#8a6200;border-radius:6px;padding:2px 6px;font-size:11px;font-weight:600}
 .pkg{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse}
@@ -444,7 +449,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <h2>Assistant</h2>
       <p class="hint" id="assist-mode">What you type in this chat is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
       <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Other chat text, and any AI render prompt, goes to Pollinations. Do not include a phone number, email or street address.</p>
-      <p class="hint"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a> · <a href="tracker.html">Job tracker</a></p>
+      <p class="hint" id="hint-links"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a><a href="tracker.html">Job tracker</a></p>
       <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
       <p class="hint"><button type="button" class="text-link" id="open-gallery">Before and after gallery</button></p>
       <p class="hint" id="measure-note" hidden>A free site measure can be requested once an estimate is on screen. Nothing is booked from here.</p>
