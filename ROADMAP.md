@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-25
 
+- Accessible bathrooms layout. The from-prices are written in the page using the catalogue formula, so it does not jump after load. The page says Accessible Care suits self-managed and plan-managed NDIS participants and private clients. The quote builder and the suburb pages link to it. Hint text is darker. Prices are unchanged.
 - Cost guide layout. The from-prices and the questions are written in the page, using the catalogue formula, so the page does not jump after load. Hint text is darker. About links to the cost guide. Prices are unchanged.
 - Cost guide. A page lists each package at 3, 4 and 5 m² using the catalogue formula already on the quote. The line is from that figure, incl. GST, subject to a free site measure. Slab and timber, moving drains, a retile or a refresh, and waterproofing are explained without a new price. The page does not book a job and nothing is sent. Prices are unchanged.
 - Accessible bathrooms. A page for the Accessible Care package uses the same catalogue formula and the quote wording: Gert's Reno is not an NDIS-registered provider, it suits self-managed and plan-managed participants, and the OT spec overrides the package. A step-free shower, grab rails and a fold-down seat follow the quote. Door widening and a slab set-down stay price to confirm. Nothing is sent. Prices are unchanged.
