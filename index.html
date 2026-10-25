@@ -50,7 +50,8 @@ header.app h1{font-size:18px;margin:0;line-height:1.25;min-height:1.25em}
 #assist-mode{min-height:3.6em}
 .book{width:100%;margin:0 0 12px}
 #s-logo-preview{display:block;margin-top:8px;max-height:64px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
-#s-owner-preview{display:block;margin-top:8px;max-height:120px;max-width:120px;object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--line)}
+#s-owner-preview,#o-photo-preview,.owner-portrait{display:block;margin-top:8px;max-height:120px;max-width:120px;object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--line)}
+#quote-biz .owner-portrait,#faq-meet .owner-portrait{width:96px;height:96px}
 .ph-box{border:2px dashed var(--mute);border-radius:12px;padding:12px;margin:8px 0;background:#f7f8fa}
 .qd-logo{height:42px;width:auto;max-width:140px;object-fit:contain}
 nav{display:flex;flex-wrap:wrap;gap:4px}
@@ -428,6 +429,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <button type="button" id="nav-owner" aria-expanded="false">Owner</button>
     </div>
     <span class="nav-owner" id="nav-owner-links" hidden>
+      <button data-view="setup">Setup</button>
       <button data-view="saved">Projects</button>
       <button data-view="pipeline">Pipeline</button>
       <button data-view="settings">Settings</button>
@@ -451,6 +453,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="hint">You can ask about cost, what is included, waterproofing, or timing. Those answers come from this site. Other chat text, and any AI render prompt, goes to Pollinations. Do not include a phone number, email or street address.</p>
       <p class="hint" id="hint-links"><a href="suburbs/index.html">Bathroom renovations in Brisbane suburbs</a><a href="tracker.html">Job tracker</a></p>
       <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
+      <div id="faq-meet" hidden></div>
       <p class="hint"><button type="button" class="text-link" id="open-gallery">Before and after gallery</button></p>
       <p class="hint" id="measure-note" hidden>A free site measure can be requested once an estimate is on screen. Nothing is booked from here.</p>
       <div id="chat-photos" class="photo-list"></div>
@@ -569,6 +572,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       </div>
       <div>
         <div class="card" style="position:sticky;top:10px"><h2>Quote summary</h2>
+          <div id="quote-biz" hidden></div>
           <div id="summary"><p class="hint">Loading catalogue…</p></div>
           <p id="quote-total-live" class="sr" aria-live="polite"></p>
           <div id="quote-estimate"></div>
@@ -756,6 +760,37 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     </div>
   </section>
 
+  <!-- OWNER SETUP -->
+  <section class="view" id="view-setup" aria-label="Owner setup">
+    <div class="card">
+      <h2>Setup</h2>
+      <p class="hint">Saved on this phone only. Leave a field blank and the public pages keep the wording they already have. ABN and QBCC stay empty until you type them. This screen does not invent a number or claim a licence. Nothing is sent.</p>
+      <label for="o-biz">Business name</label>
+      <input id="o-biz" autocomplete="organization">
+      <div class="row">
+        <div><label for="o-phone">Phone</label><input id="o-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="add yours"></div>
+        <div><label for="o-email">Email</label><input id="o-email" type="email" inputmode="email" autocomplete="off" placeholder="add yours"></div>
+      </div>
+      <label for="o-suburbs">Service suburbs</label>
+      <input id="o-suburbs" autocomplete="off" placeholder="add yours">
+      <div class="row">
+        <div><label for="o-abn">ABN</label><input id="o-abn" inputmode="numeric" autocomplete="off" placeholder="add yours"></div>
+        <div><label for="o-qbcc">QBCC licence number</label><input id="o-qbcc" autocomplete="off" placeholder="add yours"></div>
+      </div>
+      <label for="o-timing">Job timing</label>
+      <textarea id="o-timing" maxlength="500" placeholder="add yours"></textarea>
+      <p class="hint">Site-measure days and times stay under Settings.</p>
+      <label for="o-photo">Photo</label>
+      <input id="o-photo" type="file" accept="image/*">
+      <img id="o-photo-preview" alt="" hidden>
+      <button class="btn sec sm" id="o-photo-clear" type="button">Remove photo</button>
+      <p class="ph-box" id="o-photo-note">Photo placeholder. No photo is shown until you add one here.</p>
+      <label for="o-story">Short story</label>
+      <textarea id="o-story" maxlength="2000" placeholder="Add a short story. Leave this blank until then."></textarea>
+      <div class="actions"><button class="btn" id="o-save" type="button">Save on this phone</button><span class="hint" id="o-msg"></span></div>
+    </div>
+  </section>
+
   <!-- SETTINGS VIEW -->
   <section class="view" id="view-settings">
     <div class="card"><h2>Business</h2>
@@ -842,6 +877,7 @@ let catalogue=null, settings, quote, defaults, shownPkg=null;
 function buildDefaults(cat){
   return {
     bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email', validDays:30,
+    phone:'', email:'', serviceSuburbs:'', jobTiming:'',
     abn:'', qbcc:'', logo:'', ownerPhoto:'', ownerStory:'', googleReviewUrl:'',
     depositUnderPct:10, depositOverPct:5,
     progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
@@ -995,8 +1031,86 @@ function totalLabel(t){
   return later?`${fromPrice(t.total)} plus items to confirm`:fromPrice(t.total);
 }
 function publicContact(){
+  const phone=String(settings.phone||'').trim();
+  const email=String(settings.email||'').trim();
   const parts=String(settings.contact||'').split('·').map(s=>s.trim()).filter(s=>s && !/^(phone|email)$/i.test(s));
-  return parts.join(' · ');
+  const out=[];
+  for(const p of parts){
+    if(phone && p===phone) continue;
+    if(email && p.toLowerCase()===email.toLowerCase()) continue;
+    out.push(p);
+  }
+  if(phone) out.push(phone);
+  if(email) out.push(email);
+  return out.join(' · ');
+}
+function filledOwner(){
+  const photo=String(settings.ownerPhoto||'');
+  return {
+    name:String(settings.bizName||'').trim(),
+    phone:String(settings.phone||'').trim(),
+    email:String(settings.email||'').trim(),
+    suburbs:String(settings.serviceSuburbs||'').trim(),
+    abn:String(settings.abn||'').trim(),
+    qbcc:String(settings.qbcc||'').trim(),
+    timing:String(settings.jobTiming||'').trim(),
+    story:String(settings.ownerStory||'').trim(),
+    photo:safeImageSrc(photo)
+  };
+}
+function paintQuoteBiz(){
+  const host=$('quote-biz');
+  if(!host) return;
+  const o=filledOwner();
+  const lines=[];
+  if(o.phone) lines.push(o.phone);
+  if(o.email) lines.push(o.email);
+  if(o.suburbs) lines.push('Service suburbs: '+o.suburbs);
+  if(o.abn) lines.push('ABN '+o.abn);
+  if(o.qbcc) lines.push('QBCC licence '+o.qbcc);
+  if(o.timing) lines.push(o.timing);
+  if(o.story) lines.push(o.story);
+  host.replaceChildren();
+  const photo=safeImageSrc(o.photo);
+  if(!lines.length && !photo){host.hidden=true;return}
+  host.hidden=false;
+  if(photo){
+    const img=document.createElement('img');
+    img.className='owner-portrait';
+    img.src=photo;
+    img.alt='Photo added on this phone';
+    host.append(img);
+  }
+  if(lines.length){
+    const p=document.createElement('p');
+    p.className='hint';
+    p.style.whiteSpace='pre-wrap';
+    p.textContent=lines.join('\n');
+    host.append(p);
+  }
+}
+function paintFaqMeet(){
+  const host=$('faq-meet');
+  if(!host) return;
+  const o=filledOwner();
+  host.replaceChildren();
+  const photo=safeImageSrc(o.photo);
+  if(!photo && !o.story){host.hidden=true;return}
+  host.hidden=false;
+  if(photo){
+    const img=document.createElement('img');
+    img.className='owner-portrait';
+    img.src=photo;
+    img.alt='Photo added on this phone';
+    host.append(img);
+  }
+  if(o.story){
+    const p=document.createElement('p');
+    p.className='hint';
+    p.style.whiteSpace='pre-wrap';
+    p.textContent=o.story;
+    host.append(p);
+  }
 }
 function extraHint(ex){
   if(ex.price==null&&!ex.patternSell) return 'Price to confirm after a site measure. Not included in the from price.';
@@ -1385,6 +1499,8 @@ function update(){
   refreshDelivery();
   renderReferralPanel();
   updateBrand();
+  paintQuoteBiz();
+  paintFaqMeet();
   paintQuoteTotal(t);
   if(window.Estimate) Estimate.refreshFigures();
   renderFollowup();
@@ -1677,6 +1793,21 @@ function exclusionLines(pkgId, picks){
   }
   return lines;
 }
+function safeImageSrc(src){
+  const s=String(src||'');
+  return /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s)?s:'';
+}
+function ownerPdfExtra(){
+  const o=filledOwner();
+  const lines=[];
+  if(o.suburbs) lines.push('Service suburbs: '+o.suburbs);
+  if(o.timing) lines.push(o.timing);
+  if(o.story) lines.push(o.story);
+  const src=safeImageSrc(o.photo);
+  const photo=src?`<img class="owner-portrait" src="${esc(src)}" alt="">`:'';
+  const text=lines.length?`<div class="hint">${lines.map(esc).join('<br>')}</div>`:'';
+  return photo+text;
+}
 function renderPrint(){
   readForm();ensureNumber();update();
   const t=Calc.totals(quote,settings), c=quote.customer, created=new Date(quote.createdAt);
@@ -1691,7 +1822,7 @@ function renderPrint(){
   const excluded=exclusionLines(quote.packageId, quote.picks).map(s=>`<li>${esc(s)}</li>`).join('');
   const size=quote.room.mode==='lw'&&(quote.room.length||quote.room.width)?`${esc(quote.room.length)} m × ${esc(quote.room.width)} m<br>`:'';
   $('printArea').innerHTML=`<div class="quote-doc">
-   <div class="qd-head"><div>${logo}<h2>${esc(settings.bizName)}</h2>${publicContact()?`<div class="hint">${esc(publicContact())}</div>`:''}<div class="hint">ABN ${esc(legal.abn)} · QBCC licence ${esc(legal.qbcc)}</div></div>
+   <div class="qd-head"><div>${logo}<h2>${esc(settings.bizName)}</h2>${publicContact()?`<div class="hint">${esc(publicContact())}</div>`:''}<div class="hint">ABN ${esc(legal.abn)} · QBCC licence ${esc(legal.qbcc)}</div>${ownerPdfExtra()}</div>
    <div class="qd-meta"><strong style="font-size:18px">QUOTE</strong><br>No. ${esc(quote.number)}<br>Date: ${fmtDate(created)}<br>Valid until: ${fmtDate(valid)}</div></div>
    <div class="qd-banner"><strong>${totalLabel(t)}</strong><span>Estimate, subject to a free site measure. Valid for ${settings.validDays} days, until ${fmtDate(valid)}.</span></div>
    <div class="qd-cols"><div><strong>Prepared for</strong><br>${esc(c.name||'—')}<br>${esc(c.suburb||c.address||'')}<br>${esc(c.phone||'')}<br>${esc(c.email||'')}</div>
@@ -2131,6 +2262,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='pipeline') renderPipeline();
   if(b.dataset.view==='planner') ensurePlanner().then(()=>Planner.show()).catch(()=>{});
   if(b.dataset.view==='settings') renderSettings();
+  if(b.dataset.view==='setup') fillSetup();
   const view=document.getElementById('view-'+b.dataset.view);
   if(view&&b.dataset.view!=='assist'&&b.dataset.view!=='planner'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     view.classList.remove('arrive');
@@ -2541,7 +2673,55 @@ $('pkg-list').addEventListener('input',e=>{
 });
 $('pkg-list').onclick=e=>{const i=e.target.dataset.delp;if(i!==undefined&&settings.packages.length>1){settings.packages.splice(+i,1);renderSettings()}};
 $('add-pkg').onclick=()=>{readSettings();settings.packages.push({id:uid(),name:'New package',baseFee:0,rate:0,desc:'',look:'grey-modern'});renderSettings()};
-$('s-save').onclick=()=>{const prev=settings.ownerPin||'';readSettings();if((settings.ownerPin||'')!==prev) ownerOpen=false;Store.set(K.settings,settings);fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
+$('s-save').onclick=()=>{const prev=settings.ownerPin||'';readSettings();if((settings.ownerPin||'')!==prev) ownerOpen=false;Store.set(K.settings,settings);fillSetup();fillPkgSelect();shownPkg=null;update();$('s-msg').textContent='Settings saved.'};
+function fillSetup(){
+  if(!$('o-biz')) return;
+  $('o-biz').value=settings.bizName||'';
+  $('o-phone').value=settings.phone||'';
+  $('o-email').value=settings.email||'';
+  $('o-suburbs').value=settings.serviceSuburbs||'';
+  $('o-abn').value=settings.abn||'';
+  $('o-qbcc').value=settings.qbcc||'';
+  $('o-timing').value=settings.jobTiming||'';
+  $('o-story').value=settings.ownerStory||'';
+  const img=$('o-photo-preview');
+  const note=$('o-photo-note');
+  if(settings.ownerPhoto){img.src=settings.ownerPhoto;img.hidden=false;img.alt='Photo added on this phone';if(note) note.hidden=true}
+  else if(img){img.removeAttribute('src');img.hidden=true;img.alt='';if(note) note.hidden=false}
+}
+function readSetup(){
+  const name=($('o-biz').value||'').trim();
+  settings.bizName=name||"Gert's Reno";
+  settings.phone=($('o-phone').value||'').trim();
+  settings.email=($('o-email').value||'').trim();
+  settings.serviceSuburbs=($('o-suburbs').value||'').trim().slice(0,500);
+  settings.abn=($('o-abn').value||'').trim();
+  settings.qbcc=($('o-qbcc').value||'').trim();
+  settings.jobTiming=($('o-timing').value||'').trim().slice(0,500);
+  settings.ownerStory=($('o-story').value||'').trim().slice(0,2000);
+}
+function fillSettingsShared(){
+  if(!$('s-biz')) return;
+  $('s-biz').value=settings.bizName||'';
+  $('s-abn').value=settings.abn||'';
+  $('s-qbcc').value=settings.qbcc||'';
+  if($('s-owner-story')) $('s-owner-story').value=settings.ownerStory||'';
+  const owner=$('s-owner-preview');
+  const ownerNote=$('s-owner-photo-note');
+  if(!owner) return;
+  if(settings.ownerPhoto){owner.src=settings.ownerPhoto;owner.hidden=false;owner.alt='Photo added in Settings';if(ownerNote) ownerNote.hidden=true}
+  else{owner.removeAttribute('src');owner.hidden=true;owner.alt='';if(ownerNote) ownerNote.hidden=false}
+}
+$('o-save').onclick=()=>{readSetup();Store.set(K.settings,settings);fillSettingsShared();update();$('o-msg').textContent='Saved on this phone. Nothing was sent.'};
+$('o-photo').addEventListener('change',async e=>{
+  const file=(e.target.files||[])[0];
+  e.target.value='';
+  if(!file) return;
+  readSetup();
+  try{settings.ownerPhoto=await shrinkLogo(file);fillSetup();fillSettingsShared();update()}
+  catch{$('o-msg').textContent='That photo could not be read. No photo is shown until a real one is saved.'}
+});
+$('o-photo-clear').onclick=()=>{readSetup();settings.ownerPhoto='';fillSetup();fillSettingsShared();update()};
 $('avail-add').onclick=()=>{readAvailability();settings.availability.slots.push('09:00');renderAvailability()};
 $('avail-slots').addEventListener('click',e=>{
   const btn=e.target.closest('[data-slot-rm]');
@@ -2551,9 +2731,9 @@ $('avail-slots').addEventListener('click',e=>{
   renderAvailability();
 });
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
 }
-$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillPkgSelect();shownPkg=null;update()}};
+$('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillSetup();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
   return new Promise((resolve,reject)=>{
     const url=URL.createObjectURL(file);
@@ -2584,10 +2764,10 @@ $('s-owner-photo').addEventListener('change',async e=>{
   e.target.value='';
   if(!file) return;
   readSettings();
-  try{settings.ownerPhoto=await shrinkLogo(file);renderSettings()}
+  try{settings.ownerPhoto=await shrinkLogo(file);renderSettings();fillSetup();update()}
   catch{$('s-msg').textContent='That photo could not be read. No photo is shown until a real one is saved.'}
 });
-$('s-owner-clear').onclick=()=>{readSettings();settings.ownerPhoto='';renderSettings()};
+$('s-owner-clear').onclick=()=>{readSettings();settings.ownerPhoto='';renderSettings();fillSetup();update()};
 window.addEventListener('beforeprint',()=>{if(catalogue&&quote) renderPrint()});
 
 /* Image render providers. Only Pollinations is wired up. It is free and does not use the API key.
@@ -2705,6 +2885,7 @@ const Faq=(()=>{
     {id:'included', re:/\b(included|inclusions)\b|\bwhat(?:'s| is) included\b|\bwhat do you include\b/i},
     {id:'waterproof', re:/waterproof/i},
     {id:'timeline', re:/week[\s-]*by[\s-]*week|\bhow long\b|\btimeline\b|\bhow many weeks\b|\bwhat to expect\b/i},
+    {id:'business', re:/\b(who are you|about you|your story|your phone|your email|your abn|service suburbs|where do you work)\b/i},
     {id:'licence', re:/\blicen[cs]e|\blicen[cs]ed\b|\bqbcc\b/i},
     {id:'reviews', re:/\breviews?\b|\btestimonials?\b|\bratings?\b|\bstar ratings?\b/i},
     {id:'ndis', re:/\bndis\b/i},
@@ -2751,7 +2932,30 @@ const Faq=(()=>{
   }
   function timeline(){
     const progress=settings.progressPayments||facts.progress;
-    return [facts.timeline, progress?`Payment stages on the quote: ${progress}`:'', facts.notFinal].filter(Boolean).join('\n\n');
+    const timing=String(settings.jobTiming||'').trim();
+    return [facts.timeline, timing, progress?`Payment stages on the quote: ${progress}`:'', facts.notFinal].filter(Boolean).join('\n\n');
+  }
+  function licenceAnswer(){
+    const extra=[];
+    const abn=String(settings.abn||'').trim();
+    const qbcc=String(settings.qbcc||'').trim();
+    if(abn) extra.push('ABN '+abn+'.');
+    if(qbcc) extra.push('QBCC licence '+qbcc+'.');
+    return [localLine('licence'), ...extra].join(' ');
+  }
+  function businessAnswer(){
+    const o=filledOwner();
+    const lines=[];
+    if(o.name) lines.push(o.name);
+    if(o.phone) lines.push(o.phone);
+    if(o.email) lines.push(o.email);
+    if(o.suburbs) lines.push('Service suburbs: '+o.suburbs);
+    if(o.abn) lines.push('ABN '+o.abn+'.');
+    if(o.qbcc) lines.push('QBCC licence '+o.qbcc+'.');
+    if(o.timing) lines.push(o.timing);
+    if(o.story) lines.push(o.story);
+    if(o.photo) lines.push('The photo is on the About page.');
+    return lines.join('\n\n');
   }
   function localLine(id){
     const fromFacts=facts&&facts[id];
@@ -2759,7 +2963,8 @@ const Faq=(()=>{
   }
   function answer(ids, text){
     const parts=[];
-    ['licence','reviews','ndis','tracker'].forEach(id=>{if(ids.includes(id)) parts.push(localLine(id))});
+    if(ids.includes('business')){const biz=businessAnswer();if(biz) parts.push(biz)}
+    ['licence','reviews','ndis','tracker'].forEach(id=>{if(ids.includes(id)) parts.push(id==='licence'?licenceAnswer():localLine(id))});
     const needsFacts=ids.some(id=>id==='cost'||id==='included'||id==='waterproof'||id==='timeline');
     if(needsFacts&&!facts) parts.push('The facts file on this site did not load. I will not guess. Nothing was sent.');
     else if(facts){
@@ -3655,6 +3860,10 @@ async function boot(){
     if(!settings.logo) settings.logo='';
     if(settings.ownerPhoto==null) settings.ownerPhoto='';
     if(settings.ownerStory==null) settings.ownerStory='';
+    if(settings.phone==null) settings.phone='';
+    if(settings.email==null) settings.email='';
+    if(settings.serviceSuburbs==null) settings.serviceSuburbs='';
+    if(settings.jobTiming==null) settings.jobTiming='';
     if(settings.depositUnderPct==null) settings.depositUnderPct=10;
     if(settings.depositOverPct==null) settings.depositOverPct=5;
     if(!settings.progressPayments) settings.progressPayments=DEFAULT_PROGRESS;
