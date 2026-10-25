@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-25
 
+- Cost guide layout. The from-prices and the questions are written in the page, using the catalogue formula, so the page does not jump after load. Hint text is darker. About links to the cost guide. Prices are unchanged.
 - Cost guide. A page lists each package at 3, 4 and 5 m² using the catalogue formula already on the quote. The line is from that figure, incl. GST, subject to a free site measure. Slab and timber, moving drains, a retile or a refresh, and waterproofing are explained without a new price. The page does not book a job and nothing is sent. Prices are unchanged.
 - Lead result wording. The copied request says the lead was sent only after that post succeeds. A failed post says the worker did not receive it. The pipeline stage note, the job-stage note, and the replied note follow the same result.
 - Lead text only. A saved https Worker URL posts the text of a lead and never a photo. The token goes in the X-Lead-Token header only. An http address or an invalid address is refused on Setup, and that screen does not say it was saved. When the URL is set, the lead lines say the lead was sent to the worker saved on this phone. When it is blank, they still say nothing was sent. The worker allows only the GitHub Pages origin.
