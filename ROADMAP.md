@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
+- Phone actions. On a phone, Call, Book a measure, and Quote stay along the bottom, clear of the home indicator and clear of the total bar. Call stays hidden until a real phone number is saved in Setup. Nothing is sent. Prices are unchanged.
 - Planner light. A warm key light and a cool fill, soft shadows, and darker contact shading where the floor meets the walls. Tiles, glass, chrome, timber and matte finishes keep their colours and pick up the room. Reflections use a CC0 studio image, Studio Small 03 by Greg Zaal, stored with the site. The picture uses ACES tone mapping, sRGB and anti-aliasing. Prices are unchanged.
 - Planner on a phone. Finishes share materials, and a phone skips the heavy glass pass. The fixture pad stays below the middle of the picture. Old fixture shapes are released when the room is rebuilt. Prices are unchanged.
 - Planner camera. Eye, Vanity, Shower and Above angles, plus a smooth orbit. The planner opens on the eye-level view. Vanity and Shower look at the fittings in the room. A one-finger swipe does not stop the next pinch. The angle buttons are at least 44 px. Prices are unchanged.
