@@ -43,6 +43,10 @@ These rules sit above the feature list. They do not change the site.
 
 ## CHANGELOG
 
+### 2026-10-26
+
+- Hover and press. Buttons and cards grow on hover only for a fine pointer. A touch press darkens the control, and it does not move when motion is reduced. Prices are unchanged.
+
 ### 2026-10-25
 
 - Accessible bathrooms layout. The from-prices are written in the page using the catalogue formula, so it does not jump after load. The page says Accessible Care suits self-managed and plan-managed NDIS participants and private clients. The quote builder and the suburb pages link to it. Hint text is darker. Prices are unchanged.
