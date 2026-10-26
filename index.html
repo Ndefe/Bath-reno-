@@ -414,8 +414,6 @@ header.app{position:sticky;top:0;z-index:20}
   header.app .share-status{position:fixed;top:56px;left:8px;right:8px;flex:none;z-index:30;background:var(--ink);padding:4px 0}
   .flow button{font-size:15px;padding:8px 4px;min-width:0}
   .flow button[aria-current="step"]{font-size:19px}
-  #view-planner:not([data-step="fixtures"]) #pl-suggest,
-  #view-planner:not([data-step="fixtures"]) #pl-fab-sel,
   #view-planner:not([data-step="layout"]):not([data-step="fixtures"]) .pl-gesture,
   #view-planner .pl-move{display:none}
   .row3{grid-template-columns:1fr 1fr 1fr}
@@ -460,6 +458,8 @@ header.app{position:sticky;top:0;z-index:20}
 @media(max-width:860px){.step-label{top:56px}}
 .pl-more{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 10px 8px;background:#fff}
 .pl-more summary{min-height:44px;line-height:44px;cursor:pointer;font-weight:600}
+#pl-tools-more .pl-nudge{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#pl-tools-more .pl-nudge button{min-width:44px;min-height:44px;flex:1 1 44px;border:0;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-weight:700}
 #view-settings details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .pl-more:not([open]) > :not(summary){display:none!important}
 [data-flow]{animation:flow-in .28s ease}
@@ -704,14 +704,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div id="pl-canvas"></div>
         <p class="pl-hint" id="pl-load" hidden>Loading the planner…<span class="pl-bounce" aria-hidden="true"><i></i><i></i><i></i></span></p>
         <div class="pl-overlay">
-          <div class="pl-seg" role="group" aria-label="View">
-            <button type="button" id="pl-plan" aria-pressed="false">Plan</button>
-            <button type="button" id="pl-walk" aria-pressed="false">Walk</button>
-            <button type="button" id="pl-client" aria-pressed="false">Client</button>
-          </div>
-          <button class="btn sec" type="button" id="pl-png">Save image</button>
           <button class="btn sec" type="button" id="pl-undo">Undo</button>
-          <button class="btn sec" type="button" id="pl-redo">Redo</button>
           <button class="btn sm" type="button" id="pl-ai" hidden>AI render</button>
           <button class="btn sm" type="button" id="pl-walk-exit" hidden>Exit</button>
           <button class="btn sec sm" type="button" id="pl-walk-reset" hidden>Look here</button>
@@ -719,37 +712,47 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <p id="pl-walk-help" class="pl-walk-help" hidden></p>
         <div id="pl-joy" class="pl-joy" hidden role="application" aria-label="Move"><div class="pl-joy-knob" id="pl-joy-knob"></div></div>
         <div id="pl-float" class="pl-float" hidden>
-          <div class="pl-float-nudge" aria-label="Nudge">
-            <button type="button" data-mv="0,-1" aria-label="Nudge up">▲</button>
-            <button type="button" data-mv="-1,0" aria-label="Nudge left">◀</button>
-            <button type="button" id="pl-rot-fab">Turn</button>
-            <button type="button" data-mv="1,0" aria-label="Nudge right">▶</button>
-            <button type="button" data-mv="0,1" aria-label="Nudge down">▼</button>
-          </div>
           <div class="pl-float-actions">
-            <button type="button" id="pl-flip">Flip</button>
-            <button type="button" id="pl-dup">Copy</button>
+            <button type="button" id="pl-rot-fab">Rotate</button>
             <button type="button" id="pl-fab-del" class="danger">Delete</button>
-            <button type="button" id="pl-fab-clear">Clear</button>
           </div>
         </div>
         <p id="pl-measure" class="pl-measure" hidden></p>
       </div>
-      <div class="pl-views" id="pl-views" role="group" aria-label="Camera">
-        <button type="button" data-view="eye" aria-pressed="false">Eye</button>
-        <button type="button" data-view="vanity" aria-pressed="false">Vanity</button>
-        <button type="button" data-view="shower" aria-pressed="false">Shower</button>
-        <button type="button" data-view="above" aria-pressed="false">Above</button>
-      </div>
-      <div class="pl-fab" id="pl-fab">
-        <p id="pl-fab-sel" class="pl-fab-status">Nothing selected</p>
-        <p id="pl-fab-status" class="pl-fab-status" role="status"></p>
-        <button class="btn sec" type="button" id="pl-suggest">Suggest layout</button>
-        <button class="btn sec" type="button" id="pl-fab-render">Render</button>
-      </div>
       <p class="pl-gesture" id="pl-gesture">Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. A swipe on empty space scrolls the page. Two fingers pinch and pan.</p>
       </div>
       <div class="pl-side">
+      <details class="pl-more" id="pl-tools-more">
+        <summary>More</summary>
+        <div class="pl-seg" role="group" aria-label="View">
+          <button type="button" id="pl-plan" aria-pressed="false">Plan</button>
+          <button type="button" id="pl-walk" aria-pressed="false">Walk</button>
+          <button type="button" id="pl-client" aria-pressed="false">Client</button>
+        </div>
+        <div class="pl-views" id="pl-views" role="group" aria-label="Camera">
+          <button type="button" data-view="eye" aria-pressed="false">Eye</button>
+          <button type="button" data-view="vanity" aria-pressed="false">Vanity</button>
+          <button type="button" data-view="shower" aria-pressed="false">Shower</button>
+          <button type="button" data-view="above" aria-pressed="false">Above</button>
+        </div>
+        <div class="actions">
+          <button class="btn sec" type="button" id="pl-png">Save image</button>
+          <button class="btn sec" type="button" id="pl-redo">Redo</button>
+          <button class="btn sec" type="button" id="pl-suggest">Suggest layout</button>
+          <button class="btn sec" type="button" id="pl-fab-clear">Clear</button>
+          <button class="btn sec" type="button" id="pl-fab-render">Render</button>
+        </div>
+        <div class="pl-nudge" aria-label="Nudge">
+          <button type="button" data-mv="0,-1" aria-label="Nudge up">▲</button>
+          <button type="button" data-mv="-1,0" aria-label="Nudge left">◀</button>
+          <button type="button" data-mv="1,0" aria-label="Nudge right">▶</button>
+          <button type="button" data-mv="0,1" aria-label="Nudge down">▼</button>
+          <button type="button" id="pl-flip">Flip</button>
+          <button type="button" id="pl-dup">Copy</button>
+        </div>
+        <p id="pl-fab-sel" class="pl-fab-status">Nothing selected</p>
+        <p id="pl-fab-status" class="pl-fab-status" role="status"></p>
+      </details>
       <div class="flow" id="flow" aria-label="Planner steps">
         <p id="flow-live" class="sr" aria-live="polite"></p>
         <button type="button" data-flow-go="size" aria-current="step">Room</button>
