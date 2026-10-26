@@ -87,11 +87,13 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .ref-reward{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
 .review-draft textarea{min-height:88px;font-size:16px}
 .gal-job h2{margin-bottom:4px}
-.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px}
-.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px;touch-action:pan-y}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .ba-before{clip-path:inset(0 calc(100% - var(--pos, 50%)) 0 0)}
 .ba-bar{position:absolute;top:0;bottom:0;left:var(--pos, 50%);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
-.ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.ba-knob{position:absolute;top:50%;left:var(--pos,50%);width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#fff;border:2px solid #0e7c86;box-shadow:0 2px 8px rgba(16,24,32,.25);pointer-events:none}
+.ba input[type=range]{position:absolute;top:50%;left:var(--pos,50%);width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;cursor:ew-resize;touch-action:pan-y}
+.ba:focus-within .ba-knob{outline:3px solid #0e7c86;outline-offset:3px}
 .ba-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px}
 .ba-missing{margin:8px 0 0}
 .chat-bar{display:flex;gap:8px;align-items:center;position:sticky;bottom:0;background:var(--card);z-index:2;padding-top:8px;min-height:44px}
@@ -2307,7 +2309,7 @@ function galleryCard(job){
   const before=galleryPath(job&&job.before);
   const after=galleryPath(job&&job.after);
   const photos=before&&after
-    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
+    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar" aria-hidden="true"></span><span class="ba-knob" aria-hidden="true"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
     :`<p class="hint ba-missing">This job needs a before photo and an after photo in the gallery folder.</p>`;
   return `<article class="card gal-job"><h2>${esc(suburb)}</h2><p class="hint">${esc(pkgName)}</p>${note?`<p>${esc(note)}</p>`:''}${photos}</article>`;
 }
@@ -2341,6 +2343,36 @@ $('gallery-root').addEventListener('input',e=>{
   const ba=e.target.closest('.ba');
   if(ba) ba.style.setProperty('--pos',`${e.target.value}%`);
 });
+let baDrag=null;
+function baEnd(e){
+  if(!baDrag||(e&&e.pointerId!==baDrag.id)) return;
+  try{baDrag.ba.releasePointerCapture(e.pointerId)}catch(err){}
+  baDrag=null;
+}
+$('gallery-root').addEventListener('pointerdown',e=>{
+  const ba=e.target.closest('.ba');
+  if(!ba) return;
+  baDrag={ba,id:e.pointerId,x:e.clientX,y:e.clientY,lock:''};
+});
+$('gallery-root').addEventListener('pointermove',e=>{
+  if(!baDrag||e.pointerId!==baDrag.id) return;
+  const dx=e.clientX-baDrag.x, dy=e.clientY-baDrag.y;
+  if(!baDrag.lock){
+    if(dx*dx+dy*dy<64) return;
+    baDrag.lock=Math.abs(dy)>Math.abs(dx)?'y':'x';
+    if(baDrag.lock==='y'){baDrag=null;return}
+    try{baDrag.ba.setPointerCapture(e.pointerId)}catch(err){}
+  }
+  if(!baDrag||baDrag.lock!=='x') return;
+  const ba=baDrag.ba;
+  const rect=ba.getBoundingClientRect();
+  const pct=Math.round(Math.min(100,Math.max(0,(e.clientX-rect.left)/Math.max(rect.width,1)*100)));
+  const input=ba.querySelector('input[data-ba]');
+  if(input) input.value=String(pct);
+  ba.style.setProperty('--pos',pct+'%');
+});
+$('gallery-root').addEventListener('pointerup',baEnd);
+$('gallery-root').addEventListener('pointercancel',baEnd);
 $('gallery-root').addEventListener('error',e=>{
   const img=e.target;
   if(!img||img.tagName!=='IMG') return;
