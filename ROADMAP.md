@@ -43,6 +43,10 @@ These rules sit above the feature list. They do not change the site.
 
 ## CHANGELOG
 
+### 2026-10-26
+
+- Step progress. The quote shows Step 1 of 3 as you move through Bathroom, Extras, and Client. The planner shows Step 1 of 5 on Room, Layout, Fixtures, Style, and Render. The bar does not animate when motion is reduced. Prices are unchanged.
+
 ### 2026-10-25
 
 - Accessible bathrooms layout. The from-prices are written in the page using the catalogue formula, so it does not jump after load. The page says Accessible Care suits self-managed and plan-managed NDIS participants and private clients. The quote builder and the suburb pages link to it. Hint text is darker. Prices are unchanged.
