@@ -261,8 +261,8 @@ const Planner=(()=>{
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
     scene=new THREE.Scene();scene.background=new THREE.Color(0xdfe5ea);
-    camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(-0.3,1.55,0.56);
-    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0.2,1.05,-0.44);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.56;controls.minDistance=0.55;controls.maxDistance=12;
+    camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(-0.85,1.52,0.55);
+    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0.35,1.15,-0.45);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.56;controls.minDistance=0.55;controls.maxDistance=12;
     controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
     applyOrbitFeel();
     controls.addEventListener('start',()=>{camTween=null;clearViewPressed()});
@@ -339,7 +339,7 @@ const Planner=(()=>{
       renderer.render(scene,camera);
     })();
   }
-  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();applyOrbitFeel();placeFloat();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
+  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();if(activeView==='room'&&!camTween){const shot=viewPresets().room;if(shot&&shot.fov){camera.fov=shot.fov;camera.updateProjectionMatrix()}}applyOrbitFeel();placeFloat();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
 
   const DOOR_H=2.04;
   const WALL_NAME={n:'Far wall',s:'Near wall',e:'Right wall',w:'Left wall',nh:'Notch end',nv:'Notch side'};
@@ -1510,6 +1510,28 @@ const Planner=(()=>{
     const spec=ITEMS[type]||{};
     return {x:it.x,y:Math.max(0.75,(spec.h||0.9)*0.55),z:it.z};
   }
+  function openingView(room){
+    const L=room.l,W=room.w,H=room.h,poly=roomPolygon(room);
+    const margin=Math.min(0.62,Math.min(L,W)*0.24);
+    const spots=[[-L/2+margin,W/2-margin],[L/2-margin,W/2-margin],[-L/2+margin,-W/2+margin],[L/2-margin,-W/2+margin]];
+    let x=spots[0][0],z=spots[0][1];
+    for(let i=0;i<spots.length;i++){if(pointInPoly(spots[i][0],spots[i][1],poly)){x=spots[i][0];z=spots[i][1];break}}
+    const y=Math.min(1.52,H-0.42);
+    const c=floorCentroid(room);
+    const items=(design&&design.items)||[];
+    const blocked=()=>items.some(it=>{
+      const spec=ITEMS[it.type]||{w:0.4,d:0.4,h:0.9};
+      const box=footprint(it);
+      return Math.abs(x-it.x)<box[0]/2+0.16 && Math.abs(z-it.z)<box[1]/2+0.16 && y<spec.h+0.08;
+    });
+    for(let n=0;n<10&&blocked();n++){x+=(c.x-x)*0.3;z+=(c.z-z)*0.3}
+    const farx=c.x+(c.x-x)*0.9,farz=c.z+(c.z-z)*0.9;
+    const horiz=Math.hypot(farx-x,farz-z)||1;
+    const ty=y-Math.tan(8*Math.PI/180)*horiz;
+    const aspect=camera&&camera.aspect>0.3?camera.aspect:0.7;
+    const vFov=Math.min(108,Math.max(48,2*Math.atan(Math.tan(82*Math.PI/360)/aspect)*180/Math.PI));
+    return {pos:[x,y,z],target:[farx,Math.min(y-0.04,Math.max(0.85,ty)),farz],fov:vFov};
+  }
   function viewPresets(){
     const room=normRoom(design&&design.room);
     const c=floorCentroid(room);
@@ -1531,7 +1553,8 @@ const Planner=(()=>{
       eye:{pos:[c.x-Math.min(0.35,L*0.12),eyeY,c.z+Math.min(0.7,W*0.28)],target:[0,0.9,0]},
       vanity:{pos:[vp[0],eyeY,vp[1]],target:[vanity.x,vanity.y,vanity.z]},
       shower:{pos:[sp[0],eyeY,sp[1]],target:[shower.x,Math.max(1.1,shower.y),shower.z]},
-      above:{pos:[c.x,room.h*1.35,c.z+W*0.85],target:[0,0.2,0]}
+      above:{pos:[c.x,room.h*1.35,c.z+W*0.85],target:[0,0.2,0]},
+      room:openingView(room)
     };
   }
   function markView(name){
@@ -1562,6 +1585,8 @@ const Planner=(()=>{
     const v=presets[name]||presets.eye;
     const key=presets[name]?name:'eye';
     markView(key);
+    camera.fov=v.fov||45;
+    camera.updateProjectionMatrix();
     const toP=new THREE.Vector3(v.pos[0],v.pos[1],v.pos[2]);
     const toT=new THREE.Vector3(v.target[0],v.target[1],v.target[2]);
     const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1945,7 +1970,7 @@ const Planner=(()=>{
     buildRoom();buildItems();renderOpenings();
     const room=BQ.quote.room||{};
     if(!(+room.length>0&&+room.width>0)&&(room.mode==='lw'||room.mode==='l'||!room.mode)) syncToQuote();
-    if(!camFramed){camFramed=true;goCam('eye',true)}
+    if(!camFramed){camFramed=true;goCam('room',true)}
     revealScene();
     setTimeout(resize,0);
   }
