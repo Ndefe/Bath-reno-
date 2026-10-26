@@ -138,8 +138,32 @@ const Planner=(()=>{
     if(/stone|sand|terrazzo|hex/.test(n)) return {roughness:0.68,metalness:0.02,clearcoat:0.08,envMapIntensity:0.32};
     return {roughness:0.48,metalness:0.02,clearcoat:0.2,clearcoatRoughness:0.32,envMapIntensity:0.5};
   }
+  const matPool=new Map();
+  function cheapLook(){return Math.min(window.innerWidth,window.innerHeight)<=900}
+  function matKey(kind,opts){
+    return kind+'|'+Object.keys(opts).sort().map(k=>{
+      const v=opts[k];
+      if(v&&v.isTexture) return k+'@'+v.uuid;
+      if(v&&v.isColor) return k+'#'+v.getHexString();
+      return k+'='+v;
+    }).join(',');
+  }
   function physicalMat(opts){
-    return new THREE.MeshPhysicalMaterial(Object.assign({roughness:0.5,metalness:0,envMapIntensity:0.45,clearcoat:0,clearcoatRoughness:0.3}, opts));
+    const src=Object.assign({roughness:0.5,metalness:0,envMapIntensity:0.45,clearcoat:0,clearcoatRoughness:0.3}, opts);
+    let kind='phy', use=src;
+    if(cheapLook()){
+      kind='std';
+      use={color:src.color,map:src.map,roughness:src.roughness,metalness:src.metalness,envMapIntensity:0.35,side:src.side,transparent:src.transparent,opacity:src.opacity,depthWrite:src.depthWrite};
+      if(src.transmission>0){use.transparent=true;use.opacity=0.34;use.depthWrite=false;use.roughness=Math.max(use.roughness||0,0.08)}
+    }
+    if(use.map) return kind==='std'?new THREE.MeshStandardMaterial(use):new THREE.MeshPhysicalMaterial(use);
+    const key=matKey(kind,use);
+    const hit=matPool.get(key);
+    if(hit) return hit;
+    const m=kind==='std'?new THREE.MeshStandardMaterial(use):new THREE.MeshPhysicalMaterial(use);
+    m.userData.shared=true;
+    matPool.set(key,m);
+    return m;
   }
   function tileMat(key,wm,hm){
     const spec=TILES[key]||TILES['white-matte'];
@@ -315,7 +339,7 @@ const Planner=(()=>{
       renderer.render(scene,camera);
     })();
   }
-  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();applyOrbitFeel();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
+  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();applyOrbitFeel();placeFloat();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
 
   const DOOR_H=2.04;
   const WALL_NAME={n:'Far wall',s:'Near wall',e:'Right wall',w:'Left wall',nh:'Notch end',nv:'Notch side'};
@@ -570,7 +594,7 @@ const Planner=(()=>{
     obj.traverse(o=>{
       if(o.geometry) o.geometry.dispose();
       const mats=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
-      mats.forEach(m=>{if(seen.has(m)) return;seen.add(m);if(m.map) m.map.dispose();m.dispose()});
+      mats.forEach(m=>{if(seen.has(m)||!m) return;seen.add(m);if(m.userData&&m.userData.shared) return;if(m.map&&!(m.map.userData&&m.map.userData.shared)) m.map.dispose();m.dispose()});
     });
   }
   function tiledMat(key,wm,hm,side){
@@ -596,11 +620,12 @@ const Planner=(()=>{
     g.fillStyle=grd;g.fillRect(0,0,128,128);
     const t=new THREE.CanvasTexture(c);
     t.encoding=THREE.LinearEncoding;
+    t.userData.shared=true;
     contactAo.tex=t;
     return t;
   }
   function loadStudio(){
-    if(!renderer||!THREE.RGBELoader) return;
+    if(!renderer||!THREE.RGBELoader||cheapLook()) return;
     new THREE.RGBELoader().load('assets/env/studio_small_03_1k.hdr',tex=>{
       tex.mapping=THREE.EquirectangularReflectionMapping;
       const pmrem=new THREE.PMREMGenerator(renderer);
@@ -667,7 +692,7 @@ const Planner=(()=>{
   function addWindowMesh(group,f){
     const len=f.hi-f.lo,height=f.top-f.sill;
     if(len<0.05||height<0.05) return;
-    const glassMat=new THREE.MeshPhysicalMaterial({color:0xe4f2f6,metalness:0,roughness:0.04,transmission:0.9,thickness:0.008,ior:1.5,transparent:true,opacity:1,envMapIntensity:1,side:THREE.DoubleSide,depthWrite:false});
+    const glassMat=physicalMat({color:0xe4f2f6,metalness:0,roughness:0.04,transmission:0.9,thickness:0.008,ior:1.5,transparent:true,opacity:1,envMapIntensity:1,side:THREE.DoubleSide,depthWrite:false});
     const glass=new THREE.Mesh(new THREE.PlaneGeometry(Math.max(0.05,len-0.06),Math.max(0.05,height-0.06)),glassMat);
     const mid=(f.lo+f.hi)/2;
     glass.position.set(f.wall.a[0]+f.wall.dx*mid+f.wall.nx*0.012,(f.sill+f.top)/2,f.wall.a[1]+f.wall.dz*mid+f.wall.nz*0.012);
@@ -831,7 +856,7 @@ const Planner=(()=>{
         box(g,cloth,0.015,gh*0.82,Math.max(0.2,d*0.72),w/2-0.03,gh*0.42,0.04);
       }else{
         box(g,M(0xeeeeec),w,0.05,d,0,0.025,0);
-        const glass=new THREE.MeshPhysicalMaterial({color:0xe7f4f7,metalness:0,roughness:0.04,transmission:0.88,thickness:0.012,ior:1.5,transparent:true,opacity:1,envMapIntensity:1,side:THREE.DoubleSide});
+        const glass=physicalMat({color:0xe7f4f7,metalness:0,roughness:0.04,transmission:0.88,thickness:0.012,ior:1.5,transparent:true,opacity:1,envMapIntensity:1,side:THREE.DoubleSide});
         box(g,glass,w,gh,0.012,0,gh/2,d/2-0.006).castShadow=false;
         const ret=Math.min(d*0.7,0.9);
         box(g,glass,0.012,gh,ret,w/2-0.006,gh/2,d/2-ret/2).castShadow=false;
@@ -949,7 +974,12 @@ const Planner=(()=>{
     }else refreshWarnings();
     buildItems();
   }
+  function disposeGeoms(root){
+    const seen=new Set();
+    root.traverse(o=>{if(o.geometry&&!seen.has(o.geometry)){seen.add(o.geometry);o.geometry.dispose()}});
+  }
   function buildItems(){
+    disposeGeoms(itemsGroup);
     itemsGroup.clear();
     design.items.forEach(it=>{const g=makeItem(it.type);g.position.set(it.x,ITEMS[it.type].y,it.z);g.rotation.y=-it.rot*Math.PI/2;if(it.flip) g.scale.x=-1;g.userData.item=it;itemsGroup.add(g)});
     refreshSel();
@@ -1017,10 +1047,12 @@ const Planner=(()=>{
     const it=hitItem(e);
     if(it){
       select(it);
-      pending={id:e.pointerId,x:e.clientX,y:e.clientY};
-      renderer.domElement.style.touchAction='none';
-      try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
-      if(e.pointerType!=='touch') controls.enabled=false;
+      pending={id:e.pointerId,x:e.clientX,y:e.clientY,touch:e.pointerType==='touch'};
+      if(e.pointerType!=='touch'){
+        renderer.domElement.style.touchAction='none';
+        try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
+        controls.enabled=false;
+      }
     }else if(e.pointerType!=='touch') select(null);
   }
   function onMove(e){
@@ -1028,6 +1060,10 @@ const Planner=(()=>{
     if(pending&&e.pointerId===pending.id&&!drag){
       const dx=e.clientX-pending.x, dy=e.clientY-pending.y;
       if(dx*dx+dy*dy<64) return;
+      if(pending.touch){
+        renderer.domElement.style.touchAction='none';
+        try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
+      }
       snapshot();
       ray.setFromCamera(ndc(e),camera);
       if(!ray.ray.intersectPlane(floorPlane,tmp)) return;
@@ -1050,11 +1086,14 @@ const Planner=(()=>{
     placeFloat();
   }
   function onUp(e){
-    touchIds.delete(e.pointerId);
-    if(pending&&e.pointerId===pending.id) pending=null;
-    if(drag&&(!e||e.pointerId===drag.id)){drag=null;hideMeasure();if(design) design.placedBy='user';if(!walking) controls.enabled=true;refreshWarnings()}
+    if(e) touchIds.delete(e.pointerId);
+    if(e&&pending&&e.pointerId===pending.id) pending=null;
+    if(drag&&(!e||e.pointerId===drag.id)){drag=null;hideMeasure();if(design) design.placedBy='user';refreshWarnings()}
     if(e&&renderer){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch(err){}}
-    if(!touchIds.size) renderer.domElement.style.touchAction='pan-y';
+    if(renderer&&!touchIds.size){
+      renderer.domElement.style.touchAction='pan-y';
+      if(!walking) controls.enabled=true;
+    }
   }
   function flipSelected(){
     if(!selected) return;
@@ -1080,11 +1119,9 @@ const Planner=(()=>{
     if(!bar) return;
     const hide=!selected||walking||document.body.classList.contains('client');
     bar.hidden=hide;
-    const views=$('pl-views');
-    if(views&&hide) views.style.bottom='';
     if(hide||!renderer) return;
     const g=itemsGroup&&itemsGroup.children.find(c=>c.userData.item===selected);
-    if(!g){bar.hidden=true;if(views) views.style.bottom='';return}
+    if(!g){bar.hidden=true;return}
     const stageEl=$('pl-stage');
     const stage=stageEl.getBoundingClientRect();
     bar.style.maxHeight='';
@@ -1098,9 +1135,10 @@ const Planner=(()=>{
       if(ob.width>0&&ob.height>0) limit=ob.bottom-stage.top+8;
     }
     let top=Math.max(limit, stage.height-bh-8);
+    const mid=stage.height/2;
+    if(top<mid && top+bh>mid) top=mid;
     if(top+bh>stage.height-4) top=Math.max(8, stage.height-bh-8);
     bar.style.top=Math.round(top)+'px';
-    if(views) views.style.bottom=(bh+12)+'px';
   }
   function suggestLayout(){
     if(!design) return;
@@ -1461,19 +1499,39 @@ const Planner=(()=>{
     if(!controls) return;
     const coarse=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
     controls.rotateSpeed=coarse?0.65:1;
-    controls.zoomSpeed=coarse?0.8:1;
+    controls.zoomSpeed=1;
     controls.panSpeed=coarse?0.6:1;
     controls.dampingFactor=coarse?0.09:0.05;
+  }
+  function itemAim(type,fallback){
+    const items=design&&design.items||[];
+    const it=items.find(i=>i.type===type);
+    if(!it) return fallback;
+    const spec=ITEMS[type]||{};
+    return {x:it.x,y:Math.max(0.75,(spec.h||0.9)*0.55),z:it.z};
   }
   function viewPresets(){
     const room=normRoom(design&&design.room);
     const c=floorCentroid(room);
-    const eye=1.55,L=room.l,W=room.w;
+    const eyeY=1.55,L=room.l,W=room.w;
+    const vanity=itemAim('vanity',{x:L/2-0.28,y:0.9,z:0});
+    const shower=itemAim('shower',{x:-L/2+0.45,y:1.15,z:-W/2+0.45});
+    const clamp=(x,z)=>[
+      Math.max(-L/2+0.32,Math.min(L/2-0.32,x)),
+      Math.max(-W/2+0.32,Math.min(W/2-0.32,z))
+    ];
+  const stand=(aim,dist)=>{
+    let dx=c.x-aim.x, dz=c.z-aim.z;
+    const len=Math.hypot(dx,dz)||1;
+    return clamp(aim.x+dx/len*dist, aim.z+dz/len*dist);
+  };
+  const vp=stand(vanity,0.85);
+  const sp=stand(shower,0.95);
     return {
-      eye:{pos:[c.x-L*0.12,eye,c.z+W*0.28],target:[c.x+L*0.08,1.05,c.z-W*0.22]},
-      vanity:{pos:[c.x+L*0.05,eye,c.z+W*0.18],target:[c.x+L*0.38,1.0,c.z]},
-      shower:{pos:[c.x+L*0.05,eye,c.z+W*0.12],target:[c.x-L*0.32,1.15,c.z-W*0.28]},
-      above:{pos:[c.x+L*0.05,room.h*1.45,c.z+W*0.95],target:[c.x,0.2,c.z]}
+      eye:{pos:[c.x-Math.min(0.35,L*0.12),eyeY,c.z+Math.min(0.7,W*0.28)],target:[0,0.9,0]},
+      vanity:{pos:[vp[0],eyeY,vp[1]],target:[vanity.x,vanity.y,vanity.z]},
+      shower:{pos:[sp[0],eyeY,sp[1]],target:[shower.x,Math.max(1.1,shower.y),shower.z]},
+      above:{pos:[c.x,room.h*1.35,c.z+W*0.85],target:[0,0.2,0]}
     };
   }
   function markView(name){
@@ -1900,8 +1958,9 @@ const Planner=(()=>{
       const note=$('pl-load');
       const waited=performance.now()-revealStarted;
       const env=renderer&&renderer.domElement&&renderer.domElement.dataset.env;
-      const ready=env==='1'||env==='err'||waited>1800;
-      if(waited<700||!ready){requestAnimationFrame(tick);return}
+      const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const ready=env==='1'||env==='err'||cheapLook()||waited>1800;
+      if(!reduced&&!ready){requestAnimationFrame(tick);return}
       if(canvas) canvas.classList.add('pl-in');
       if(note&&note.textContent.indexOf('Loading the planner')===0) note.hidden=true;
     };
