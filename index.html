@@ -503,6 +503,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 }
 .pl-sheet-handle{display:none}
 .pl-running{margin:0 0 8px;font-weight:700;font-size:16px;line-height:1.3}
+.pl-templates{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.pl-template{min-height:88px;border:1px solid #8A7968;background:var(--sand);color:var(--ink);border-radius:14px;padding:12px;text-align:left;font:inherit;font-weight:700;font-size:16px;line-height:1.25;cursor:pointer}
+.pl-template span{display:block;font-weight:400;font-size:15px;margin-top:4px;color:var(--mute)}
 @media(min-width:861px){
   #pl-side{display:flex;flex-direction:column;height:auto;position:static;overflow:visible}
   .pl-sheet-body{order:1}
@@ -795,6 +798,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="pl-panel card">
         <div data-flow="size">
         <h2>Room size</h2>
+        <div class="pl-templates" role="group" aria-label="Start from a template">
+          <button type="button" class="pl-template" data-template="ensuite">Small ensuite<span>2.4 × 1.8 m</span></button>
+          <button type="button" class="pl-template" data-template="family">Family bathroom<span>3 × 2.4 m</span></button>
+          <button type="button" class="pl-template" data-template="shower">Walk-in shower<span>No bath</span></button>
+          <button type="button" class="pl-template" data-template="blank">Start blank</button>
+        </div>
         <div class="row3"><div><label for="pl-l">Length</label><input id="pl-l" type="number" step="0.1" min="1"></div><div><label for="pl-w">Width</label><input id="pl-w" type="number" step="0.1" min="1"></div><div><label for="pl-h">Height</label><input id="pl-h" type="number" step="0.1" min="2"></div></div>
         <details class="pl-more" id="pl-shape-more">
           <summary aria-expanded="false">More room options</summary>
@@ -2608,6 +2617,12 @@ if($('open-gallery')) $('open-gallery').onclick=()=>{
 };
 $('pl-back-quote').onclick=()=>document.querySelector('nav button[data-view="quote"]').click();
 if($('pl-exit')) $('pl-exit').onclick=()=>document.querySelector('nav button[data-view="quote"]').click();
+document.querySelectorAll('[data-template]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const kind=btn.dataset.template;
+    ensurePlanner().then(P=>{P.show();P.applyTemplate(kind)}).catch(()=>{});
+  });
+});
 const SWATCH={'white-subway':'#f4f4f1','grey-large':'#8d9196','terrazzo':'#eae4da','black-hex':'#1e1f22','beige-stone':'#d8c6a8','white-matte':'#f2f2ef','stone-code':'#8a8d90','whoosh-white':'#f7f7f5','regina-grey':'#8e9398','regina-white':'#f4f3f0','sand-600':'#d9c7aa','cream-gloss':'#f7f1e4','statuario':'#f7f5f2','orion-dark':'#4a4e52',black:'#1b1b1d',chrome:'#e4e8ec',copper:'#c27a4e',brass:'#b08d57',bronze:'#8d5a3a'};
 function paintSwatches(){
   [['sw-floor','pl-floor'],['sw-wall','pl-wall'],['sw-metal','pl-metal']].forEach(([sw,sel])=>{

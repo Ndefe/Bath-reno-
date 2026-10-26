@@ -1970,6 +1970,39 @@ const Planner=(()=>{
     const loaded=design.preloadStamp&&pkgName?` Loaded with the ${pkgName} products.`:'';
     $('pl-area').textContent=`Floor area ${area.toFixed(2)} m² (synced to quote).${loaded}`;
   }
+  function applyTemplate(kind){
+    if(!window.BQ||!BQ.quote) return;
+    if(!inited) init();
+    ensureDesign();
+    if(!design) return;
+    snapshot();
+    if(kind==='ensuite'||kind==='family'){
+      if($('pl-shape')) $('pl-shape').value='rect';
+      $('pl-l').value=kind==='ensuite'?'2.4':'3';
+      $('pl-w').value=kind==='ensuite'?'1.8':'2.4';
+      if(!(+$('pl-h').value>=2)) $('pl-h').value='2.4';
+      applyRoomSize();
+      return;
+    }
+    if(kind==='shower'){
+      design.items=(design.items||[]).filter(it=>it.type!=='bath');
+      if(!design.items.some(it=>it.type==='shower')){
+        const it={type:'shower',x:0,z:0,rot:0,flip:false};
+        placeSensible(it);
+        design.items.push(it);
+      }
+      design.placedBy='user';
+      select(null);
+      buildItems();
+      return;
+    }
+    if(kind==='blank'){
+      design.items=[];
+      design.placedBy='user';
+      select(null);
+      buildItems();
+    }
+  }
   function show(){
     if(!window.BQ||!BQ.quote) return;
     if(walking) exitWalk();
@@ -2016,6 +2049,6 @@ const Planner=(()=>{
   $('pl-ai-again').onclick=runRender;
   $('pl-ai-save').onclick=saveRender;
   $('pl-ai-quote').onclick=toggleQuoteRender;
-  return {show,loadFromQuote,applyPackageLook,preloadFromQuote,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,enterWalk,exitWalk,lookHere,getWalk,setPlan,_:{get design(){return design},TILES,ITEMS,blocked,get renderer(){return renderer},get room(){return roomMesh},get camera(){return camera},normRoom,roomPolygon,floorRects,designFloorArea,insideRoom,itemHitsOpening,windowInShower,countKinds,doorFrame,walls(){return design?wallsOf(normRoom(design.room)):[]}}};
+  return {show,loadFromQuote,applyPackageLook,preloadFromQuote,getDesign,addItem,select,saveImage,toggleClient,sizeFromPackage,buildRenderPrompt,runRender,enterWalk,exitWalk,lookHere,getWalk,setPlan,applyTemplate,_:{get design(){return design},TILES,ITEMS,blocked,get renderer(){return renderer},get room(){return roomMesh},get camera(){return camera},normRoom,roomPolygon,floorRects,designFloorArea,insideRoom,itemHitsOpening,windowInShower,countKinds,doorFrame,walls(){return design?wallsOf(normRoom(design.room)):[]}}};
 })();
 window.Planner=Planner;
