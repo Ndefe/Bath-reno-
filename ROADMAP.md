@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
+- Quote total. When the figure changes it counts up and pulses, including the phone total. A repeat of the same figure does not cancel that count, and the final figure does not flash before the count starts. The screen reader hears the final figure only. Both are skipped when motion is reduced. Prices are unchanged.
 - Step progress. The quote shows Step 1 of 3 as you move through Bathroom, Extras, and Client. The planner shows Step 1 of 5 on Room, Layout, Fixtures, Style, and Render. The step control is at least 44 px and sticks under the header. A screen reader hears the planner step name, such as Room, step 1 of 5. The bar does not animate when motion is reduced. Prices are unchanged.
 - Gallery compare. Each finished job has a before and after slider with a 44 px handle. Arrow keys move it. A vertical swipe still scrolls the page. Nothing is sent. Prices are unchanged.
 - Phone actions. On a phone, Call, Book a measure, and Quote stay along the bottom, clear of the home indicator and clear of the total bar. Call stays hidden until a real phone number is saved in Setup. Nothing is sent. Prices are unchanged.
