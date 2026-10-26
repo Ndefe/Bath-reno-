@@ -45,7 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
-- Step progress. The quote shows Step 1 of 3 as you move through Bathroom, Extras, and Client. The planner shows Step 1 of 5 on Room, Layout, Fixtures, Style, and Render. The bar does not animate when motion is reduced. Prices are unchanged.
+- Step progress. The quote shows Step 1 of 3 as you move through Bathroom, Extras, and Client. The planner shows Step 1 of 5 on Room, Layout, Fixtures, Style, and Render. The step control is at least 44 px and sticks under the header. A screen reader hears the planner step name, such as Room, step 1 of 5. The bar does not animate when motion is reduced. Prices are unchanged.
 
 ### 2026-10-25
 
