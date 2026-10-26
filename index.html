@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Bathroom renovations in Brisbane | Gert's Reno</title>
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
@@ -87,11 +87,13 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .ref-reward{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
 .review-draft textarea{min-height:88px;font-size:16px}
 .gal-job h2{margin-bottom:4px}
-.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px}
-.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px;touch-action:pan-y}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .ba-before{clip-path:inset(0 calc(100% - var(--pos, 50%)) 0 0)}
 .ba-bar{position:absolute;top:0;bottom:0;left:var(--pos, 50%);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
-.ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.ba-knob{position:absolute;top:50%;left:var(--pos,50%);width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#fff;border:2px solid #0e7c86;box-shadow:0 2px 8px rgba(16,24,32,.25);pointer-events:none}
+.ba input[type=range]{position:absolute;top:50%;left:var(--pos,50%);width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;cursor:ew-resize;touch-action:pan-y}
+.ba:focus-within .ba-knob{outline:3px solid #0e7c86;outline-offset:3px}
 .ba-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px}
 .ba-missing{margin:8px 0 0}
 .chat-bar{display:flex;gap:8px;align-items:center;position:sticky;bottom:0;background:var(--card);z-index:2;padding-top:8px;min-height:44px}
@@ -196,6 +198,8 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 @media(max-width:860px){.planner{grid-template-columns:1fr}}
 .pl-stage{position:relative;background:#dfe5ea;border-radius:12px;overflow:hidden;height:70vh;min-height:360px}
 #pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:pan-y}
+#pl-canvas{opacity:0}
+#pl-canvas.pl-in{opacity:1}
 .pl-col{min-width:0;display:flex;flex-direction:column}
 @media(min-width:861px){.pl-side{grid-column:2;grid-row:1}}
 .pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end;z-index:8}
@@ -237,6 +241,10 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 #pl-stepfree{width:44px;height:44px;min-width:44px;min-height:44px;accent-color:var(--acc)}
 #pl-ai{display:none!important}
 .pl-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:#455;background:#fffc;padding:3px 8px;border-radius:6px}
+.pl-views{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.pl-views button{min-height:44px;min-width:44px;border:0;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:14px;line-height:1.1;padding:8px 12px;cursor:pointer;box-shadow:0 2px 8px rgba(16,24,32,.12)}
+.pl-views button[aria-pressed="true"]{background:var(--acc);color:#fff}
+body.walking .pl-views,body.client .pl-views{display:none}
 .pl-joy{position:absolute;left:16px;bottom:16px;width:120px;height:120px;border-radius:50%;background:rgba(16,24,32,.4);border:2px solid rgba(255,255,255,.85);z-index:6;touch-action:none}
 .pl-joy[hidden]{display:none!important}
 .pl-joy-knob{position:absolute;left:34px;top:34px;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:none}
@@ -332,6 +340,24 @@ header.app .share-status{flex:1 0 100%;color:#d5dde4;margin:0}
 html.a2hs-on #a2hs{display:flex!important}
 html.a2hs-on .chat-card > h2,
 html.a2hs-on .chat-card > .hint{display:none}
+#pl-load{
+  left:0;right:0;top:0;bottom:0;margin:0;z-index:9;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:12px;border-radius:0;font-size:15px;line-height:1.35;color:#243038;
+  background:rgba(223,229,234,.94)
+}
+#pl-load .pl-bounce{display:flex;gap:6px}
+#pl-load .pl-bounce i{width:8px;height:8px;border-radius:50%;background:#0e7c86;display:block}
+@keyframes pl-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media (prefers-reduced-motion:no-preference){
+  #pl-canvas.pl-in{transition:opacity .4s ease}
+  #pl-load .pl-bounce i{animation:pl-bob .6s ease-in-out infinite}
+  #pl-load .pl-bounce i:nth-child(2){animation-delay:.12s}
+  #pl-load .pl-bounce i:nth-child(3){animation-delay:.24s}
+}
+@media (prefers-reduced-motion:reduce){
+  #pl-canvas.pl-in{transition:none}
+}
 #pl-load[hidden]{display:none!important}
 @media print{.a2hs{display:none!important}}
 /* Mobile tweaks */
@@ -373,6 +399,16 @@ header.app{position:sticky;top:0;z-index:20}
 #m-total span{font-size:14px;line-height:1.3;min-width:0;flex:1 1 auto}
 #m-total button{flex:none;white-space:nowrap;min-height:44px;padding:10px 14px}
 @media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}body.on-quote:not(.client) main{padding-bottom:96px}}
+#phone-bar{display:none}
+#phone-bar a,#phone-bar button{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:0;border-radius:8px;background:var(--acc);color:#fff;font:inherit;font-size:14px;line-height:1.1;padding:8px 6px;text-align:center;text-decoration:none;cursor:pointer}
+#phone-bar a[hidden]{display:none!important}
+@media(max-width:520px){
+  body:not(.client) #phone-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:24;gap:8px;background:#fff;border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(16,24,32,.08)}
+  body:not(.client) main{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) #m-total{bottom:calc(61px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) main{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
+}
+@media print{#phone-bar{display:none!important}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 .flow{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -606,7 +642,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="pl-col">
       <div class="pl-stage" id="pl-stage">
         <div id="pl-canvas"></div>
-        <p class="pl-hint" id="pl-load" hidden>Loading the planner…</p>
+        <p class="pl-hint" id="pl-load" hidden>Loading the planner…<span class="pl-bounce" aria-hidden="true"><i></i><i></i><i></i></span></p>
         <div class="pl-overlay">
           <div class="pl-seg" role="group" aria-label="View">
             <button type="button" id="pl-plan" aria-pressed="false">Plan</button>
@@ -638,6 +674,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           </div>
         </div>
         <p id="pl-measure" class="pl-measure" hidden></p>
+      </div>
+      <div class="pl-views" id="pl-views" role="group" aria-label="Camera">
+        <button type="button" data-view="eye" aria-pressed="false">Eye</button>
+        <button type="button" data-view="vanity" aria-pressed="false">Vanity</button>
+        <button type="button" data-view="shower" aria-pressed="false">Shower</button>
+        <button type="button" data-view="above" aria-pressed="false">Above</button>
       </div>
       <div class="pl-fab" id="pl-fab">
         <p id="pl-fab-sel" class="pl-fab-status">Nothing selected</p>
@@ -866,6 +908,11 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </section>
 </main>
 <div id="m-total"><span>Total <span id="m-total-v">$0.00</span></span><button onclick="document.getElementById('summary').scrollIntoView({behavior:'smooth'})">View quote</button></div>
+<nav id="phone-bar" aria-label="Quick actions">
+  <a id="phone-call" hidden>Call</a>
+  <button type="button" id="phone-measure">Book a measure</button>
+  <button type="button" id="phone-quote">Quote</button>
+</nav>
 <div id="printArea"></div>
 
 <script>
@@ -1540,6 +1587,7 @@ function update(){
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
   renderLeadSummary();
+  if(typeof syncPhoneBar==='function') syncPhoneBar();
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. Stored on this device. It only matches this browser, and it is not a discount.`:''}</div>`;
   refreshDelivery();
   renderReferralPanel();
@@ -2265,7 +2313,7 @@ function galleryCard(job){
   const before=galleryPath(job&&job.before);
   const after=galleryPath(job&&job.after);
   const photos=before&&after
-    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
+    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar" aria-hidden="true"></span><span class="ba-knob" aria-hidden="true"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
     :`<p class="hint ba-missing">This job needs a before photo and an after photo in the gallery folder.</p>`;
   return `<article class="card gal-job"><h2>${esc(suburb)}</h2><p class="hint">${esc(pkgName)}</p>${note?`<p>${esc(note)}</p>`:''}${photos}</article>`;
 }
@@ -2299,6 +2347,36 @@ $('gallery-root').addEventListener('input',e=>{
   const ba=e.target.closest('.ba');
   if(ba) ba.style.setProperty('--pos',`${e.target.value}%`);
 });
+let baDrag=null;
+function baEnd(e){
+  if(!baDrag||(e&&e.pointerId!==baDrag.id)) return;
+  try{baDrag.ba.releasePointerCapture(e.pointerId)}catch(err){}
+  baDrag=null;
+}
+$('gallery-root').addEventListener('pointerdown',e=>{
+  const ba=e.target.closest('.ba');
+  if(!ba) return;
+  baDrag={ba,id:e.pointerId,x:e.clientX,y:e.clientY,lock:''};
+});
+$('gallery-root').addEventListener('pointermove',e=>{
+  if(!baDrag||e.pointerId!==baDrag.id) return;
+  const dx=e.clientX-baDrag.x, dy=e.clientY-baDrag.y;
+  if(!baDrag.lock){
+    if(dx*dx+dy*dy<64) return;
+    baDrag.lock=Math.abs(dy)>Math.abs(dx)?'y':'x';
+    if(baDrag.lock==='y'){baDrag=null;return}
+    try{baDrag.ba.setPointerCapture(e.pointerId)}catch(err){}
+  }
+  if(!baDrag||baDrag.lock!=='x') return;
+  const ba=baDrag.ba;
+  const rect=ba.getBoundingClientRect();
+  const pct=Math.round(Math.min(100,Math.max(0,(e.clientX-rect.left)/Math.max(rect.width,1)*100)));
+  const input=ba.querySelector('input[data-ba]');
+  if(input) input.value=String(pct);
+  ba.style.setProperty('--pos',pct+'%');
+});
+$('gallery-root').addEventListener('pointerup',baEnd);
+$('gallery-root').addEventListener('pointercancel',baEnd);
 $('gallery-root').addEventListener('error',e=>{
   const img=e.target;
   if(!img||img.tagName!=='IMG') return;
@@ -2346,6 +2424,35 @@ $('nav-render').onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.id==='nav-render'));
   setFlow('render');
 };
+function realPhone(){
+  const raw=String(settings&&settings.phone||'').trim();
+  return raw.replace(/\D/g,'').length>=8?raw:'';
+}
+function placeQuoteTotal(){
+  const bar=$('phone-bar');
+  const total=$('m-total');
+  if(!total) return;
+  const shown=bar&&document.body.classList.contains('on-quote')&&getComputedStyle(bar).display!=='none';
+  if(!shown){total.style.bottom='';return}
+  const h=bar.getBoundingClientRect().height;
+  if(h<1) return;
+  total.style.bottom=Math.ceil(h)+'px';
+}
+function syncPhoneBar(){
+  const a=$('phone-call');
+  if(!a) return;
+  const phone=realPhone();
+  if(!phone){a.hidden=true;a.removeAttribute('href')}
+  else{
+    a.hidden=false;
+    a.href='tel:'+phone.replace(/[^\d+]/g,'');
+    a.setAttribute('aria-label','Call '+phone);
+  }
+  placeQuoteTotal();
+}
+window.addEventListener('resize',placeQuoteTotal);
+if($('phone-measure')) $('phone-measure').onclick=()=>$('nav-measure').click();
+if($('phone-quote')) $('phone-quote').onclick=()=>document.querySelector('nav button[data-view=quote]').click();
 $('nav-measure').onclick=()=>{
   const quoteBox=$('quote-measure');
   const chatBox=$('measure-box');
@@ -2848,6 +2955,7 @@ $('o-save').onclick=()=>{
   readSetup();
   Store.set(K.settings,settings);
   fillSettingsShared();
+  if(typeof syncPhoneBar==='function') syncPhoneBar();
   update();
   $('o-msg').textContent=syncing()?'Saved on this phone. '+LEADS_SENT:'Saved on this phone. Nothing was sent.';
 };
@@ -4071,21 +4179,33 @@ function loadScript(src){
     document.body.appendChild(s);
   });
 }
+function setPlannerNote(text){
+  const note=$('pl-load');
+  if(!note) return;
+  note.hidden=false;
+  note.textContent=text;
+  if(text==='Loading the planner…'){
+    const bounce=document.createElement('span');
+    bounce.className='pl-bounce';
+    bounce.setAttribute('aria-hidden','true');
+    bounce.append(document.createElement('i'),document.createElement('i'),document.createElement('i'));
+    note.appendChild(bounce);
+  }
+}
 function ensurePlanner(){
   if(window.Planner) return Promise.resolve(window.Planner);
   if(plannerLoad) return plannerLoad;
-  const note=$('pl-load');
-  if(note){note.hidden=false;note.textContent='Loading the planner…';}
+  setPlannerNote('Loading the planner…');
   plannerLoad=(async()=>{
     await loadScript('assets/vendor/three.r147.min.js');
     await loadScript('assets/vendor/OrbitControls.js');
+    await loadScript('assets/vendor/RGBELoader.js');
     await loadScript('assets/planner.js');
     if(!window.Planner||!window.THREE) throw new Error('planner');
-    if(note) note.hidden=true;
     return window.Planner;
   })().catch(err=>{
     plannerLoad=null;
-    if(note){note.hidden=false;note.textContent='The planner could not load. Check the connection and open it again.';}
+    setPlannerNote('The planner could not load. Check the connection and open it again.');
     throw err;
   });
   return plannerLoad;
