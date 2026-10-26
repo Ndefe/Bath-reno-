@@ -85,6 +85,43 @@ try {
   page.on('console', msg => logs.push(msg.text()));
   page.on('pageerror', err => logs.push(String(err)));
   await openPlanner(page);
+  const swipe = await page.evaluate(async () => {
+    const canvas = document.querySelector('#pl-canvas canvas');
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dist = () => {
+      const c = window.Planner._.camera.position;
+      return Math.hypot(c.x, c.y - 0.9, c.z);
+    };
+    const fire = (type, id, x, y) => canvas.dispatchEvent(new PointerEvent(type, {
+      pointerId:id, pointerType:'touch', clientX:x, clientY:y, pageX:x + scrollX, pageY:y + scrollY, bubbles:true, cancelable:true
+    }));
+    const before = dist();
+    fire('pointerdown', 9, cx, cy);
+    fire('pointermove', 9, cx, cy + 90);
+    fire('pointercancel', 9, cx, cy + 90);
+    fire('pointerup', 9, cx, cy + 90);
+    const afterSwipe = canvas.style.touchAction;
+    const start = 120;
+    const end = 240;
+    fire('pointerdown', 3, cx - start / 2, cy);
+    fire('pointerdown', 4, cx + start / 2, cy);
+    for (let i = 1; i <= 4; i++) {
+      const s = start + (end - start) * (i / 4);
+      fire('pointermove', 3, cx - s / 2, cy);
+      fire('pointermove', 4, cx + s / 2, cy);
+    }
+    fire('pointerup', 3, cx - end / 2, cy);
+    fire('pointerup', 4, cx + end / 2, cy);
+    await new Promise(r => setTimeout(r, 80));
+    const after = dist();
+    return {before, after, delta: Math.abs(after - before), touchAction: afterSwipe, touchAfter: canvas.style.touchAction};
+  });
+  report(swipe.touchAction === 'pan-y' && swipe.delta > 0.05 && swipe.touchAfter === 'pan-y',
+    'vertical swipe then pinch still moves the camera ' + JSON.stringify(swipe));
+  await page.evaluate(() => document.querySelector('#pl-views [data-view=eye]').click());
+  await new Promise(r => setTimeout(r, 800));
   const pinch = await page.evaluate(async () => {
     const canvas = document.querySelector('#pl-canvas canvas');
     const rect = canvas.getBoundingClientRect();
@@ -137,7 +174,7 @@ try {
   report(pinch.runs.every(d => Math.abs(d - 6.04) < 0.05), 'pinch-close x3 ends at 6.04 ' + JSON.stringify(pinch.runs));
   report(!pinch.padCoversCentre && pinch.left === 'CANVAS' && pinch.right === 'CANVAS', 'centre +/-100 hits the canvas ' + JSON.stringify(pinch));
   report(pinch.walk === 'pl-walk', 'walk stays tappable');
-  const widths = [[360, 667], [375, 667], [390, 844], [412, 915]];
+  const widths = [[360, 667], [375, 667], [390, 844], [412, 915], [1280, 800]];
   for (const [width, height] of widths) {
     await page.setViewport({width, height, hasTouch:true, isMobile:true, deviceScaleFactor:1});
     await page.evaluate(() => document.getElementById('pl-stage').scrollIntoView({block:'center'}));
@@ -194,6 +231,35 @@ try {
       'pad buttons reachable at ' + width + ' ' + JSON.stringify({rows: pad.rows, scrolls: pad.scrolls, centreCovered: pad.centreCovered, panel: pad.panel, tools: pad.tools, bad, missing}));
   }
   await page.setViewport({width:375, height:667, hasTouch:true, isMobile:true, deviceScaleFactor:1});
+  const views = await page.evaluate(async () => {
+    const shot = (type) => {
+      const cam = window.Planner._.camera;
+      const dir = new THREE.Vector3();
+      cam.getWorldDirection(dir);
+      const items = (window.Planner._.design && window.Planner._.design.items) || [];
+      const it = items.find(i => i.type === type);
+      const aim = it ? {x: it.x - cam.position.x, z: it.z - cam.position.z} : {x: 0, z: 0};
+      const flat = Math.hypot(dir.x, dir.z) || 1;
+      const toward = Math.hypot(aim.x, aim.z) || 1;
+      return {
+        pos: [+cam.position.x.toFixed(2), +cam.position.y.toFixed(2), +cam.position.z.toFixed(2)],
+        look: [+(dir.x / flat).toFixed(3), +(dir.z / flat).toFixed(3)],
+        facing: (dir.x * aim.x + dir.z * aim.z) / (flat * toward)
+      };
+    };
+    document.querySelector('#pl-views [data-view=vanity]').click();
+    await new Promise(r => setTimeout(r, 800));
+    const vanity = shot('vanity');
+    document.querySelector('#pl-views [data-view=shower]').click();
+    await new Promise(r => setTimeout(r, 800));
+    const shower = shot('shower');
+    const dot = vanity.look[0] * shower.look[0] + vanity.look[1] * shower.look[1];
+    return {vanity, shower, dot: +dot.toFixed(3)};
+  });
+  report(views.vanity.facing > 0.8 && views.shower.facing > 0.8 && views.dot < 0.35,
+    'vanity and shower are different views ' + JSON.stringify(views));
+  await page.evaluate(() => document.querySelector('#pl-views [data-view=eye]').click());
+  await new Promise(r => setTimeout(r, 800));
   report(pinch.timeoutMs === 60000 && pinch.hasCancel === 'function', 'timeout is 60000 and cancel exists');
   const ignored = logs.filter(line => /Ignored attempt to cancel a touchmove|pointercancel/i.test(line));
   report(ignored.length === 0, 'no touch-cancel noise ' + ignored.slice(0, 3).join(' | '));
