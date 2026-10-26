@@ -482,6 +482,16 @@ nav a.nav-link{display:inline-flex;align-items:center;justify-content:center;bac
 #pl-back-quote{min-height:44px;width:100%;margin:0 0 8px}
 @media(max-width:860px){#pl-back-quote{margin-top:16px}}
 body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
+.pl-phone-bar{display:none}
+.pl-phone-step{margin:0;flex:1;min-width:0;text-align:center;font-family:Fraunces,"Fraunces Fallback",Georgia,"Times New Roman",serif;font-weight:700;font-size:18px;line-height:1.2;color:var(--ink)}
+#pl-exit{flex:none}
+@media(max-width:860px){
+  body.on-planner header.app,body.on-planner #phone-bar,body.on-planner #m-total{display:none!important}
+  body.on-planner main{max-width:none;padding:0}
+  body.on-planner:not(.walking):not(.client) .pl-phone-bar{display:flex;align-items:center;gap:8px;min-height:52px;padding:4px 8px;background:var(--bg)}
+  body.on-planner:not(.walking):not(.client) .pl-stage{height:calc(100dvh - 52px);min-height:240px;border-radius:0}
+  body.on-planner:not(.walking):not(.client) .pl-overlay > :not(#pl-undo){display:none!important}
+}
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
 </head>
@@ -680,6 +690,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <!-- PLANNER VIEW -->
   <section class="view" id="view-planner" data-step="size">
     <div class="planner">
+      <div class="pl-phone-bar" id="pl-phone-bar">
+        <button class="btn sec" type="button" id="pl-exit">Exit</button>
+        <p class="pl-phone-step" id="pl-phone-step">1 of 5 · Room</p>
+      </div>
       <div class="pl-col">
       <div class="pl-stage" id="pl-stage">
         <div id="pl-canvas"></div>
@@ -2486,6 +2500,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   document.body.classList.toggle('on-quote',b.dataset.view==='quote');
   document.body.classList.toggle('on-assist',b.dataset.view==='assist');
+  document.body.classList.toggle('on-planner',b.dataset.view==='planner');
   if(b.dataset.view==='quote'){update();requestAnimationFrame(syncQuoteStep)}
   if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
@@ -2564,6 +2579,7 @@ if($('open-gallery')) $('open-gallery').onclick=()=>{
   document.querySelector('nav button[data-view=gallery]').click();
 };
 $('pl-back-quote').onclick=()=>document.querySelector('nav button[data-view="quote"]').click();
+if($('pl-exit')) $('pl-exit').onclick=()=>document.querySelector('nav button[data-view="quote"]').click();
 const SWATCH={'white-subway':'#f4f4f1','grey-large':'#8d9196','terrazzo':'#eae4da','black-hex':'#1e1f22','beige-stone':'#d8c6a8','white-matte':'#f2f2ef','stone-code':'#8a8d90','whoosh-white':'#f7f7f5','regina-grey':'#8e9398','regina-white':'#f4f3f0','sand-600':'#d9c7aa','cream-gloss':'#f7f1e4','statuario':'#f7f5f2','orion-dark':'#4a4e52',black:'#1b1b1d',chrome:'#e4e8ec',copper:'#c27a4e',brass:'#b08d57',bronze:'#8d5a3a'};
 function paintSwatches(){
   [['sw-floor','pl-floor'],['sw-wall','pl-wall'],['sw-metal','pl-metal']].forEach(([sw,sel])=>{
@@ -2624,6 +2640,8 @@ function setFlow(step){
     const i=FLOW.indexOf(step);
     const stepLabelText='Step '+(i+1)+' of '+FLOW.length;
     const spoken=FLOW_NAME[step]+', step '+(i+1)+' of '+FLOW.length;
+    const phoneStep=$('pl-phone-step');
+    if(phoneStep) phoneStep.textContent=(i+1)+' of '+FLOW.length+' · '+FLOW_NAME[step];
     bar.setAttribute('aria-valuenow',String(i+1));
     bar.setAttribute('aria-valuetext',spoken);
     const stepEl=$('flow-step');
