@@ -338,6 +338,7 @@ body.client .pl-side{max-height:100vh;overflow:auto;padding:12px;background:var(
 .product-shot{margin:0;flex:none;display:flex;flex-direction:column;align-items:flex-start}
 .product-shot figcaption{font-size:12px;line-height:1.2;color:var(--mute);margin-top:2px}
 .meet-card{display:flex;gap:12px;align-items:center;flex-wrap:wrap;flex:none;margin-bottom:12px}
+.meet-card[hidden]{display:none!important}
 .meet-card .ph-box{margin:0;flex:1;min-width:160px}
 .meet-card .owner-portrait{width:72px;height:72px;margin:0}
 .product .pname{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
@@ -405,13 +406,13 @@ html.a2hs-on .chat-card > .hint{display:none}
 header.app{position:sticky;top:0;z-index:20}
 @media(min-width:861px){header.app{box-shadow:inset 0 -8px 0 var(--sand)}}
 @media(max-width:860px){
-  header.app{flex-wrap:wrap;align-items:center;height:auto;min-height:56px;max-height:none;padding:8px;gap:8px;overflow:visible}
-  .brand-lockup{flex:1 1 100%;min-width:0;max-width:100%;overflow:visible}
-  .brand-lockup > div{min-width:0;flex:1 1 auto;overflow:visible;max-width:100%}
-  header.app h1{display:block;width:100%;font-size:22px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;max-width:100%}
+  header.app{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:48px 48px;align-items:center;height:96px;min-height:96px;max-height:96px;padding:0 8px;gap:0 8px;overflow:visible}
+  .brand-lockup{grid-column:1;grid-row:1;flex:none;width:auto;min-width:0;max-width:100%;overflow:hidden}
+  .brand-lockup > div{min-width:0;flex:1 1 auto;overflow:hidden;max-width:100%}
+  header.app h1{display:block;width:100%;height:48px;min-height:48px;font-size:16px;line-height:48px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   #brand-legal{display:none}
-  #btn-share{min-height:44px;max-height:44px;padding:6px 8px;flex:0 0 auto;position:relative;z-index:2}
-  header.app nav{display:flex;width:auto;flex:1 1 0;min-width:0;gap:4px;flex-wrap:nowrap;overflow:visible}
+  #btn-share{grid-column:2;grid-row:1;min-height:44px;max-height:44px;padding:6px 8px;flex:none;position:relative;z-index:2}
+  header.app nav{grid-column:1 / -1;grid-row:2;display:flex;width:100%;height:48px;flex:none;min-width:0;gap:4px;flex-wrap:nowrap;overflow:visible}
   .nav-row{flex-wrap:nowrap;overflow-x:auto;min-width:0;mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
   .nav-row button,.nav-row a.nav-link{flex:0 0 auto;min-height:44px;margin:0;padding:8px 10px;font-size:14px;white-space:nowrap}
   .nav-owner{position:absolute;top:100%;left:0;right:0;flex:none;background:var(--ink);padding:6px 8px;z-index:30}
@@ -459,7 +460,7 @@ header.app{position:sticky;top:0;z-index:20}
 .flow-progress span{display:block;height:100%;width:20%;background:var(--acc);border-radius:99px;transition:width .28s ease}
 .step-label{position:sticky;top:72px;z-index:15;min-height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;margin:0 0 10px;padding:8px 10px;background:var(--sand);font-size:15px;font-weight:700;line-height:1.2;color:var(--ink)}
 .step-label .flow-progress{height:6px;margin:0}
-@media(max-width:860px){.step-label{top:56px}}
+@media(max-width:860px){.step-label{top:96px}}
 .pl-more{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 10px 8px;background:#fff}
 .pl-more summary{min-height:44px;line-height:44px;cursor:pointer;font-weight:600}
 #pl-tools-more .pl-nudge{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -524,7 +525,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <div class="brand-lockup">
     <img id="brand-logo" alt="" hidden>
     <div>
-      <h1 id="brand">Gert's Reno: bathrooms, done properly, in Brisbane</h1>
+      <h1 id="brand">Gert's Reno: bathrooms in Brisbane</h1>
       <p class="hint" id="brand-legal">ABN (add your ABN) · QBCC licence (add your licence number)</p>
     </div>
   </div>
@@ -557,7 +558,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </div>
 </div>
   <section class="view active" id="view-assist" aria-label="Intake assistant">
-    <div class="card meet-card" id="faq-meet"></div>
+    <div class="card meet-card" id="faq-meet" hidden></div>
     <div class="card chat-card">
       <div class="chat-side">
       <h2>Assistant</h2>
@@ -1269,31 +1270,21 @@ function paintFaqMeet(){
   const host=$('faq-meet');
   if(!host) return;
   const o=filledOwner();
-  host.replaceChildren();
-  host.hidden=false;
   const photo=safeImageSrc(o.photo);
-  if(photo){
-    const img=document.createElement('img');
-    img.className='owner-portrait';
-    img.src=photo;
-    img.alt='Photo added on this phone';
-    host.append(img);
-  }else{
-    const box=document.createElement('p');
-    box.className='ph-box';
-    box.textContent='Photo placeholder. A photo saved on Setup shows here.';
-    host.append(box);
-  }
-  const story=document.createElement('p');
-  if(o.story){
-    story.className='hint';
-    story.style.whiteSpace='pre-wrap';
-    story.textContent=o.story;
-  }else{
-    story.className='ph-box';
-    story.textContent='Story placeholder. A story saved on Setup shows here.';
-  }
-  host.append(story);
+  const story=String(o.story||'').trim();
+  host.replaceChildren();
+  if(!photo||!story){host.hidden=true;return}
+  host.hidden=false;
+  const img=document.createElement('img');
+  img.className='owner-portrait';
+  img.src=photo;
+  img.alt='Photo added on this phone';
+  host.append(img);
+  const p=document.createElement('p');
+  p.className='hint';
+  p.style.whiteSpace='pre-wrap';
+  p.textContent=story;
+  host.append(p);
 }
 function extraHint(ex){
   if(ex.price==null&&!ex.patternSell) return 'Price to confirm after a site measure. Not included in the from price.';
@@ -1924,8 +1915,12 @@ function legalBits(){
   const qbcc=String(settings.qbcc||'').trim();
   return {abn:abn||'(add your ABN)', qbcc:qbcc||'(add your licence number)', named:!!(abn||qbcc)};
 }
+function brandLine(){
+  const name=String(settings.bizName||'').trim()||"Gert's Reno";
+  return name+': bathrooms in Brisbane';
+}
 function updateBrand(){
-  $('brand').textContent="Gert's Reno: bathrooms, done properly, in Brisbane";
+  $('brand').textContent=brandLine();
   const logo=$('brand-logo');
   if(settings.logo){logo.src=settings.logo;logo.hidden=false;logo.alt=(settings.bizName||'Business')+' logo'}
   else{logo.removeAttribute('src');logo.hidden=true;logo.alt=''}
