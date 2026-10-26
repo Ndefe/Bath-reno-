@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Bathroom renovations in Brisbane | Gert's Reno</title>
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
@@ -373,6 +373,16 @@ header.app{position:sticky;top:0;z-index:20}
 #m-total span{font-size:14px;line-height:1.3;min-width:0;flex:1 1 auto}
 #m-total button{flex:none;white-space:nowrap;min-height:44px;padding:10px 14px}
 @media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}body.on-quote:not(.client) main{padding-bottom:96px}}
+#phone-bar{display:none}
+#phone-bar a,#phone-bar button{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:0;border-radius:8px;background:var(--acc);color:#fff;font:inherit;font-size:14px;line-height:1.1;padding:8px 6px;text-align:center;text-decoration:none;cursor:pointer}
+#phone-bar a[hidden]{display:none!important}
+@media(max-width:520px){
+  body:not(.client) #phone-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:24;gap:8px;background:#fff;border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(16,24,32,.08)}
+  body:not(.client) main{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) #m-total{bottom:calc(60px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) main{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
+}
+@media print{#phone-bar{display:none!important}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 .flow{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -862,6 +872,11 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </section>
 </main>
 <div id="m-total"><span>Total <span id="m-total-v">$0.00</span></span><button onclick="document.getElementById('summary').scrollIntoView({behavior:'smooth'})">View quote</button></div>
+<nav id="phone-bar" aria-label="Quick actions">
+  <a id="phone-call" hidden>Call</a>
+  <button type="button" id="phone-measure">Book a measure</button>
+  <button type="button" id="phone-quote">Quote</button>
+</nav>
 <div id="printArea"></div>
 
 <script>
@@ -1536,6 +1551,7 @@ function update(){
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
   renderLeadSummary();
+  if(typeof syncPhoneBar==='function') syncPhoneBar();
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. Stored on this device. It only matches this browser, and it is not a discount.`:''}</div>`;
   refreshDelivery();
   renderReferralPanel();
@@ -2342,6 +2358,21 @@ $('nav-render').onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.id==='nav-render'));
   setFlow('render');
 };
+function realPhone(){
+  const raw=String(settings&&settings.phone||'').trim();
+  return raw.replace(/\D/g,'').length>=8?raw:'';
+}
+function syncPhoneBar(){
+  const a=$('phone-call');
+  if(!a) return;
+  const phone=realPhone();
+  if(!phone){a.hidden=true;a.removeAttribute('href');return}
+  a.hidden=false;
+  a.href='tel:'+phone.replace(/[^\d+]/g,'');
+  a.setAttribute('aria-label','Call '+phone);
+}
+if($('phone-measure')) $('phone-measure').onclick=()=>$('nav-measure').click();
+if($('phone-quote')) $('phone-quote').onclick=()=>document.querySelector('nav button[data-view=quote]').click();
 $('nav-measure').onclick=()=>{
   const quoteBox=$('quote-measure');
   const chatBox=$('measure-box');
@@ -2796,6 +2827,7 @@ $('o-save').onclick=()=>{
   readSetup();
   Store.set(K.settings,settings);
   fillSettingsShared();
+  if(typeof syncPhoneBar==='function') syncPhoneBar();
   update();
   $('o-msg').textContent=syncing()?'Saved on this phone. '+LEADS_SENT:'Saved on this phone. Nothing was sent.';
 };
