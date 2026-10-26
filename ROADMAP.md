@@ -45,7 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
-- Waiting dots. The chat shows three dots while a reply is on the way, and the AI render shows a placeholder with the same dots. The dots stay still when motion is reduced. The planner picture loader stays on its own unmerged branch. Nothing is sent. Prices are unchanged.
+- Waiting dots. The chat shows three dots while a reply is on the way, and the AI render shows a full-width placeholder with the same dots. The dots stay still when motion is reduced. The planner picture loader stays on its own unmerged branch. Nothing is sent. Prices are unchanged.
 
 ### 2026-10-25
 

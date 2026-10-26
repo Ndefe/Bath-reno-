@@ -256,7 +256,7 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 6px;font-size:13px;line-height:1.2}
 .pl-tile svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
-.pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
+.pl-render-loading{display:flex;flex-direction:column;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
 .spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px}
 @keyframes soft-pulse{from{opacity:.55;transform:none}to{opacity:1;transform:translateY(-2px)}}
@@ -3438,7 +3438,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(!quote) return;
     const intake=ensureIntake();
     const log=$('chat-log');
-    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait" role="status"><span class="sr">One moment…</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':'');
+    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait"><span class="sr">One moment…</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':'');
     const showTop=!intake.pending && !intake.messages.some(m=>m.role==='user');
     const pinLog=()=>{
       if(!showTop){log.scrollTop=log.scrollHeight;return;}
