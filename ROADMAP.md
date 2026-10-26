@@ -46,6 +46,7 @@ These rules sit above the feature list. They do not change the site.
 ### 2026-10-26
 
 - Planner light. A warm key light and a cool fill, soft shadows, and darker contact shading where the floor meets the walls. Tiles, glass, chrome, timber and matte finishes keep their colours and pick up the room. Reflections use a CC0 studio image, Studio Small 03 by Greg Zaal, stored with the site. The picture uses ACES tone mapping, sRGB and anti-aliasing. Prices are unchanged.
+- Planner on a phone. Finishes share materials, and a phone skips the heavy glass pass. The fixture pad stays below the middle of the picture. Old fixture shapes are released when the room is rebuilt. Prices are unchanged.
 - Planner camera. Eye, Vanity, Shower and Above angles, plus a smooth orbit. The planner opens on the eye-level view. The angle buttons are at least 44 px, and a phone can orbit, pinch and pan. Prices are unchanged.
 
 ### 2026-10-25
