@@ -26,7 +26,7 @@ const Planner=(()=>{
   };
   TILES['black-hex'].draw=(g,S)=>{g.fillStyle='#d9d9d9';g.fillRect(0,0,S,S);g.fillStyle='#1e1f22';const w=S/2,rh=S/2,R=Math.min(w/Math.sqrt(3),rh/1.5)-2;
     for(let row=-1;row<=2;row++)for(let col=-1;col<=2;col++)hex(g,col*w+(row%2?w/2:0),row*rh,R)};
-  const METALS={black:{name:'Matte black',c:0x1b1b1d,m:0.45,r:0.55},chrome:{name:'Chrome',c:0xe4e8ec,m:0.92,r:0.16},copper:{name:'Brushed copper',c:0xc27a4e,m:0.82,r:0.36},brass:{name:'Brushed brass',c:0xb08d57,m:0.84,r:0.34},bronze:{name:'Brushed bronze',c:0x8d5a3a,m:0.8,r:0.4}};
+  const METALS={black:{name:'Matte black',c:0x1c1c1e,m:0.22,r:0.64,env:0.32},chrome:{name:'Chrome',c:0xf3f5f7,m:1,r:0.07,env:1.15},copper:{name:'Brushed copper',c:0xc27a4e,m:0.92,r:0.32,env:0.85},brass:{name:'Brushed brass',c:0xb08d57,m:0.94,r:0.3,env:0.85},bronze:{name:'Brushed bronze',c:0x8d5a3a,m:0.9,r:0.36,env:0.8}};
   /* Defaults are Grey Modern. sizeFromPackage() replaces these from the catalogue. */
   const ITEMS={
     bath:{name:'Bath',w:1.56,d:0.75,h:0.56,y:0},
@@ -132,8 +132,13 @@ const Planner=(()=>{
   }
   function tileSurface(key){
     const n=(TILES[key]&&TILES[key].name||'').toLowerCase();
-    if(key==='statuario'||/gloss/.test(n)) return {roughness:0.2,metalness:0.05};
-    return {roughness:0.84,metalness:0};
+    if(/matte|p5|grip/.test(n)&&!/gloss/.test(n)) return {roughness:0.84,metalness:0,clearcoat:0.02,envMapIntensity:0.22};
+    if(key==='statuario'||/gloss/.test(n)) return {roughness:0.16,metalness:0.02,clearcoat:0.62,clearcoatRoughness:0.18,envMapIntensity:0.85};
+    if(/stone|sand|terrazzo|hex/.test(n)) return {roughness:0.68,metalness:0.02,clearcoat:0.08,envMapIntensity:0.32};
+    return {roughness:0.48,metalness:0.02,clearcoat:0.2,clearcoatRoughness:0.32,envMapIntensity:0.5};
+  }
+  function physicalMat(opts){
+    return new THREE.MeshPhysicalMaterial(Object.assign({roughness:0.5,metalness:0,envMapIntensity:0.45,clearcoat:0,clearcoatRoughness:0.3}, opts));
   }
   function tileMat(key,wm,hm){
     const spec=TILES[key]||TILES['white-matte'];
@@ -142,7 +147,7 @@ const Planner=(()=>{
     t.wrapS=t.wrapT=THREE.RepeatWrapping;
     const [sx,sy]=spec.size;t.repeat.set(wm/sx,hm/sy);t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
     const surf=tileSurface(real);
-    return new THREE.MeshStandardMaterial({map:t,side:THREE.BackSide,roughness:surf.roughness,metalness:surf.metalness});
+    return physicalMat({map:t,side:THREE.BackSide,roughness:surf.roughness,metalness:surf.metalness,clearcoat:surf.clearcoat||0,clearcoatRoughness:surf.clearcoatRoughness==null?0.3:surf.clearcoatRoughness,envMapIntensity:surf.envMapIntensity==null?0.5:surf.envMapIntensity});
   }
   const PALETTE=[['Room',['bath','shower','toilet','vanity','basin']],['Fittings',['tap','mirror','rail','grab','seat']]];
   const ICONS={
@@ -227,6 +232,7 @@ const Planner=(()=>{
     renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
     pixelRatio=basePixelRatio();
     renderer.setPixelRatio(pixelRatio);renderer.outputEncoding=THREE.sRGBEncoding;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
     scene=new THREE.Scene();scene.background=new THREE.Color(0xdfe5ea);
@@ -234,13 +240,17 @@ const Planner=(()=>{
     controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0,0.9,0);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.49;controls.minDistance=1.5;controls.maxDistance=12;
     controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
     renderer.domElement.style.touchAction='pan-y';
-    scene.add(new THREE.HemisphereLight(0xfff6ec,0xb7b1a8,0.38));
-    const fill=new THREE.DirectionalLight(0xe4ebf4,0.16);fill.position.set(-2,3.2,2);scene.add(fill);
-    const spot=new THREE.SpotLight(0xfff1dd,2.4,0,Math.PI/2.15,0.75,1);
-    spot.name='ceil';spot.castShadow=true;
-    const sm=Math.min(window.innerWidth,window.innerHeight)<=900?512:1024;
-    spot.shadow.mapSize.set(sm,sm);spot.shadow.bias=-0.0008;spot.shadow.normalBias=0.04;spot.shadow.radius=4;
-    spot.shadow.camera.near=0.1;spot.shadow.camera.far=8;
+    scene.add(new THREE.HemisphereLight(0xfff1e0,0x6a6158,0.62));
+    const fill=new THREE.DirectionalLight(0xc5d4e8,0.48);fill.name='fill';fill.position.set(-2.2,2.2,-1.2);scene.add(fill);
+    const small=Math.min(window.innerWidth,window.innerHeight)<=900;
+    const sm=small?512:1024;
+    const key=new THREE.DirectionalLight(0xffd7ae,1.45);
+    key.name='key';key.position.set(1.8,3.1,1.5);key.castShadow=true;
+    key.shadow.mapSize.set(sm,sm);key.shadow.bias=-0.00035;key.shadow.normalBias=0.035;key.shadow.radius=small?3:8;
+    key.shadow.camera.near=0.05;key.shadow.camera.far=12;
+    scene.add(key);scene.add(key.target);
+    const spot=new THREE.SpotLight(0xfff0d6,0.42,0,Math.PI/2.4,0.92,1);
+    spot.name='ceil';spot.castShadow=false;
     scene.add(spot);scene.add(spot.target);
     const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,0.02,24),new THREE.MeshStandardMaterial({color:0xfff8ef,emissive:0xffe2b8,emissiveIntensity:0.7,roughness:0.4}));
     lamp.name='lamp';lamp.castShadow=false;scene.add(lamp);
@@ -291,6 +301,7 @@ const Planner=(()=>{
     el.addEventListener('pointerdown',onDown);el.addEventListener('pointermove',onMove);window.addEventListener('pointerup',onUp);window.addEventListener('pointercancel',onUp);
     el.addEventListener('touchmove',ev=>{if(ev.touches.length>=2||drag||pending) ev.preventDefault()},{passive:false});
     new ResizeObserver(resize).observe(host);
+    loadStudio();
     inited=true;
     let lastFrame=performance.now();
     (function loop(now){
@@ -568,7 +579,34 @@ const Planner=(()=>{
     t.repeat.set(Math.max(wm,0.1)/sx,Math.max(hm,0.1)/sy);
     t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
     const surf=tileSurface(real);
-    return new THREE.MeshStandardMaterial({map:t,side:side==null?THREE.FrontSide:side,roughness:surf.roughness,metalness:surf.metalness});
+    return physicalMat({map:t,side:side==null?THREE.FrontSide:side,roughness:surf.roughness,metalness:surf.metalness,clearcoat:surf.clearcoat||0,clearcoatRoughness:surf.clearcoatRoughness==null?0.3:surf.clearcoatRoughness,envMapIntensity:surf.envMapIntensity==null?0.5:surf.envMapIntensity});
+  }
+  function contactAo(){
+    if(contactAo.tex) return contactAo.tex;
+    const c=document.createElement('canvas');
+    c.width=c.height=128;
+    const g=c.getContext('2d');
+    const grd=g.createRadialGradient(64,64,16,64,64,72);
+    grd.addColorStop(0,'#ffffff');
+    grd.addColorStop(0.62,'#f3f3f3');
+    grd.addColorStop(1,'#7d7d7d');
+    g.fillStyle=grd;g.fillRect(0,0,128,128);
+    const t=new THREE.CanvasTexture(c);
+    t.encoding=THREE.LinearEncoding;
+    contactAo.tex=t;
+    return t;
+  }
+  function loadStudio(){
+    if(!renderer||!THREE.RGBELoader) return;
+    new THREE.RGBELoader().load('assets/env/studio_small_03_1k.hdr',tex=>{
+      tex.mapping=THREE.EquirectangularReflectionMapping;
+      const pmrem=new THREE.PMREMGenerator(renderer);
+      pmrem.compileEquirectangularShader();
+      scene.environment=pmrem.fromEquirectangular(tex).texture;
+      tex.dispose();
+      pmrem.dispose();
+      if(renderer.domElement) renderer.domElement.dataset.env='1';
+    },undefined,()=>{if(renderer&&renderer.domElement) renderer.domElement.dataset.env='err'});
   }
   function holesOn(wall,roomH){
     const holes=[];
@@ -626,7 +664,7 @@ const Planner=(()=>{
   function addWindowMesh(group,f){
     const len=f.hi-f.lo,height=f.top-f.sill;
     if(len<0.05||height<0.05) return;
-    const glassMat=new THREE.MeshPhysicalMaterial({color:0xc5d8e4,transparent:true,opacity:0.42,roughness:0.05,metalness:0,side:THREE.DoubleSide,depthWrite:false});
+    const glassMat=new THREE.MeshPhysicalMaterial({color:0xe4f2f6,metalness:0,roughness:0.04,transmission:0.9,thickness:0.008,ior:1.5,transparent:true,opacity:1,envMapIntensity:1,side:THREE.DoubleSide,depthWrite:false});
     const glass=new THREE.Mesh(new THREE.PlaneGeometry(Math.max(0.05,len-0.06),Math.max(0.05,height-0.06)),glassMat);
     const mid=(f.lo+f.hi)/2;
     glass.position.set(f.wall.a[0]+f.wall.dx*mid+f.wall.nx*0.012,(f.sill+f.top)/2,f.wall.a[1]+f.wall.dz*mid+f.wall.nz*0.012);
@@ -715,6 +753,10 @@ const Planner=(()=>{
       floor.rotation.x=-Math.PI/2;
       floor.position.set(rect.x,0.02,rect.z);
       floor.receiveShadow=true;
+      const uv=floor.geometry.getAttribute('uv');
+      if(uv) floor.geometry.setAttribute('uv2',uv.clone());
+      floor.material.aoMap=contactAo();
+      floor.material.aoMapIntensity=0.85;
       group.add(floor);
       const ceil=new THREE.Mesh(new THREE.PlaneGeometry(rect.sx,rect.sz),new THREE.MeshStandardMaterial({color:0xf4f1eb,roughness:0.92,side:THREE.BackSide}));
       ceil.rotation.x=-Math.PI/2;
@@ -727,6 +769,19 @@ const Planner=(()=>{
     const c=floorCentroid(room);
     const spot=scene.getObjectByName('ceil');
     if(spot){spot.position.set(c.x,h-0.16,c.z);spot.target.position.set(c.x,0,c.z);spot.target.updateMatrixWorld()}
+    const key=scene.getObjectByName('key');
+    if(key){
+      key.position.set(c.x+Math.min(1.8,room.l*0.72),h-0.22,c.z+Math.min(1.6,room.w*0.7));
+      key.target.position.set(c.x-0.15,0.12,c.z-0.15);
+      key.target.updateMatrixWorld();
+      const span=Math.max(room.l,room.w)*0.9+0.8;
+      const cam=key.shadow.camera;
+      cam.left=-span;cam.right=span;cam.top=span;cam.bottom=-span;
+      cam.near=0.05;cam.far=Math.max(8,h+4);
+      cam.updateProjectionMatrix();
+    }
+    const fill=scene.getObjectByName('fill');
+    if(fill) fill.position.set(c.x-1.6,h*0.7,c.z-1.2);
     const lamp=scene.getObjectByName('lamp');
     if(lamp) lamp.position.set(c.x,h-0.02,c.z);
     setNum('pl-l',room.l);setNum('pl-w',room.w);setNum('pl-h',room.h);
@@ -743,13 +798,13 @@ const Planner=(()=>{
     if($('pl-stepfree')&&document.activeElement!==$('pl-stepfree')) $('pl-stepfree').checked=!!design.stepFree;
   }
 
-  const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:0.35,metalness:0,...o});
+  const M=(c,o={})=>physicalMat(Object.assign({color:c,roughness:0.4,metalness:0,envMapIntensity:0.45},o));
   function box(g,mat,w,h,d,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(Math.max(w,0.01),Math.max(h,0.01),Math.max(d,0.01)),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m}
   function cyl(g,mat,rt,rb,h,x,y,z,seg=20){const m=new THREE.Mesh(new THREE.CylinderGeometry(Math.max(rt,0.005),Math.max(rb,0.005),Math.max(h,0.005),seg),mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
   function mixer(g,metal,x,y,z){cyl(g,metal,0.022,0.025,0.16,x,y+0.08,z);box(g,metal,0.02,0.02,0.12,x,y+0.15,z+0.06);box(g,metal,0.015,0.05,0.015,x,y+0.19,z-0.01)}
   function makeItem(type){
     const g=new THREE.Group(), spec=ITEMS[type];
-    const mt=METALS[design.metal]||METALS.black, metal=M(mt.c,{metalness:mt.m,roughness:mt.r}), white=M(0xf7f6f4,{roughness:0.32}), wood=M(design.wood||0xf2f2ef,{roughness:0.62});
+    const mt=METALS[design.metal]||METALS.black, metal=M(mt.c,{metalness:mt.m,roughness:mt.r,envMapIntensity:mt.env==null?0.7:mt.env,clearcoat:mt.m>0.95?0.2:0,clearcoatRoughness:0.15}), white=M(0xf7f6f4,{roughness:0.2,clearcoat:0.45,clearcoatRoughness:0.2,envMapIntensity:0.4}), wood=M(design.wood||0xf2f2ef,{roughness:0.58,metalness:0,envMapIntensity:0.28,clearcoat:0.08,clearcoatRoughness:0.55});
     const w=spec.w, d=spec.d, h=spec.h||0.5;
     if(type==='bath'){
       box(g,white,w,h,d,0,h/2,0);
@@ -773,7 +828,7 @@ const Planner=(()=>{
         box(g,cloth,0.015,gh*0.82,Math.max(0.2,d*0.72),w/2-0.03,gh*0.42,0.04);
       }else{
         box(g,M(0xeeeeec),w,0.05,d,0,0.025,0);
-        const glass=new THREE.MeshPhysicalMaterial({color:0xcfe8ee,transparent:true,opacity:0.25,roughness:0.05,metalness:0,side:THREE.DoubleSide});
+        const glass=new THREE.MeshPhysicalMaterial({color:0xe7f4f7,metalness:0,roughness:0.04,transmission:0.88,thickness:0.012,ior:1.5,transparent:true,opacity:1,envMapIntensity:1,side:THREE.DoubleSide});
         box(g,glass,w,gh,0.012,0,gh/2,d/2-0.006).castShadow=false;
         const ret=Math.min(d*0.7,0.9);
         box(g,glass,0.012,gh,ret,w/2-0.006,gh/2,d/2-ret/2).castShadow=false;
@@ -1703,7 +1758,7 @@ const Planner=(()=>{
   }
   function toggleClient(){
     const on=document.body.classList.toggle('client');$('pl-client').textContent=on?'Client on':'Client';$('pl-client').setAttribute('aria-pressed',on?'true':'false');
-    scene.background=new THREE.Color(on?0xf3efe8:0xdfe5ea);renderer.toneMapping=on?THREE.ACESFilmicToneMapping:THREE.NoToneMapping;renderer.toneMappingExposure=on?1.15:1;
+    scene.background=new THREE.Color(on?0xf3efe8:0xdfe5ea);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=on?1.12:1.05;
     scene.getObjectByName('ceil').intensity=on?0.9:0.5;scene.traverse(o=>{if(o.material&&o.material.needsUpdate!==undefined)o.material.needsUpdate=true});refreshSel();
     if(on){camera.position.set(design.room.l*0.9,design.room.h*1.25,design.room.w*1.6);controls.target.set(0,0.9,0)}
     setTimeout(resize,30);

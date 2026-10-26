@@ -43,6 +43,10 @@ These rules sit above the feature list. They do not change the site.
 
 ## CHANGELOG
 
+### 2026-10-26
+
+- Planner light. A warm key light and a cool fill, soft shadows, and darker contact shading where the floor meets the walls. Tiles, glass, chrome, timber and matte finishes keep their colours and pick up the room. Reflections use a CC0 studio image, Studio Small 03 by Greg Zaal, stored with the site. The picture uses ACES tone mapping, sRGB and anti-aliasing. Prices are unchanged.
+
 ### 2026-10-25
 
 - Accessible bathrooms layout. The from-prices are written in the page using the catalogue formula, so it does not jump after load. The page says Accessible Care suits self-managed and plan-managed NDIS participants and private clients. The quote builder and the suburb pages link to it. Hint text is darker. Prices are unchanged.
