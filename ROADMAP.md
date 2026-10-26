@@ -45,7 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
-- Quote total. When the figure changes it counts up and pulses. The screen reader hears the final figure only. Both are skipped when motion is reduced. Prices are unchanged.
+- Quote total. When the figure changes it counts up and pulses, including the phone total. A repeat of the same figure does not cancel that count, and the final figure does not flash before the count starts. The screen reader hears the final figure only. Both are skipped when motion is reduced. Prices are unchanged.
 
 ### 2026-10-25
 
