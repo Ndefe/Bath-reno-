@@ -255,9 +255,11 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-render-loading[hidden]{display:none!important}
 .spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px}
 @keyframes soft-pulse{from{opacity:.55;transform:none}to{opacity:1;transform:translateY(-2px)}}
+@keyframes total-pulse{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
 @keyframes soft-fade{from{opacity:.55}to{opacity:1}}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){
+  .total-pulse{animation:total-pulse .28s ease}
   .spin{animation:soft-pulse .3s ease-in-out infinite alternate}
   .bubble.wait{animation:soft-fade .3s ease-in-out infinite alternate}
   button:not(#view-planner button):not(#view-assist button),
@@ -1467,6 +1469,7 @@ function paintQuoteTotal(t){
     nodes.forEach(el=>{if(el.isConnected) el.textContent=text});
     sayQuote(text);
   };
+  nodes.forEach(el=>{el.classList.remove('total-pulse');void el.offsetWidth;el.classList.add('total-pulse')});
   const step=now=>{
     if(token!==quoteCount) return;
     const p=Math.min(1,(now-t0)/280);
