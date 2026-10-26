@@ -4027,6 +4027,7 @@ function ensurePlanner(){
   plannerLoad=(async()=>{
     await loadScript('assets/vendor/three.r147.min.js');
     await loadScript('assets/vendor/OrbitControls.js');
+    await loadScript('assets/vendor/RGBELoader.js');
     await loadScript('assets/planner.js');
     if(!window.Planner||!window.THREE) throw new Error('planner');
     if(note) note.hidden=true;
