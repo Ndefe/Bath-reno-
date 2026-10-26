@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Bathroom renovations in Brisbane | Gert's Reno</title>
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
@@ -70,7 +70,12 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
-.bubble.wait{opacity:.7}
+.bubble.wait{opacity:1;min-width:64px}
+.dots{display:inline-flex;gap:5px;align-items:center;height:18px;vertical-align:middle}
+.dots i{width:8px;height:8px;border-radius:50%;background:#0e7c86;display:block}
+@keyframes dot-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.render-ph{width:100%;aspect-ratio:4/3;max-height:240px;border-radius:8px;background:#e8eef2;border:1px dashed #b7c3cf}
+.render-wait{display:flex;gap:8px;align-items:center;margin:8px 0}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 #chat-chips{flex:0 0 88px;height:88px;min-height:88px;overflow:auto;align-content:flex-start;row-gap:0}
 #chat-open-note{flex:0 0 auto;margin:0 0 4px}
@@ -87,11 +92,13 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .ref-reward{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
 .review-draft textarea{min-height:88px;font-size:16px}
 .gal-job h2{margin-bottom:4px}
-.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px}
-.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ba{position:relative;width:100%;aspect-ratio:4/3;max-height:70vh;border-radius:12px;overflow:hidden;background:#e8eef2;margin-top:8px;touch-action:pan-y}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .ba-before{clip-path:inset(0 calc(100% - var(--pos, 50%)) 0 0)}
 .ba-bar{position:absolute;top:0;bottom:0;left:var(--pos, 50%);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
-.ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.ba-knob{position:absolute;top:50%;left:var(--pos,50%);width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#fff;border:2px solid #0e7c86;box-shadow:0 2px 8px rgba(16,24,32,.25);pointer-events:none}
+.ba input[type=range]{position:absolute;top:50%;left:var(--pos,50%);width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;cursor:ew-resize;touch-action:pan-y}
+.ba:focus-within .ba-knob{outline:3px solid #0e7c86;outline-offset:3px}
 .ba-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px}
 .ba-missing{margin:8px 0 0}
 .chat-bar{display:flex;gap:8px;align-items:center;position:sticky;bottom:0;background:var(--card);z-index:2;padding-top:8px;min-height:44px}
@@ -196,6 +203,8 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 @media(max-width:860px){.planner{grid-template-columns:1fr}}
 .pl-stage{position:relative;background:#dfe5ea;border-radius:12px;overflow:hidden;height:70vh;min-height:360px}
 #pl-canvas,#pl-canvas canvas{width:100%;height:100%;display:block;touch-action:pan-y}
+#pl-canvas{opacity:0}
+#pl-canvas.pl-in{opacity:1}
 .pl-col{min-width:0;display:flex;flex-direction:column}
 @media(min-width:861px){.pl-side{grid-column:2;grid-row:1}}
 .pl-overlay{position:absolute;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);justify-content:flex-end;z-index:8}
@@ -237,6 +246,10 @@ tr.total td{font-weight:700;font-size:17px;border-bottom:0}
 #pl-stepfree{width:44px;height:44px;min-width:44px;min-height:44px;accent-color:var(--acc)}
 #pl-ai{display:none!important}
 .pl-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:#455;background:#fffc;padding:3px 8px;border-radius:6px}
+.pl-views{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.pl-views button{min-height:44px;min-width:44px;border:0;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:14px;line-height:1.1;padding:8px 12px;cursor:pointer;box-shadow:0 2px 8px rgba(16,24,32,.12)}
+.pl-views button[aria-pressed="true"]{background:var(--acc);color:#fff}
+body.walking .pl-views,body.client .pl-views{display:none}
 .pl-joy{position:absolute;left:16px;bottom:16px;width:120px;height:120px;border-radius:50%;background:rgba(16,24,32,.4);border:2px solid rgba(255,255,255,.85);z-index:6;touch-action:none}
 .pl-joy[hidden]{display:none!important}
 .pl-joy-knob{position:absolute;left:34px;top:34px;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:none}
@@ -251,18 +264,22 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 .pl-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 6px;font-size:13px;line-height:1.2}
 .pl-tile svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pl-move{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:220px}
-.pl-render-loading{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
+.pl-render-loading{display:flex;flex-direction:column;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--ink);margin:8px 0}
 .pl-render-loading[hidden]{display:none!important}
 .spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;flex:none;margin-top:1px}
 @keyframes soft-pulse{from{opacity:.55;transform:none}to{opacity:1;transform:translateY(-2px)}}
+@keyframes total-pulse{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+.total-pulse{display:inline-block}
 @keyframes soft-fade{from{opacity:.55}to{opacity:1}}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){
+  .total-pulse{animation:total-pulse .28s ease}
   .spin{animation:soft-pulse .3s ease-in-out infinite alternate}
-  .bubble.wait{animation:soft-fade .3s ease-in-out infinite alternate}
+  .dots i{animation:dot-bob .6s ease-in-out infinite}
+  .dots i:nth-child(2){animation-delay:.12s}
+  .dots i:nth-child(3){animation-delay:.24s}
   button:not(#view-planner button):not(#view-assist button),
   .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]){transition:transform .18s ease,box-shadow .18s ease}
-  button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
   button:disabled,button:disabled:active{transform:none;transition:none}
   .reveal{opacity:0;transform:translateY(6px)}
   .reveal.revealed{opacity:1;transform:none;transition:opacity .28s ease,transform .28s ease}
@@ -270,10 +287,17 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 }
 @media (prefers-reduced-motion:no-preference) and (hover:hover) and (pointer:fine){
   button:not(:disabled):not(#view-planner button):not(#view-assist button):hover{transform:scale(1.03)}
+  button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
   .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]):hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(16,24,32,.08)}
 }
+@media (pointer:coarse){
+  button:not(:disabled):active{filter:brightness(.92)}
+}
+@media (prefers-reduced-motion:no-preference) and (pointer:coarse){
+  button:not(:disabled):active{transform:scale(.98)}
+}
 @media (prefers-reduced-motion:reduce){
-  .spin,.bubble.wait,.reveal,.arrive .card{animation:none;transform:none}
+  .spin,.bubble.wait,.dots i,.reveal,.arrive .card{animation:none;transform:none}
   .reveal{opacity:1}
   button,.card{transition:none}
   button:hover,button:active,.card:hover{transform:none}
@@ -342,6 +366,24 @@ header.app .share-status{flex:1 0 100%;color:#d5dde4;margin:0}
 html.a2hs-on #a2hs{display:flex!important}
 html.a2hs-on .chat-card > h2,
 html.a2hs-on .chat-card > .hint{display:none}
+#pl-load{
+  left:0;right:0;top:0;bottom:0;margin:0;z-index:9;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:12px;border-radius:0;font-size:15px;line-height:1.35;color:#243038;
+  background:rgba(223,229,234,.94)
+}
+#pl-load .pl-bounce{display:flex;gap:6px}
+#pl-load .pl-bounce i{width:8px;height:8px;border-radius:50%;background:#0e7c86;display:block}
+@keyframes pl-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media (prefers-reduced-motion:no-preference){
+  #pl-canvas.pl-in{transition:opacity .4s ease}
+  #pl-load .pl-bounce i{animation:pl-bob .6s ease-in-out infinite}
+  #pl-load .pl-bounce i:nth-child(2){animation-delay:.12s}
+  #pl-load .pl-bounce i:nth-child(3){animation-delay:.24s}
+}
+@media (prefers-reduced-motion:reduce){
+  #pl-canvas.pl-in{transition:none}
+}
 #pl-load[hidden]{display:none!important}
 @media print{.a2hs{display:none!important}}
 /* Mobile tweaks */
@@ -383,6 +425,16 @@ header.app{position:sticky;top:0;z-index:20}
 #m-total span{font-size:14px;line-height:1.3;min-width:0;flex:1 1 auto}
 #m-total button{flex:none;white-space:nowrap;min-height:44px;padding:10px 14px}
 @media(max-width:520px){body.on-quote:not(.client) #m-total{display:flex}body.on-quote:not(.client) main{padding-bottom:96px}}
+#phone-bar{display:none}
+#phone-bar a,#phone-bar button{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:0;border-radius:8px;background:var(--acc);color:#fff;font:inherit;font-size:14px;line-height:1.1;padding:8px 6px;text-align:center;text-decoration:none;cursor:pointer}
+#phone-bar a[hidden]{display:none!important}
+@media(max-width:520px){
+  body:not(.client) #phone-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:24;gap:8px;background:#fff;border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(16,24,32,.08)}
+  body:not(.client) main{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) #m-total{bottom:calc(61px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) main{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
+}
+@media print{#phone-bar{display:none!important}}
 #m-total button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 12px;font:inherit}
 .flow{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -391,6 +443,9 @@ header.app{position:sticky;top:0;z-index:20}
 .flow-progress{height:6px;background:#e1e7ee;border-radius:99px;margin:0 0 10px;overflow:hidden}
 @media(max-width:860px){.flow-progress{margin-bottom:4px}}
 .flow-progress span{display:block;height:100%;width:20%;background:var(--acc);border-radius:99px;transition:width .28s ease}
+.step-label{position:sticky;top:72px;z-index:15;min-height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;margin:0 0 10px;padding:8px 0;background:var(--bg);font-size:15px;font-weight:700;line-height:1.2;color:var(--ink)}
+.step-label .flow-progress{height:6px;margin:0}
+@media(max-width:860px){.step-label{top:56px}}
 .pl-more{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 10px 8px;background:#fff}
 .pl-more summary{min-height:44px;line-height:44px;cursor:pointer;font-weight:600}
 #view-settings details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
@@ -516,7 +571,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <section class="view" id="view-quote">
     <div class="grid">
       <div>
-        <div class="card"><h2>Bathroom</h2>
+        <div id="quote-step" class="step-label" aria-current="step"><span class="step-label-text">Step 1 of 3</span><div class="flow-progress" id="quote-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-valuetext="Step 1 of 3" aria-label="Quote progress"><span style="width:33.333%"></span></div></div>
+        <div class="card" id="q-step-bath"><h2>Bathroom</h2>
           <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
           <p class="hint"><a href="cost-guide.html">How much does a bathroom renovation cost in Brisbane?</a></p>
           <p class="hint"><a href="accessible-bathrooms.html">Accessible bathrooms</a></p>
@@ -533,13 +589,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div class="hint" id="q-pkg-desc"></div>
           <div id="pkg-products"></div>
         </div>
-        <div class="card"><h2>Extras</h2>
+        <div class="card" id="q-step-extras"><h2>Extras</h2>
           <div id="extras"></div>
           <div class="extras-label">Custom extras</div>
           <div id="custom-extras"></div>
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
-        <div class="card" id="lead-card"><h2>Client</h2>
+        <div class="card" id="lead-card" data-qstep="client"><h2>Client</h2>
           <p class="hint" id="lead-keep">Name, phone, email, suburb, room and photos are collected in the assistant. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
           <p id="lead-summary">No client details yet.</p>
           <p id="analysis-summary" class="hint"></p>
@@ -615,7 +671,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div class="pl-col">
       <div class="pl-stage" id="pl-stage">
         <div id="pl-canvas"></div>
-        <p class="pl-hint" id="pl-load" hidden>Loading the planner…</p>
+        <p class="pl-hint" id="pl-load" hidden>Loading the planner…<span class="pl-bounce" aria-hidden="true"><i></i><i></i><i></i></span></p>
         <div class="pl-overlay">
           <div class="pl-seg" role="group" aria-label="View">
             <button type="button" id="pl-plan" aria-pressed="false">Plan</button>
@@ -648,6 +704,12 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         </div>
         <p id="pl-measure" class="pl-measure" hidden></p>
       </div>
+      <div class="pl-views" id="pl-views" role="group" aria-label="Camera">
+        <button type="button" data-view="eye" aria-pressed="false">Eye</button>
+        <button type="button" data-view="vanity" aria-pressed="false">Vanity</button>
+        <button type="button" data-view="shower" aria-pressed="false">Shower</button>
+        <button type="button" data-view="above" aria-pressed="false">Above</button>
+      </div>
       <div class="pl-fab" id="pl-fab">
         <p id="pl-fab-sel" class="pl-fab-status">Nothing selected</p>
         <p id="pl-fab-status" class="pl-fab-status" role="status"></p>
@@ -665,14 +727,14 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <button type="button" data-flow-go="style">Style</button>
         <button type="button" data-flow-go="render">Render</button>
       </div>
-      <div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Room, step 1 of 5" aria-label="Planner progress"><span></span></div>
+      <div id="flow-step" class="step-label"><span class="step-label-text">Step 1 of 5</span><div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Room, step 1 of 5" aria-label="Planner progress"><span></span></div></div>
       <div class="card pl-render" id="pl-render" data-flow="render" hidden>
         <h2>AI render</h2>
         <p class="hint">Photo-style picture of this room. It is an AI illustration and may not match the exact layout. The prompt is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
         <div id="pl-render-view" hidden>
           <img id="pl-render-img" alt="AI illustration of this bathroom">
         </div>
-        <div class="pl-render-loading" id="pl-render-loading" hidden><span class="spin" aria-hidden="true"></span><span>Generating a photo-style render. This often takes 10–60 seconds.</span></div>
+        <div class="pl-render-loading" id="pl-render-loading" hidden><div class="render-ph" aria-hidden="true"></div><p class="render-wait"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Generating a photo-style render. This often takes 10–60 seconds.</span></p></div>
         <p id="pl-render-status" class="hint" role="status" aria-live="polite"></p>
         <div class="actions">
           <button class="btn" type="button" id="pl-ai-card">AI render</button>
@@ -878,6 +940,11 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   </section>
 </main>
 <div id="m-total"><span>Total <span id="m-total-v">$0.00</span></span><button onclick="document.getElementById('summary').scrollIntoView({behavior:'smooth'})">View quote</button></div>
+<nav id="phone-bar" aria-label="Quick actions">
+  <a id="phone-call" hidden>Call</a>
+  <button type="button" id="phone-measure">Book a measure</button>
+  <button type="button" id="phone-quote">Quote</button>
+</nav>
 <div id="printArea"></div>
 
 <script>
@@ -1481,34 +1548,60 @@ function renderProducts(){
   $('pkg-products').innerHTML=productsHtml(quote.packageId);
 }
 let quoteCount=0;
+function quoteTotalNodes(){
+  return [$('m-total-v'),$('sum-total')].filter(Boolean);
+}
 function paintQuoteTotal(t){
   const text=totalLabel(t);
-  const nodes=[$('m-total-v'),$('sum-total')].filter(Boolean);
-  nodes.forEach(el=>{el.textContent=text});
   const to=Math.round((+t.total||0)*100)/100;
   const from=paintQuoteTotal.vis;
-  paintQuoteTotal.vis=to;
-  const token=++quoteCount;
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const announce=sayQuote.on;
-  if(reduce||from==null||from===to||!(to>0)||text==='Enter the floor size'){
+  const tail=text.endsWith(' plus items to confirm')?' plus items to confirm':'';
+  const write=s=>quoteTotalNodes().forEach(el=>{el.textContent=s});
+  if(from===to){
+    const shown=paintQuoteTotal.shown;
+    if(shown!=null&&shown!==to){
+      write(fromPrice(shown)+tail);
+      sayQuote.on=true;
+      return;
+    }
+    write(text);
     if(announce) sayQuote(text);
     sayQuote.on=true;
     return;
   }
-  const tail=text.endsWith(' plus items to confirm')?' plus items to confirm':'';
+  const token=++quoteCount;
+  paintQuoteTotal.vis=to;
+  if(reduce||from==null||!(to>0)||text==='Enter the floor size'){
+    paintQuoteTotal.shown=to;
+    write(text);
+    if(announce) sayQuote(text);
+    sayQuote.on=true;
+    return;
+  }
+  const startText=fromPrice(from)+tail;
+  paintQuoteTotal.shown=from;
   const t0=performance.now();
   const finish=()=>{
     if(token!==quoteCount) return;
-    nodes.forEach(el=>{if(el.isConnected) el.textContent=text});
+    paintQuoteTotal.shown=to;
+    write(text);
     sayQuote(text);
   };
+  quoteTotalNodes().forEach(el=>{
+    el.textContent=startText;
+    el.classList.remove('total-pulse');
+    void el.offsetWidth;
+    el.classList.add('total-pulse');
+  });
   const step=now=>{
     if(token!==quoteCount) return;
     const p=Math.min(1,(now-t0)/280);
     if(p>=1){finish();return}
     const vis=Math.round(from+(to-from)*(1-Math.pow(1-p,3)));
-    nodes.forEach(el=>{if(el.isConnected) el.textContent=fromPrice(vis)+tail});
+    paintQuoteTotal.shown=vis;
+    write(fromPrice(vis)+tail);
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
@@ -1516,6 +1609,7 @@ function paintQuoteTotal(t){
   sayQuote.on=true;
 }
 paintQuoteTotal.vis=null;
+paintQuoteTotal.shown=null;
 function sayQuote(text){
   const live=$('quote-total-live');
   if(!live) return;
@@ -1572,6 +1666,7 @@ function update(){
   const example=t.pkg?` At 4 m² that is ${fromPrice((+t.pkg.baseFee)+(+t.pkg.rate)*4)}.`:'';
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
   renderLeadSummary();
+  if(typeof syncPhoneBar==='function') syncPhoneBar();
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. Stored on this device. It only matches this browser, and it is not a discount.`:''}</div>`;
   paintReviews();
   refreshDelivery();
@@ -2298,7 +2393,7 @@ function galleryCard(job){
   const before=galleryPath(job&&job.before);
   const after=galleryPath(job&&job.after);
   const photos=before&&after
-    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
+    ?`<div class="ba" style="--pos:50%"><img class="ba-after" alt="After, ${esc(suburb)}" src="${esc(after)}"><img class="ba-before" alt="Before, ${esc(suburb)}" src="${esc(before)}"><span class="ba-bar" aria-hidden="true"></span><span class="ba-knob" aria-hidden="true"></span><input type="range" min="0" max="100" value="50" aria-label="Compare before and after, ${esc(suburb)}" data-ba="1"></div><div class="ba-labels"><span>Before</span><span>After</span></div>`
     :`<p class="hint ba-missing">This job needs a before photo and an after photo in the gallery folder.</p>`;
   return `<article class="card gal-job"><h2>${esc(suburb)}</h2><p class="hint">${esc(pkgName)}</p>${note?`<p>${esc(note)}</p>`:''}${photos}</article>`;
 }
@@ -2332,6 +2427,36 @@ $('gallery-root').addEventListener('input',e=>{
   const ba=e.target.closest('.ba');
   if(ba) ba.style.setProperty('--pos',`${e.target.value}%`);
 });
+let baDrag=null;
+function baEnd(e){
+  if(!baDrag||(e&&e.pointerId!==baDrag.id)) return;
+  try{baDrag.ba.releasePointerCapture(e.pointerId)}catch(err){}
+  baDrag=null;
+}
+$('gallery-root').addEventListener('pointerdown',e=>{
+  const ba=e.target.closest('.ba');
+  if(!ba) return;
+  baDrag={ba,id:e.pointerId,x:e.clientX,y:e.clientY,lock:''};
+});
+$('gallery-root').addEventListener('pointermove',e=>{
+  if(!baDrag||e.pointerId!==baDrag.id) return;
+  const dx=e.clientX-baDrag.x, dy=e.clientY-baDrag.y;
+  if(!baDrag.lock){
+    if(dx*dx+dy*dy<64) return;
+    baDrag.lock=Math.abs(dy)>Math.abs(dx)?'y':'x';
+    if(baDrag.lock==='y'){baDrag=null;return}
+    try{baDrag.ba.setPointerCapture(e.pointerId)}catch(err){}
+  }
+  if(!baDrag||baDrag.lock!=='x') return;
+  const ba=baDrag.ba;
+  const rect=ba.getBoundingClientRect();
+  const pct=Math.round(Math.min(100,Math.max(0,(e.clientX-rect.left)/Math.max(rect.width,1)*100)));
+  const input=ba.querySelector('input[data-ba]');
+  if(input) input.value=String(pct);
+  ba.style.setProperty('--pos',pct+'%');
+});
+$('gallery-root').addEventListener('pointerup',baEnd);
+$('gallery-root').addEventListener('pointercancel',baEnd);
 $('gallery-root').addEventListener('error',e=>{
   const img=e.target;
   if(!img||img.tagName!=='IMG') return;
@@ -2349,7 +2474,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   document.body.classList.toggle('on-quote',b.dataset.view==='quote');
   document.body.classList.toggle('on-assist',b.dataset.view==='assist');
-  if(b.dataset.view==='quote') update();
+  if(b.dataset.view==='quote'){update();requestAnimationFrame(syncQuoteStep)}
   if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
   if(b.dataset.view==='gallery'&&window.Gallery) Gallery.show();
@@ -2379,6 +2504,35 @@ $('nav-render').onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.id==='nav-render'));
   setFlow('render');
 };
+function realPhone(){
+  const raw=String(settings&&settings.phone||'').trim();
+  return raw.replace(/\D/g,'').length>=8?raw:'';
+}
+function placeQuoteTotal(){
+  const bar=$('phone-bar');
+  const total=$('m-total');
+  if(!total) return;
+  const shown=bar&&document.body.classList.contains('on-quote')&&getComputedStyle(bar).display!=='none';
+  if(!shown){total.style.bottom='';return}
+  const h=bar.getBoundingClientRect().height;
+  if(h<1) return;
+  total.style.bottom=Math.ceil(h)+'px';
+}
+function syncPhoneBar(){
+  const a=$('phone-call');
+  if(!a) return;
+  const phone=realPhone();
+  if(!phone){a.hidden=true;a.removeAttribute('href')}
+  else{
+    a.hidden=false;
+    a.href='tel:'+phone.replace(/[^\d+]/g,'');
+    a.setAttribute('aria-label','Call '+phone);
+  }
+  placeQuoteTotal();
+}
+window.addEventListener('resize',placeQuoteTotal);
+if($('phone-measure')) $('phone-measure').onclick=()=>$('nav-measure').click();
+if($('phone-quote')) $('phone-quote').onclick=()=>document.querySelector('nav button[data-view=quote]').click();
 $('nav-measure').onclick=()=>{
   const quoteBox=$('quote-measure');
   const chatBox=$('measure-box');
@@ -2406,17 +2560,65 @@ function paintSwatches(){
   });
 }
 ['pl-floor','pl-wall','pl-metal','pl-look'].forEach(id=>{const el=$(id);if(el) el.addEventListener('change',()=>setTimeout(paintSwatches,0))});
+const QUOTE_STEPS=['q-step-bath','q-step-extras','lead-card'];
+function paintQuoteStep(i){
+  const n=i+1, total=QUOTE_STEPS.length;
+  const label='Step '+n+' of '+total;
+  const stepEl=$('quote-step');
+  if(stepEl){
+    stepEl.setAttribute('aria-current','step');
+    const text=stepEl.querySelector('.step-label-text');
+    if(text) text.textContent=label;
+  }
+  const bar=$('quote-progress');
+  if(!bar) return;
+  bar.setAttribute('aria-valuenow',String(n));
+  bar.setAttribute('aria-valuetext',label);
+  const span=bar.firstElementChild;
+  if(span) span.style.width=(n/total*100)+'%';
+}
+function placeStepLabels(){
+  const header=document.querySelector('header.app');
+  if(!header) return;
+  const top=Math.ceil(header.getBoundingClientRect().height);
+  document.querySelectorAll('.step-label').forEach(el=>{el.style.top=top+'px'});
+}
+function syncQuoteStep(){
+  placeStepLabels();
+  const view=$('view-quote');
+  if(!view||!view.classList.contains('active')) return;
+  const line=Math.min(window.innerHeight*0.33,240);
+  let i=0;
+  QUOTE_STEPS.forEach((id,idx)=>{
+    const el=$(id);
+    if(el&&el.getBoundingClientRect().top<=line) i=idx;
+  });
+  paintQuoteStep(i);
+}
+if(!window.__quoteStepBound){
+  window.__quoteStepBound=true;
+  window.addEventListener('scroll',syncQuoteStep,{passive:true});
+  window.addEventListener('resize',syncQuoteStep);
+}
 const FLOW=['size','layout','fixtures','style','render'];
 let flowStep='size';
 const FLOW_NAME={size:'Room',layout:'Layout',fixtures:'Fixtures',style:'Style',render:'Render'};
 function setFlow(step){
   if(!FLOW.includes(step)) step='size';
   flowStep=step;
+  placeStepLabels();
   const bar=$('flow-progress');
   if(bar){
     const i=FLOW.indexOf(step);
+    const stepLabelText='Step '+(i+1)+' of '+FLOW.length;
+    const spoken=FLOW_NAME[step]+', step '+(i+1)+' of '+FLOW.length;
     bar.setAttribute('aria-valuenow',String(i+1));
-    bar.setAttribute('aria-valuetext',FLOW_NAME[step]+', step '+(i+1)+' of '+FLOW.length);
+    bar.setAttribute('aria-valuetext',spoken);
+    const stepEl=$('flow-step');
+    if(stepEl){
+      const text=stepEl.querySelector('.step-label-text');
+      if(text) text.textContent=stepLabelText;
+    }
     const span=bar.firstElementChild;
     if(span) span.style.width=((i+1)/FLOW.length*100)+'%';
   }
@@ -2835,6 +3037,7 @@ $('o-save').onclick=()=>{
   readSetup();
   Store.set(K.settings,settings);
   fillSettingsShared();
+  if(typeof syncPhoneBar==='function') syncPhoneBar();
   update();
   $('o-msg').textContent=syncing()?'Saved on this phone. '+LEADS_SENT:'Saved on this phone. Nothing was sent.';
 };
@@ -3470,7 +3673,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(!quote) return;
     const intake=ensureIntake();
     const log=$('chat-log');
-    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
+    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait"><span class="sr">One moment…</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':'');
     const showTop=!intake.pending && !intake.messages.some(m=>m.role==='user');
     const pinLog=()=>{
       if(!showTop){log.scrollTop=log.scrollHeight;return;}
@@ -4059,21 +4262,33 @@ function loadScript(src){
     document.body.appendChild(s);
   });
 }
+function setPlannerNote(text){
+  const note=$('pl-load');
+  if(!note) return;
+  note.hidden=false;
+  note.textContent=text;
+  if(text==='Loading the planner…'){
+    const bounce=document.createElement('span');
+    bounce.className='pl-bounce';
+    bounce.setAttribute('aria-hidden','true');
+    bounce.append(document.createElement('i'),document.createElement('i'),document.createElement('i'));
+    note.appendChild(bounce);
+  }
+}
 function ensurePlanner(){
   if(window.Planner) return Promise.resolve(window.Planner);
   if(plannerLoad) return plannerLoad;
-  const note=$('pl-load');
-  if(note){note.hidden=false;note.textContent='Loading the planner…';}
+  setPlannerNote('Loading the planner…');
   plannerLoad=(async()=>{
     await loadScript('assets/vendor/three.r147.min.js');
     await loadScript('assets/vendor/OrbitControls.js');
+    await loadScript('assets/vendor/RGBELoader.js');
     await loadScript('assets/planner.js');
     if(!window.Planner||!window.THREE) throw new Error('planner');
-    if(note) note.hidden=true;
     return window.Planner;
   })().catch(err=>{
     plannerLoad=null;
-    if(note){note.hidden=false;note.textContent='The planner could not load. Check the connection and open it again.';}
+    setPlannerNote('The planner could not load. Check the connection and open it again.');
     throw err;
   });
   return plannerLoad;
