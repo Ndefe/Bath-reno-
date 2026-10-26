@@ -6,5 +6,5 @@ Source: https://commons.wikimedia.org/wiki/File:Villa_Fallet_View_of_Bathroom.jp
 Original file: https://upload.wikimedia.org/wikipedia/commons/0/0d/Villa_Fallet_View_of_Bathroom.jpg
 Licence: CC0 1.0 Universal Public Domain Dedication
 
-The photo is stored here as bathroom-800.webp and bathroom-1600.webp.
+The photo is stored here as bathroom-800.avif, bathroom-1600.avif, bathroom-800.webp and bathroom-1600.webp. The page uses the AVIF files first and the WebP files as the fallback.
 On the page the caption is Inspiration. It is not a photo of work by Gert's Reno.

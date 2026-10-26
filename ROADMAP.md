@@ -46,6 +46,7 @@ These rules sit above the feature list. They do not change the site.
 ### 2026-10-26
 
 - Self-hosted fonts. Figtree is a Latin variable file for weights 400 to 700, and Fraunces is Latin weight 700 with the optical-size axis kept. Both sit in assets/fonts with the SIL Open Font License. Only the heading file is preloaded. Fallback metrics keep the line boxes still while the faces swap in. The page does not call Google Fonts. Prices are unchanged.
+- Hero load. The opening photo is preloaded, with a smaller AVIF and a WebP fallback at the same crop. The Assistant heading scroll margin stays 160px. Prices are unchanged.
 - Hero eyebrow. The scrim behind the opening line is a little darker, and that line is bold, so it clears 4.5:1 on the photo. The Assistant heading's scroll margin clears the sticky header. Prices are unchanged.
 - Home photo and FAQ heading. The opening photo is a sharp CC0 picture of the Villa Fallet bathroom by Zwantzig, saved as webp with a srcset. The caption stays Inspiration. The Assistant heading keeps clear of the sticky header and the sticky reply bar. Prices are unchanged.
 - Premium polish. The home page opens on a full-bleed Inspiration photo, one headline and one quote button. Sections use an 8 px scale, wider space and a 1120 px column. Package choices are catalogue cards with the existing from-price. Terracotta is used on solid buttons only, and it still clears WCAG AA at 4.5:1. The phone planner still fits the visible viewport. Prices, the catalogue, and the legal wording are unchanged.

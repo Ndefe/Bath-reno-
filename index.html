@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preload" as="image" href="assets/hero/bathroom-800.avif" imagesrcset="assets/hero/bathroom-800.avif 800w, assets/hero/bathroom-1600.avif 1600w" imagesizes="100vw" type="image/avif" fetchpriority="high">
 <title>Gert's Reno: bathrooms in Brisbane</title>
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
@@ -525,6 +526,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
 }
 @media print{#m-total{display:none!important}.studio-foot{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product-shot{aspect-ratio:4/3}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 .studio-hero{position:relative;display:flex;align-items:flex-end;min-height:72vh;margin:0;overflow:hidden;background:#2B2622;color:#fff}
+.studio-hero picture{position:absolute;inset:0;display:block;margin:0}
 .studio-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .studio-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(43,38,34,.90) 0%,rgba(43,38,34,.68) 42%,rgba(43,38,34,.50) 100%);pointer-events:none}
 .studio-hero-copy{position:relative;z-index:1;width:min(1120px,100%);margin:0 auto;padding:48px 32px 56px}
@@ -605,7 +607,10 @@ header.app :focus-visible,.studio-hero :focus-visible{outline-color:#F3E6D8}
 </div>
   <section class="view active" id="view-assist" aria-label="Intake assistant">
     <figure class="studio-hero">
-      <img src="assets/hero/bathroom-800.webp" srcset="assets/hero/bathroom-800.webp 800w, assets/hero/bathroom-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high" decoding="async">
+      <picture>
+        <source type="image/avif" srcset="assets/hero/bathroom-800.avif 800w, assets/hero/bathroom-1600.avif 1600w" sizes="100vw">
+        <img src="assets/hero/bathroom-800.webp" srcset="assets/hero/bathroom-800.webp 800w, assets/hero/bathroom-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high" loading="eager" decoding="async">
+      </picture>
       <figcaption class="studio-hero-copy">
         <p class="eyebrow">Bathroom renovations</p>
         <h2 class="studio-display" id="studio-headline">Gert's Reno: bathrooms in Brisbane</h2>
