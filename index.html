@@ -379,7 +379,7 @@ header.app{position:sticky;top:0;z-index:20}
 @media(max-width:520px){
   body:not(.client) #phone-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:24;gap:8px;background:#fff;border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(16,24,32,.08)}
   body:not(.client) main{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
-  body.on-quote:not(.client) #m-total{bottom:calc(60px + env(safe-area-inset-bottom))}
+  body.on-quote:not(.client) #m-total{bottom:calc(61px + env(safe-area-inset-bottom))}
   body.on-quote:not(.client) main{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
 }
 @media print{#phone-bar{display:none!important}}
@@ -2362,15 +2362,29 @@ function realPhone(){
   const raw=String(settings&&settings.phone||'').trim();
   return raw.replace(/\D/g,'').length>=8?raw:'';
 }
+function placeQuoteTotal(){
+  const bar=$('phone-bar');
+  const total=$('m-total');
+  if(!total) return;
+  const shown=bar&&document.body.classList.contains('on-quote')&&getComputedStyle(bar).display!=='none';
+  if(!shown){total.style.bottom='';return}
+  const h=bar.getBoundingClientRect().height;
+  if(h<1) return;
+  total.style.bottom=Math.ceil(h)+'px';
+}
 function syncPhoneBar(){
   const a=$('phone-call');
   if(!a) return;
   const phone=realPhone();
-  if(!phone){a.hidden=true;a.removeAttribute('href');return}
-  a.hidden=false;
-  a.href='tel:'+phone.replace(/[^\d+]/g,'');
-  a.setAttribute('aria-label','Call '+phone);
+  if(!phone){a.hidden=true;a.removeAttribute('href')}
+  else{
+    a.hidden=false;
+    a.href='tel:'+phone.replace(/[^\d+]/g,'');
+    a.setAttribute('aria-label','Call '+phone);
+  }
+  placeQuoteTotal();
 }
+window.addEventListener('resize',placeQuoteTotal);
 if($('phone-measure')) $('phone-measure').onclick=()=>$('nav-measure').click();
 if($('phone-quote')) $('phone-quote').onclick=()=>document.querySelector('nav button[data-view=quote]').click();
 $('nav-measure').onclick=()=>{

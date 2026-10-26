@@ -45,7 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
-- Phone actions. On a phone, Call, Book a measure, and Quote stay along the bottom, clear of the home indicator. Call stays hidden until a real phone number is saved in Setup. Nothing is sent. Prices are unchanged.
+- Phone actions. On a phone, Call, Book a measure, and Quote stay along the bottom, clear of the home indicator and clear of the total bar. Call stays hidden until a real phone number is saved in Setup. Nothing is sent. Prices are unchanged.
 
 ### 2026-10-25
 
