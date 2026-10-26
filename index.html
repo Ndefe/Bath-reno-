@@ -321,6 +321,16 @@ body.client .pl-side{max-height:100vh;overflow:auto;padding:12px;background:var(
 #pl-warn:empty{display:none}
 #pl-warn{color:#8a4b12;background:#fff6e8;border-radius:8px;padding:8px;margin-top:8px}
 .grid>div,.planner>div,.card{min-width:0}
+.sum-wrap{min-width:0}
+.quote-reviews{margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#f7faf8}
+.quote-reviews[hidden]{display:none!important}
+.quote-reviews h3{margin:0 0 6px;font-size:14px}
+.quote-reviews p{margin:0 0 8px;font-size:14px;line-height:1.35}
+.quote-reviews p:last-child{margin:0}
+.quote-reviews .who{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+@media(min-width:861px){
+  .sum-wrap:has(#quote-reviews:not([hidden])){display:grid;grid-template-columns:minmax(0,1.4fr) minmax(160px,.8fr);gap:12px;align-items:start}
+}
 select{max-width:100%}
 
 .share-status:empty{display:none}
@@ -577,7 +587,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <div>
         <div class="card" style="position:sticky;top:10px"><h2>Quote summary</h2>
           <div id="quote-biz" hidden></div>
+          <div class="sum-wrap">
           <div id="summary"><p class="hint">Loading catalogue…</p></div>
+          <aside id="quote-reviews" hidden></aside>
+          </div>
           <p id="quote-total-live" class="sr" aria-live="polite"></p>
           <div id="quote-estimate"></div>
           <div class="actions">
@@ -791,6 +804,9 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       <p class="ph-box" id="o-photo-note">Photo placeholder. No photo is shown until you add one here.</p>
             <label for="o-story">Short story</label>
       <textarea id="o-story" maxlength="2000" placeholder="Add a short story. Leave this blank until then."></textarea>
+      <label for="o-reviews">Reviews</label>
+      <textarea id="o-reviews" maxlength="2000" placeholder="Leave blank until you have a real review"></textarea>
+      <p class="hint">One review per line. A name can come first, then a dash, then what they said. Leave this blank and the quote shows no reviews. Nothing is invented.</p>
       <label for="o-worker">Worker URL</label>
       <input id="o-worker" type="url" inputmode="url" autocomplete="off" placeholder="Leave blank">
       <label for="o-token">Worker token</label>
@@ -887,7 +903,7 @@ function buildDefaults(cat){
   return {
     bizName:"Gert's Reno", contact:'Brisbane QLD · Phone · Email', validDays:30,
     phone:'', email:'', serviceSuburbs:'', jobTiming:'', workerUrl:'', leadToken:'',
-    abn:'', qbcc:'', logo:'', ownerPhoto:'', ownerStory:'', googleReviewUrl:'',
+    abn:'', qbcc:'', logo:'', ownerPhoto:'', ownerStory:'', reviewsText:'', googleReviewUrl:'',
     depositUnderPct:10, depositOverPct:5,
     progressPayments:DEFAULT_PROGRESS, warranty:DEFAULT_WARRANTY,
     availability:{days:[1,2,3,4,5],slots:['09:00','11:00','13:00','15:00']},
@@ -1034,6 +1050,26 @@ function productsHtml(pkgId){
   }).join('')}</div>`;
 }
 function lineAmount(e){return e&&e.quoteLater?'Price to confirm':(e&&e.amount?fromPrice(e.amount):'—')}
+function savedReviews(){
+  const raw=String(settings&&settings.reviewsText||'');
+  return raw.split(/\n+/).map(line=>{
+    const text=line.trim();
+    if(!text) return null;
+    const parts=text.split(/\s+[—–-]\s+/);
+    if(parts.length>=2&&parts[0].trim()&&parts.slice(1).join(' — ').trim()){
+      return {name:parts[0].trim().slice(0,80),text:parts.slice(1).join(' — ').trim().slice(0,400)};
+    }
+    return {name:'',text:text.slice(0,400)};
+  }).filter(Boolean);
+}
+function paintReviews(){
+  const slot=$('quote-reviews');
+  if(!slot) return;
+  const rows=savedReviews();
+  if(!rows.length){slot.hidden=true;slot.innerHTML='';return}
+  slot.hidden=false;
+  slot.innerHTML='<h3>Reviews</h3>'+rows.map(r=>`<p>${esc(r.text)}${r.name?`<span class="who">${esc(r.name)}</span>`:''}</p>`).join('');
+}
 function totalLabel(t){
   if(!t||!t.total) return 'Enter the floor size';
   const later=(t.lines||[]).some(e=>e.quoteLater);
@@ -1537,6 +1573,7 @@ function update(){
   $('q-pkg-desc').textContent=t.pkg?`${t.pkg.desc||''} Every price is an estimate, subject to a free site measure. Bath and extras are on top.${t.area>0?'':example}`:'';
   renderLeadSummary();
   $('summary').innerHTML=summaryTable(t)+complianceHtml(t)+renderFigure(quote)+`<div class="hint">Quote ${esc(quote.number||'(number assigned on save/print)')} · ${fmtDate(new Date(quote.createdAt))} · valid ${settings.validDays} days · estimate, subject to a free site measure, and not final until Nico confirms it${quote.render&&quote.render.dataUrl?' · AI render attached':''}${quote.referral&&quote.referral.code?` · Referral code ${esc(quote.referral.code)}. Stored on this device. It only matches this browser, and it is not a discount.`:''}</div>`;
+  paintReviews();
   refreshDelivery();
   renderReferralPanel();
   updateBrand();
@@ -2758,6 +2795,7 @@ function fillSetup(){
   $('o-qbcc').value=settings.qbcc||'';
   $('o-timing').value=settings.jobTiming||'';
   $('o-story').value=settings.ownerStory||'';
+  if($('o-reviews')) $('o-reviews').value=settings.reviewsText||'';
   if($('o-worker')) $('o-worker').value=settings.workerUrl||'';
   if($('o-token')) $('o-token').value=settings.leadToken||'';
   const img=$('o-photo-preview');
@@ -2775,6 +2813,7 @@ function readSetup(){
   settings.qbcc=($('o-qbcc').value||'').trim();
   settings.jobTiming=($('o-timing').value||'').trim().slice(0,500);
   settings.ownerStory=($('o-story').value||'').trim().slice(0,2000);
+  settings.reviewsText=($('o-reviews')&&$('o-reviews').value||'').trim().slice(0,2000);
   settings.workerUrl=($('o-worker')&&$('o-worker').value||'').trim();
   settings.leadToken=($('o-token')&&$('o-token').value||'').trim();
 }
@@ -2817,7 +2856,7 @@ $('avail-slots').addEventListener('click',e=>{
   renderAvailability();
 });
 function keptBusiness(){
-  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerUrl:settings.workerUrl||'',leadToken:settings.leadToken||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
+  return {bizName:settings.bizName,contact:settings.contact,validDays:settings.validDays,phone:settings.phone||'',email:settings.email||'',serviceSuburbs:settings.serviceSuburbs||'',jobTiming:settings.jobTiming||'',abn:settings.abn||'',qbcc:settings.qbcc||'',logo:settings.logo||'',ownerPhoto:settings.ownerPhoto||'',ownerStory:settings.ownerStory||'',reviewsText:settings.reviewsText||'',googleReviewUrl:settings.googleReviewUrl||'',depositUnderPct:settings.depositUnderPct??10,depositOverPct:settings.depositOverPct??5,progressPayments:settings.progressPayments||DEFAULT_PROGRESS,warranty:settings.warranty||DEFAULT_WARRANTY,availability:settings.availability?structuredClone(settings.availability):null,renderApiKey:settings.renderApiKey||'',renderProvider:settings.renderProvider||'pollinations',ownerPin:settings.ownerPin||'',nicoEmail:settings.nicoEmail||'',workerUrl:settings.workerUrl||'',leadToken:settings.leadToken||'',workerPost:false,margin:settings.margin==null?null:settings.margin};
 }
 $('s-reset').onclick=()=>{if(confirm('Reset settings to the catalogue rates?')){const keep=keptBusiness();settings=structuredClone(defaults);Object.assign(settings,keep);Store.set(K.settings,settings);renderSettings();fillSetup();fillPkgSelect();shownPkg=null;update()}};
 function shrinkLogo(file){
@@ -3965,6 +4004,7 @@ async function boot(){
     if(!settings.logo) settings.logo='';
     if(settings.ownerPhoto==null) settings.ownerPhoto='';
     if(settings.ownerStory==null) settings.ownerStory='';
+    if(settings.reviewsText==null) settings.reviewsText='';
     if(settings.phone==null) settings.phone='';
     if(settings.email==null) settings.email='';
     if(settings.serviceSuburbs==null) settings.serviceSuburbs='';
