@@ -146,7 +146,7 @@ const Planner=(()=>{
     const real=spec===TILES[key]?key:'white-matte';
     const t=new THREE.CanvasTexture(tileCanvas(real));
     t.wrapS=t.wrapT=THREE.RepeatWrapping;
-    const [sx,sy]=spec.size;t.repeat.set(wm/sx,hm/sy);t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
+    const [sx,sy]=spec.size;t.repeat.set(wm/sx,hm/sy);t.anisotropy=tileAniso();t.encoding=THREE.sRGBEncoding;
     const surf=tileSurface(real);
     return physicalMat({map:t,side:THREE.BackSide,roughness:surf.roughness,metalness:surf.metalness,clearcoat:surf.clearcoat||0,clearcoatRoughness:surf.clearcoatRoughness==null?0.3:surf.clearcoatRoughness,envMapIntensity:surf.envMapIntensity==null?0.5:surf.envMapIntensity});
   }
@@ -246,10 +246,10 @@ const Planner=(()=>{
     scene.add(new THREE.HemisphereLight(0xfff1e0,0x6a6158,0.62));
     const fill=new THREE.DirectionalLight(0xc5d4e8,0.48);fill.name='fill';fill.position.set(-2.2,2.2,-1.2);scene.add(fill);
     const small=Math.min(window.innerWidth,window.innerHeight)<=900;
-    const sm=small?512:1024;
+    const sm=small?256:1024;
     const key=new THREE.DirectionalLight(0xffd7ae,1.45);
     key.name='key';key.position.set(1.8,3.1,1.5);key.castShadow=true;
-    key.shadow.mapSize.set(sm,sm);key.shadow.bias=-0.00035;key.shadow.normalBias=0.035;key.shadow.radius=small?3:8;
+    key.shadow.mapSize.set(sm,sm);key.shadow.bias=-0.00035;key.shadow.normalBias=0.035;key.shadow.radius=small?1:8;
     key.shadow.camera.near=0.05;key.shadow.camera.far=12;
     scene.add(key);scene.add(key.target);
     const spot=new THREE.SpotLight(0xfff0d6,0.42,0,Math.PI/2.4,0.92,1);
@@ -580,7 +580,7 @@ const Planner=(()=>{
     t.wrapS=t.wrapT=THREE.RepeatWrapping;
     const [sx,sy]=spec.size;
     t.repeat.set(Math.max(wm,0.1)/sx,Math.max(hm,0.1)/sy);
-    t.anisotropy=4;t.encoding=THREE.sRGBEncoding;
+    t.anisotropy=tileAniso();t.encoding=THREE.sRGBEncoding;
     const surf=tileSurface(real);
     return physicalMat({map:t,side:side==null?THREE.FrontSide:side,roughness:surf.roughness,metalness:surf.metalness,clearcoat:surf.clearcoat||0,clearcoatRoughness:surf.clearcoatRoughness==null?0.3:surf.clearcoatRoughness,envMapIntensity:surf.envMapIntensity==null?0.5:surf.envMapIntensity});
   }
@@ -1352,10 +1352,11 @@ const Planner=(()=>{
     if(typeof update==='function') update();
   }
 
+  function phoneFrame(){return Math.min(window.innerWidth,window.innerHeight)<=900}
+  function tileAniso(){return phoneFrame()?1:4}
   function basePixelRatio(){
     const dpr=window.devicePixelRatio||1;
-    const small=Math.min(window.innerWidth,window.innerHeight)<=900;
-    return Math.min(small?1.5:2,Math.max(1,dpr));
+    return Math.min(phoneFrame()?1.25:1.75,Math.max(1,dpr));
   }
   function useTouchWalk(){
     return window.matchMedia('(pointer: coarse)').matches||window.innerWidth<=860;
@@ -1887,7 +1888,24 @@ const Planner=(()=>{
     const room=BQ.quote.room||{};
     if(!(+room.length>0&&+room.width>0)&&(room.mode==='lw'||room.mode==='l'||!room.mode)) syncToQuote();
     if(!camFramed){camFramed=true;goCam('eye',true)}
+    revealScene();
     setTimeout(resize,0);
+  }
+  let revealStarted=0;
+  function revealScene(){
+    if(revealStarted) return;
+    revealStarted=performance.now();
+    const tick=()=>{
+      const canvas=$('pl-canvas');
+      const note=$('pl-load');
+      const waited=performance.now()-revealStarted;
+      const env=renderer&&renderer.domElement&&renderer.domElement.dataset.env;
+      const ready=env==='1'||env==='err'||waited>1800;
+      if(waited<700||!ready){requestAnimationFrame(tick);return}
+      if(canvas) canvas.classList.add('pl-in');
+      if(note&&note.textContent.indexOf('Loading the planner')===0) note.hidden=true;
+    };
+    requestAnimationFrame(tick);
   }
   function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
   function getDesign(){ensureDesign();return design}
