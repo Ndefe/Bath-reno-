@@ -2802,7 +2802,7 @@ $('flow-next').onclick=()=>{
     const el=$('pl-gesture');
     if(!el) return;
     el.textContent=window.innerWidth>860
-      ?'Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. A swipe on empty space scrolls the page. Two fingers pinch and pan.'
+      ?'Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. Drag on empty space to look around the room. Two fingers pinch and pan.'
       :'Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. Drag the handle to resize the steps. Two fingers pinch and pan.';
   }
   window.addEventListener('resize',()=>{setStop(stop,false);paintGesture()});
