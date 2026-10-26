@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
+- Hover and press. Buttons and cards grow on hover only for a fine pointer. A touch press darkens the control, and it does not move when motion is reduced. Prices are unchanged.
 - Waiting dots. The chat shows three dots while a reply is on the way, and the AI render shows a full-width placeholder with the same dots. The dots stay still when motion is reduced. The planner picture loader stays on its own unmerged branch. Nothing is sent. Prices are unchanged.
 - Quote total. When the figure changes it counts up and pulses, including the phone total. A repeat of the same figure does not cancel that count, and the final figure does not flash before the count starts. The screen reader hears the final figure only. Both are skipped when motion is reduced. Prices are unchanged.
 - Step progress. The quote shows Step 1 of 3 as you move through Bathroom, Extras, and Client. The planner shows Step 1 of 5 on Room, Layout, Fixtures, Style, and Render. The step control is at least 44 px and sticks under the header. A screen reader hears the planner step name, such as Room, step 1 of 5. The bar does not animate when motion is reduced. Prices are unchanged.

@@ -280,7 +280,6 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
   .dots i:nth-child(3){animation-delay:.24s}
   button:not(#view-planner button):not(#view-assist button),
   .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]){transition:transform .18s ease,box-shadow .18s ease}
-  button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
   button:disabled,button:disabled:active{transform:none;transition:none}
   .reveal{opacity:0;transform:translateY(6px)}
   .reveal.revealed{opacity:1;transform:none;transition:opacity .28s ease,transform .28s ease}
@@ -288,7 +287,14 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 }
 @media (prefers-reduced-motion:no-preference) and (hover:hover) and (pointer:fine){
   button:not(:disabled):not(#view-planner button):not(#view-assist button):hover{transform:scale(1.03)}
+  button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
   .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]):hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(16,24,32,.08)}
+}
+@media (pointer:coarse){
+  button:not(:disabled):active{filter:brightness(.92)}
+}
+@media (prefers-reduced-motion:no-preference) and (pointer:coarse){
+  button:not(:disabled):active{transform:scale(.98)}
 }
 @media (prefers-reduced-motion:reduce){
   .spin,.bubble.wait,.dots i,.reveal,.arrive .card{animation:none;transform:none}
