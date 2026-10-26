@@ -2695,7 +2695,7 @@ function setFlow(step){
   if(panel) panel.hidden=step==='see';
   const next=$('flow-next');
   if(next){next.hidden=false;next.textContent=step==='see'?'Get my quote':'Next'}
-  if(step==='style') paintSwatches();
+  if(step==='finishes') paintSwatches();
   document.querySelectorAll('.pl-more').forEach(syncMoreExpanded);
   const heading=document.querySelector('#view-planner [data-flow="'+step+'"] h2');
   const live=$('flow-live');
