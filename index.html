@@ -417,6 +417,9 @@ header.app{position:sticky;top:0;z-index:20}
 .flow-progress{height:6px;background:#e1e7ee;border-radius:99px;margin:0 0 10px;overflow:hidden}
 @media(max-width:860px){.flow-progress{margin-bottom:4px}}
 .flow-progress span{display:block;height:100%;width:20%;background:var(--acc);border-radius:99px;transition:width .28s ease}
+.step-label{position:sticky;top:72px;z-index:15;min-height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;margin:0 0 10px;padding:8px 0;background:var(--bg);font-size:15px;font-weight:700;line-height:1.2;color:var(--ink)}
+.step-label .flow-progress{height:6px;margin:0}
+@media(max-width:860px){.step-label{top:56px}}
 .pl-more{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:0 10px 8px;background:#fff}
 .pl-more summary{min-height:44px;line-height:44px;cursor:pointer;font-weight:600}
 #view-settings details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
@@ -542,7 +545,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   <section class="view" id="view-quote">
     <div class="grid">
       <div>
-        <div class="card"><h2>Bathroom</h2>
+        <div id="quote-step" class="step-label" aria-current="step"><span class="step-label-text">Step 1 of 3</span><div class="flow-progress" id="quote-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-valuetext="Step 1 of 3" aria-label="Quote progress"><span style="width:33.333%"></span></div></div>
+        <div class="card" id="q-step-bath"><h2>Bathroom</h2>
           <p class="hint"><a href="about.html">Warranty, the process, and Meet Gert's Reno</a></p>
           <p class="hint"><a href="cost-guide.html">How much does a bathroom renovation cost in Brisbane?</a></p>
           <p class="hint"><a href="accessible-bathrooms.html">Accessible bathrooms</a></p>
@@ -559,13 +563,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <div class="hint" id="q-pkg-desc"></div>
           <div id="pkg-products"></div>
         </div>
-        <div class="card"><h2>Extras</h2>
+        <div class="card" id="q-step-extras"><h2>Extras</h2>
           <div id="extras"></div>
           <div class="extras-label">Custom extras</div>
           <div id="custom-extras"></div>
           <button class="btn sec sm" id="add-extra" type="button">+ Add custom extra</button>
         </div>
-        <div class="card" id="lead-card"><h2>Client</h2>
+        <div class="card" id="lead-card" data-qstep="client"><h2>Client</h2>
           <p class="hint" id="lead-keep">Name, phone, email, suburb, room and photos are collected in the assistant. The lead stays on this device until you copy or send it. Chat text and render prompts go to Pollinations.</p>
           <p id="lead-summary">No client details yet.</p>
           <p id="analysis-summary" class="hint"></p>
@@ -694,7 +698,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <button type="button" data-flow-go="style">Style</button>
         <button type="button" data-flow-go="render">Render</button>
       </div>
-      <div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Room, step 1 of 5" aria-label="Planner progress"><span></span></div>
+      <div id="flow-step" class="step-label"><span class="step-label-text">Step 1 of 5</span><div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Room, step 1 of 5" aria-label="Planner progress"><span></span></div></div>
       <div class="card pl-render" id="pl-render" data-flow="render" hidden>
         <h2>AI render</h2>
         <p class="hint">Photo-style picture of this room. It is an AI illustration and may not match the exact layout. The prompt is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
@@ -2390,7 +2394,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.view));
   document.body.classList.toggle('on-quote',b.dataset.view==='quote');
   document.body.classList.toggle('on-assist',b.dataset.view==='assist');
-  if(b.dataset.view==='quote') update();
+  if(b.dataset.view==='quote'){update();requestAnimationFrame(syncQuoteStep)}
   if(b.dataset.view==='assist'&&window.Intake) Intake.sync();
   if(b.dataset.view==='saved') renderSaved();
   if(b.dataset.view==='gallery'&&window.Gallery) Gallery.show();
@@ -2476,17 +2480,65 @@ function paintSwatches(){
   });
 }
 ['pl-floor','pl-wall','pl-metal','pl-look'].forEach(id=>{const el=$(id);if(el) el.addEventListener('change',()=>setTimeout(paintSwatches,0))});
+const QUOTE_STEPS=['q-step-bath','q-step-extras','lead-card'];
+function paintQuoteStep(i){
+  const n=i+1, total=QUOTE_STEPS.length;
+  const label='Step '+n+' of '+total;
+  const stepEl=$('quote-step');
+  if(stepEl){
+    stepEl.setAttribute('aria-current','step');
+    const text=stepEl.querySelector('.step-label-text');
+    if(text) text.textContent=label;
+  }
+  const bar=$('quote-progress');
+  if(!bar) return;
+  bar.setAttribute('aria-valuenow',String(n));
+  bar.setAttribute('aria-valuetext',label);
+  const span=bar.firstElementChild;
+  if(span) span.style.width=(n/total*100)+'%';
+}
+function placeStepLabels(){
+  const header=document.querySelector('header.app');
+  if(!header) return;
+  const top=Math.ceil(header.getBoundingClientRect().height);
+  document.querySelectorAll('.step-label').forEach(el=>{el.style.top=top+'px'});
+}
+function syncQuoteStep(){
+  placeStepLabels();
+  const view=$('view-quote');
+  if(!view||!view.classList.contains('active')) return;
+  const line=Math.min(window.innerHeight*0.33,240);
+  let i=0;
+  QUOTE_STEPS.forEach((id,idx)=>{
+    const el=$(id);
+    if(el&&el.getBoundingClientRect().top<=line) i=idx;
+  });
+  paintQuoteStep(i);
+}
+if(!window.__quoteStepBound){
+  window.__quoteStepBound=true;
+  window.addEventListener('scroll',syncQuoteStep,{passive:true});
+  window.addEventListener('resize',syncQuoteStep);
+}
 const FLOW=['size','layout','fixtures','style','render'];
 let flowStep='size';
 const FLOW_NAME={size:'Room',layout:'Layout',fixtures:'Fixtures',style:'Style',render:'Render'};
 function setFlow(step){
   if(!FLOW.includes(step)) step='size';
   flowStep=step;
+  placeStepLabels();
   const bar=$('flow-progress');
   if(bar){
     const i=FLOW.indexOf(step);
+    const stepLabelText='Step '+(i+1)+' of '+FLOW.length;
+    const spoken=FLOW_NAME[step]+', step '+(i+1)+' of '+FLOW.length;
     bar.setAttribute('aria-valuenow',String(i+1));
-    bar.setAttribute('aria-valuetext',FLOW_NAME[step]+', step '+(i+1)+' of '+FLOW.length);
+    bar.setAttribute('aria-valuetext',spoken);
+    const stepEl=$('flow-step');
+    if(stepEl){
+      const text=stepEl.querySelector('.step-label-text');
+      if(text) text.textContent=stepLabelText;
+    }
     const span=bar.firstElementChild;
     if(span) span.style.width=((i+1)/FLOW.length*100)+'%';
   }
