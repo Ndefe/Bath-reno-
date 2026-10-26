@@ -1047,10 +1047,12 @@ const Planner=(()=>{
     const it=hitItem(e);
     if(it){
       select(it);
-      pending={id:e.pointerId,x:e.clientX,y:e.clientY};
-      renderer.domElement.style.touchAction='none';
-      try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
-      if(e.pointerType!=='touch') controls.enabled=false;
+      pending={id:e.pointerId,x:e.clientX,y:e.clientY,touch:e.pointerType==='touch'};
+      if(e.pointerType!=='touch'){
+        renderer.domElement.style.touchAction='none';
+        try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
+        controls.enabled=false;
+      }
     }else if(e.pointerType!=='touch') select(null);
   }
   function onMove(e){
@@ -1058,6 +1060,10 @@ const Planner=(()=>{
     if(pending&&e.pointerId===pending.id&&!drag){
       const dx=e.clientX-pending.x, dy=e.clientY-pending.y;
       if(dx*dx+dy*dy<64) return;
+      if(pending.touch){
+        renderer.domElement.style.touchAction='none';
+        try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
+      }
       snapshot();
       ray.setFromCamera(ndc(e),camera);
       if(!ray.ray.intersectPlane(floorPlane,tmp)) return;
@@ -1080,11 +1086,14 @@ const Planner=(()=>{
     placeFloat();
   }
   function onUp(e){
-    touchIds.delete(e.pointerId);
-    if(pending&&e.pointerId===pending.id) pending=null;
-    if(drag&&(!e||e.pointerId===drag.id)){drag=null;hideMeasure();if(design) design.placedBy='user';if(!walking) controls.enabled=true;refreshWarnings()}
+    if(e) touchIds.delete(e.pointerId);
+    if(e&&pending&&e.pointerId===pending.id) pending=null;
+    if(drag&&(!e||e.pointerId===drag.id)){drag=null;hideMeasure();if(design) design.placedBy='user';refreshWarnings()}
     if(e&&renderer){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch(err){}}
-    if(!touchIds.size) renderer.domElement.style.touchAction='pan-y';
+    if(renderer&&!touchIds.size){
+      renderer.domElement.style.touchAction='pan-y';
+      if(!walking) controls.enabled=true;
+    }
   }
   function flipSelected(){
     if(!selected) return;
@@ -1110,11 +1119,9 @@ const Planner=(()=>{
     if(!bar) return;
     const hide=!selected||walking||document.body.classList.contains('client');
     bar.hidden=hide;
-    const views=$('pl-views');
-    if(views&&hide) views.style.bottom='';
     if(hide||!renderer) return;
     const g=itemsGroup&&itemsGroup.children.find(c=>c.userData.item===selected);
-    if(!g){bar.hidden=true;if(views) views.style.bottom='';return}
+    if(!g){bar.hidden=true;return}
     const stageEl=$('pl-stage');
     const stage=stageEl.getBoundingClientRect();
     bar.style.maxHeight='';
@@ -1132,7 +1139,6 @@ const Planner=(()=>{
     if(top<mid && top+bh>mid) top=mid;
     if(top+bh>stage.height-4) top=Math.max(8, stage.height-bh-8);
     bar.style.top=Math.round(top)+'px';
-    if(views) views.style.bottom=(bh+12)+'px';
   }
   function suggestLayout(){
     if(!design) return;
@@ -1492,19 +1498,39 @@ const Planner=(()=>{
     if(!controls) return;
     const coarse=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
     controls.rotateSpeed=coarse?0.65:1;
-    controls.zoomSpeed=coarse?0.8:1;
+    controls.zoomSpeed=1;
     controls.panSpeed=coarse?0.6:1;
     controls.dampingFactor=coarse?0.09:0.05;
+  }
+  function itemAim(type,fallback){
+    const items=design&&design.items||[];
+    const it=items.find(i=>i.type===type);
+    if(!it) return fallback;
+    const spec=ITEMS[type]||{};
+    return {x:it.x,y:Math.max(0.75,(spec.h||0.9)*0.55),z:it.z};
   }
   function viewPresets(){
     const room=normRoom(design&&design.room);
     const c=floorCentroid(room);
-    const eye=1.55,L=room.l,W=room.w;
+    const eyeY=1.55,L=room.l,W=room.w;
+    const vanity=itemAim('vanity',{x:L/2-0.28,y:0.9,z:0});
+    const shower=itemAim('shower',{x:-L/2+0.45,y:1.15,z:-W/2+0.45});
+    const clamp=(x,z)=>[
+      Math.max(-L/2+0.32,Math.min(L/2-0.32,x)),
+      Math.max(-W/2+0.32,Math.min(W/2-0.32,z))
+    ];
+  const stand=(aim,dist)=>{
+    let dx=c.x-aim.x, dz=c.z-aim.z;
+    const len=Math.hypot(dx,dz)||1;
+    return clamp(aim.x+dx/len*dist, aim.z+dz/len*dist);
+  };
+  const vp=stand(vanity,0.85);
+  const sp=stand(shower,0.95);
     return {
-      eye:{pos:[c.x-L*0.12,eye,c.z+W*0.28],target:[c.x+L*0.08,1.05,c.z-W*0.22]},
-      vanity:{pos:[c.x+L*0.05,eye,c.z+W*0.18],target:[c.x+L*0.38,1.0,c.z]},
-      shower:{pos:[c.x+L*0.05,eye,c.z+W*0.12],target:[c.x-L*0.32,1.15,c.z-W*0.28]},
-      above:{pos:[c.x+L*0.05,room.h*1.45,c.z+W*0.95],target:[c.x,0.2,c.z]}
+      eye:{pos:[c.x-Math.min(0.35,L*0.12),eyeY,c.z+Math.min(0.7,W*0.28)],target:[0,0.9,0]},
+      vanity:{pos:[vp[0],eyeY,vp[1]],target:[vanity.x,vanity.y,vanity.z]},
+      shower:{pos:[sp[0],eyeY,sp[1]],target:[shower.x,Math.max(1.1,shower.y),shower.z]},
+      above:{pos:[c.x,room.h*1.35,c.z+W*0.85],target:[0,0.2,0]}
     };
   }
   function markView(name){
