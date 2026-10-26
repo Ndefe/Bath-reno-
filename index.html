@@ -70,7 +70,12 @@ main{max-width:1150px;margin:0 auto;padding:16px;width:100%;flex:1;min-height:0;
 .bubble{max-width:88%;padding:10px 12px;border-radius:16px;line-height:1.4;white-space:pre-wrap}
 .bubble.bot{align-self:flex-start;background:var(--acc2);color:var(--ink)}
 .bubble.me{align-self:flex-end;background:var(--acc);color:#fff}
-.bubble.wait{opacity:.7}
+.bubble.wait{opacity:1;min-width:64px}
+.dots{display:inline-flex;gap:5px;align-items:center;height:18px;vertical-align:middle}
+.dots i{width:8px;height:8px;border-radius:50%;background:#0e7c86;display:block}
+@keyframes dot-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.render-ph{width:100%;aspect-ratio:4/3;max-height:240px;border-radius:8px;background:#e8eef2;border:1px dashed #b7c3cf}
+.render-wait{display:flex;gap:8px;align-items:center;margin:8px 0}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 #chat-chips{flex:0 0 88px;height:88px;min-height:88px;overflow:auto;align-content:flex-start;row-gap:0}
 #chat-open-note{flex:0 0 auto;margin:0 0 4px}
@@ -259,7 +264,9 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){
   .spin{animation:soft-pulse .3s ease-in-out infinite alternate}
-  .bubble.wait{animation:soft-fade .3s ease-in-out infinite alternate}
+  .dots i{animation:dot-bob .6s ease-in-out infinite}
+  .dots i:nth-child(2){animation-delay:.12s}
+  .dots i:nth-child(3){animation-delay:.24s}
   button:not(#view-planner button):not(#view-assist button),
   .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]){transition:transform .18s ease,box-shadow .18s ease}
   button:not(:disabled):not(#view-planner button):not(#view-assist button):active{transform:scale(.98)}
@@ -273,7 +280,7 @@ body.walking .pl-stage{height:100vh;height:100dvh;min-height:0;border-radius:0}
   .card:not(#view-planner .card):not(#view-assist .card):not([data-flow]):hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(16,24,32,.08)}
 }
 @media (prefers-reduced-motion:reduce){
-  .spin,.bubble.wait,.reveal,.arrive .card{animation:none;transform:none}
+  .spin,.bubble.wait,.dots i,.reveal,.arrive .card{animation:none;transform:none}
   .reveal{opacity:1}
   button,.card{transition:none}
   button:hover,button:active,.card:hover{transform:none}
@@ -659,7 +666,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div id="pl-render-view" hidden>
           <img id="pl-render-img" alt="AI illustration of this bathroom">
         </div>
-        <div class="pl-render-loading" id="pl-render-loading" hidden><span class="spin" aria-hidden="true"></span><span>Generating a photo-style render. This often takes 10–60 seconds.</span></div>
+        <div class="pl-render-loading" id="pl-render-loading" hidden><div class="render-ph" aria-hidden="true"></div><p class="render-wait"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Generating a photo-style render. This often takes 10–60 seconds.</span></p></div>
         <p id="pl-render-status" class="hint" role="status" aria-live="polite"></p>
         <div class="actions">
           <button class="btn" type="button" id="pl-ai-card">AI render</button>
@@ -3431,7 +3438,7 @@ Fill a field only when the client has stated it, using their words. Set done to 
     if(!quote) return;
     const intake=ensureIntake();
     const log=$('chat-log');
-    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait">One moment…</div>':'');
+    log.innerHTML=intake.messages.map(m=>`<div class="bubble ${m.role==='user'?'me':'bot'}">${esc(m.content)}</div>`).join('')+(intake.pending?'<div class="bubble bot wait" role="status"><span class="sr">One moment…</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':'');
     const showTop=!intake.pending && !intake.messages.some(m=>m.role==='user');
     const pinLog=()=>{
       if(!showTop){log.scrollTop=log.scrollHeight;return;}

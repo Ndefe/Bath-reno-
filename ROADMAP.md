@@ -43,6 +43,10 @@ These rules sit above the feature list. They do not change the site.
 
 ## CHANGELOG
 
+### 2026-10-26
+
+- Waiting dots. The chat shows three dots while a reply is on the way, and the AI render shows a placeholder with the same dots. The dots stay still when motion is reduced. The planner picture loader stays on its own unmerged branch. Nothing is sent. Prices are unchanged.
+
 ### 2026-10-25
 
 - Accessible bathrooms layout. The from-prices are written in the page using the catalogue formula, so it does not jump after load. The page says Accessible Care suits self-managed and plan-managed NDIS participants and private clients. The quote builder and the suburb pages link to it. Hint text is darker. Prices are unchanged.
