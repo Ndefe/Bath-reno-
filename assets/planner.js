@@ -1134,7 +1134,13 @@ const Planner=(()=>{
       const ob=overlay.getBoundingClientRect();
       if(ob.width>0&&ob.height>0) limit=ob.bottom-stage.top+8;
     }
-    let top=Math.max(limit, stage.height-bh-8);
+    let reserve=8;
+    const sheet=$('pl-side');
+    if(sheet&&window.innerWidth<=860&&document.body.classList.contains('on-planner')){
+      const sh=sheet.getBoundingClientRect().height;
+      if(sh>40&&sh<stage.height) reserve=sh+8;
+    }
+    let top=Math.max(limit, stage.height-bh-reserve);
     const mid=stage.height/2;
     if(top<mid && top+bh>mid) top=mid;
     if(top+bh>stage.height-4) top=Math.max(8, stage.height-bh-8);
