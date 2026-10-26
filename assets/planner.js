@@ -261,8 +261,8 @@ const Planner=(()=>{
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
     scene=new THREE.Scene();scene.background=new THREE.Color(0xdfe5ea);
-    camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(-0.85,1.52,0.55);
-    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0.35,1.15,-0.45);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.56;controls.minDistance=0.55;controls.maxDistance=12;
+    camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(-2.6,1.95,3.1);
+    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0,0.85,0);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.56;controls.minDistance=0.55;controls.maxDistance=12;
     controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
     applyOrbitFeel();
     controls.addEventListener('start',()=>{camTween=null;clearViewPressed()});
@@ -1511,26 +1511,32 @@ const Planner=(()=>{
     return {x:it.x,y:Math.max(0.75,(spec.h||0.9)*0.55),z:it.z};
   }
   function openingView(room){
-    const L=room.l,W=room.w,H=room.h,poly=roomPolygon(room);
-    const margin=Math.min(0.62,Math.min(L,W)*0.24);
-    const spots=[[-L/2+margin,W/2-margin],[L/2-margin,W/2-margin],[-L/2+margin,-W/2+margin],[L/2-margin,-W/2+margin]];
-    let x=spots[0][0],z=spots[0][1];
-    for(let i=0;i<spots.length;i++){if(pointInPoly(spots[i][0],spots[i][1],poly)){x=spots[i][0];z=spots[i][1];break}}
-    const y=Math.min(1.52,H-0.42);
-    const c=floorCentroid(room);
-    const items=(design&&design.items)||[];
-    const blocked=()=>items.some(it=>{
-      const spec=ITEMS[it.type]||{w:0.4,d:0.4,h:0.9};
-      const box=footprint(it);
-      return Math.abs(x-it.x)<box[0]/2+0.16 && Math.abs(z-it.z)<box[1]/2+0.16 && y<spec.h+0.08;
+    const L=room.l,W=room.w,H=room.h,c=floorCentroid(room);
+    const span=Math.max(L,W,H,2);
+    const back=span*0.9;
+    let x=-L/2-back*0.55, y=Math.min(H*0.78,1.05+span*0.38), z=W/2+back*0.9;
+    const target=[c.x,Math.min(0.95,H*0.36),c.z];
+    const dist=Math.hypot(x-target[0],y-target[1],z-target[2]);
+    if(dist>11){const s=11/dist;x=target[0]+(x-target[0])*s;y=target[1]+(y-target[1])*s;z=target[2]+(z-target[2])*s}
+    const aspect=camera&&camera.aspect>0.25?camera.aspect:0.65;
+    const fx=target[0]-x,fy=target[1]-y,fz=target[2]-z,fl=Math.hypot(fx,fy,fz)||1;
+    const F=[fx/fl,fy/fl,fz/fl];
+    const zx=[-F[0],-F[1],-F[2]];
+    const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    const nrm=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l]};
+    const xa=nrm(cross([0,1,0],zx)), ya=nrm(cross(zx,xa));
+    const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+    let tan=0.15;
+    roomPolygon(room).forEach(p=>{
+      [0.02,H-0.02].forEach(py=>{
+        const rel=[p[0]-x,py-y,p[1]-z];
+        const cz=-dot(rel,zx);
+        if(cz<0.2) return;
+        tan=Math.max(tan,Math.abs(dot(rel,ya))/cz,Math.abs(dot(rel,xa))/(cz*aspect));
+      });
     });
-    for(let n=0;n<10&&blocked();n++){x+=(c.x-x)*0.3;z+=(c.z-z)*0.3}
-    const farx=c.x+(c.x-x)*0.9,farz=c.z+(c.z-z)*0.9;
-    const horiz=Math.hypot(farx-x,farz-z)||1;
-    const ty=y-Math.tan(8*Math.PI/180)*horiz;
-    const aspect=camera&&camera.aspect>0.3?camera.aspect:0.7;
-    const vFov=Math.min(108,Math.max(48,2*Math.atan(Math.tan(82*Math.PI/360)/aspect)*180/Math.PI));
-    return {pos:[x,y,z],target:[farx,Math.min(y-0.04,Math.max(0.85,ty)),farz],fov:vFov};
+    const fov=Math.min(96,Math.max(42,2*Math.atan(tan*1.1)*180/Math.PI));
+    return {pos:[x,y,z],target:target,fov:fov};
   }
   function viewPresets(){
     const room=normRoom(design&&design.room);
