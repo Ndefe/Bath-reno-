@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Bathroom renovations in Brisbane | Gert's Reno</title>
+<title>Gert's Reno: bathrooms in Brisbane</title>
 <meta name="description" content="Gert's Reno quotes bathroom renovations in Brisbane. From $19,260 incl. GST, subject to a site measure. Nothing is final until the measure is confirmed.">
 <link rel="canonical" href="https://ndefe.github.io/Bath-reno-/">
 <meta name="theme-color" content="#2B2622">
@@ -409,7 +409,7 @@ header.app{position:sticky;top:0;z-index:20}
   header.app{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:48px 48px;align-items:center;height:96px;min-height:96px;max-height:96px;padding:0 8px;gap:0 8px;overflow:visible}
   .brand-lockup{grid-column:1;grid-row:1;flex:none;width:auto;min-width:0;max-width:100%;overflow:hidden}
   .brand-lockup > div{min-width:0;flex:1 1 auto;overflow:hidden;max-width:100%}
-  header.app h1{display:block;width:100%;height:48px;min-height:48px;font-size:16px;line-height:48px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  header.app h1{display:block;width:100%;height:48px;min-height:48px;max-height:48px;margin:0;padding:2px 0 0;font-size:15px;line-height:22px;white-space:normal;overflow:hidden;text-overflow:clip;overflow-wrap:anywhere;max-width:100%}
   #brand-legal{display:none}
   #btn-share{grid-column:2;grid-row:1;min-height:44px;max-height:44px;padding:6px 8px;flex:none;position:relative;z-index:2}
   header.app nav{grid-column:1 / -1;grid-row:2;display:flex;width:100%;height:48px;flex:none;min-width:0;gap:4px;flex-wrap:nowrap;overflow:visible}
@@ -1920,7 +1920,9 @@ function brandLine(){
   return name+': bathrooms in Brisbane';
 }
 function updateBrand(){
-  $('brand').textContent=brandLine();
+  const line=brandLine();
+  document.title=line;
+  $('brand').textContent=line;
   const logo=$('brand-logo');
   if(settings.logo){logo.src=settings.logo;logo.hidden=false;logo.alt=(settings.bizName||'Business')+' logo'}
   else{logo.removeAttribute('src');logo.hidden=true;logo.alt=''}
