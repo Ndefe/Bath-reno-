@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
+- Colours and fonts. The quote builder uses a linen page (#FAF6F0), espresso text (#2B2622), terracotta buttons (#B5643C), eucalyptus ticks (#5E7A64) and sand bands (#EADBC8). Headings use Fraunces and body text uses Figtree. Both are free Google Fonts, stored with the site. Button labels are 19 px and bold so white on terracotta meets WCAG AA as large text. Smaller text stays espresso, which clears AA on linen, sand and white. Prices are unchanged.
 - Reviews. A slot sits beside the quote total and stays hidden until a real review is saved in Setup. No review is invented. Nothing is sent. Prices are unchanged.
 - Hover and press. Buttons and cards grow on hover only for a fine pointer. A touch press darkens the control, and it does not move when motion is reduced. Prices are unchanged.
 - Waiting dots. The chat shows three dots while a reply is on the way, and the AI render shows a full-width placeholder with the same dots. The dots stay still when motion is reduced. The planner picture loader stays on its own unmerged branch. Nothing is sent. Prices are unchanged.

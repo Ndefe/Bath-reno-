@@ -1,0 +1,6 @@
+Figtree and Fraunces, Latin subset.
+Designed by Erik Kennedy (Figtree) and The Undercase (Fraunces), published on Google Fonts.
+Licensed under the SIL Open Font License, Version 1.1.
+https://fonts.google.com/specimen/Figtree
+https://fonts.google.com/specimen/Fraunces
+https://openfontlicense.org
