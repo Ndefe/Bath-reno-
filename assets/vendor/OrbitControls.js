@@ -830,7 +830,7 @@
 				removePointer( event );
 				if ( pointers.length === 0 ) {
 
-					scope.domElement.releasePointerCapture( event.pointerId );
+					try { scope.domElement.releasePointerCapture( event.pointerId ); } catch ( err ) {}
 					scope.domElement.removeEventListener( 'pointermove', onPointerMove );
 					scope.domElement.removeEventListener( 'pointerup', onPointerUp );
 
@@ -849,6 +849,7 @@
 
 					if ( pointers.length === 0 ) {
 
+						try { scope.domElement.releasePointerCapture( event.pointerId ); } catch ( err ) {}
 						scope.domElement.removeEventListener( 'pointermove', onPointerMove );
 						scope.domElement.removeEventListener( 'pointerup', onPointerUp );
 

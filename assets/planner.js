@@ -57,6 +57,7 @@ const Planner=(()=>{
   const texCache={};
   const defaultDesign=()=>({room:{shape:'rect',l:2.5,w:2.0,h:2.4,notchL:1.2,notchW:1,notchCorner:'ne'},floor:'regina-grey',wall:'regina-white',metal:'black',wood:0xf2f2ef,stepFree:false,items:[],doors:[],windows:[]});
   let planOn=false;
+  let camTween=null, camFramed=false, activeView='';
   let undoStack=[], redoStack=[], histLock=false, forceNums=false;
   function snapshot(){
     if(histLock||!design) return;
@@ -260,9 +261,11 @@ const Planner=(()=>{
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
     scene=new THREE.Scene();scene.background=new THREE.Color(0xdfe5ea);
-    camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(3.2,3.6,4.2);
-    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0,0.9,0);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.49;controls.minDistance=1.5;controls.maxDistance=12;
+    camera=new THREE.PerspectiveCamera(45,1,0.05,100);camera.position.set(-0.3,1.55,0.56);
+    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.set(0.2,1.05,-0.44);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.56;controls.minDistance=0.55;controls.maxDistance=12;
     controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
+    applyOrbitFeel();
+    controls.addEventListener('start',()=>{camTween=null;clearViewPressed()});
     renderer.domElement.style.touchAction='pan-y';
     scene.add(new THREE.HemisphereLight(0xfff1e0,0x6a6158,0.62));
     const fill=new THREE.DirectionalLight(0xc5d4e8,0.48);fill.name='fill';fill.position.set(-2.2,2.2,-1.2);scene.add(fill);
@@ -332,11 +335,11 @@ const Planner=(()=>{
       requestAnimationFrame(loop);
       const dt=Math.min(0.05,(now-lastFrame)/1000)||0;lastFrame=now;
       if(walking) stepWalk(dt);
-      else{controls.update();if(selected)selHelper.update();placeFloat()}
+      else{stepCam();controls.update();if(selected)selHelper.update();placeFloat()}
       renderer.render(scene,camera);
     })();
   }
-  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();placeFloat();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
+  function resize(){const h=$('pl-canvas');const w=h.clientWidth,ht=h.clientHeight;if(!w||!ht||!renderer)return;renderer.setPixelRatio(pixelRatio);renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();applyOrbitFeel();placeFloat();if(walking){$('pl-joy').hidden=!useTouchWalk()}}
 
   const DOOR_H=2.04;
   const WALL_NAME={n:'Far wall',s:'Near wall',e:'Right wall',w:'Left wall',nh:'Notch end',nv:'Notch side'};
@@ -1044,10 +1047,12 @@ const Planner=(()=>{
     const it=hitItem(e);
     if(it){
       select(it);
-      pending={id:e.pointerId,x:e.clientX,y:e.clientY};
-      renderer.domElement.style.touchAction='none';
-      try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
-      if(e.pointerType!=='touch') controls.enabled=false;
+      pending={id:e.pointerId,x:e.clientX,y:e.clientY,touch:e.pointerType==='touch'};
+      if(e.pointerType!=='touch'){
+        renderer.domElement.style.touchAction='none';
+        try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
+        controls.enabled=false;
+      }
     }else if(e.pointerType!=='touch') select(null);
   }
   function onMove(e){
@@ -1055,6 +1060,10 @@ const Planner=(()=>{
     if(pending&&e.pointerId===pending.id&&!drag){
       const dx=e.clientX-pending.x, dy=e.clientY-pending.y;
       if(dx*dx+dy*dy<64) return;
+      if(pending.touch){
+        renderer.domElement.style.touchAction='none';
+        try{renderer.domElement.setPointerCapture(e.pointerId)}catch(err){}
+      }
       snapshot();
       ray.setFromCamera(ndc(e),camera);
       if(!ray.ray.intersectPlane(floorPlane,tmp)) return;
@@ -1077,11 +1086,14 @@ const Planner=(()=>{
     placeFloat();
   }
   function onUp(e){
-    touchIds.delete(e.pointerId);
-    if(pending&&e.pointerId===pending.id) pending=null;
-    if(drag&&(!e||e.pointerId===drag.id)){drag=null;hideMeasure();if(design) design.placedBy='user';if(!walking) controls.enabled=true;refreshWarnings()}
+    if(e) touchIds.delete(e.pointerId);
+    if(e&&pending&&e.pointerId===pending.id) pending=null;
+    if(drag&&(!e||e.pointerId===drag.id)){drag=null;hideMeasure();if(design) design.placedBy='user';refreshWarnings()}
     if(e&&renderer){try{renderer.domElement.releasePointerCapture(e.pointerId)}catch(err){}}
-    if(!touchIds.size) renderer.domElement.style.touchAction='pan-y';
+    if(renderer&&!touchIds.size){
+      renderer.domElement.style.touchAction='pan-y';
+      if(!walking) controls.enabled=true;
+    }
   }
   function flipSelected(){
     if(!selected) return;
@@ -1443,6 +1455,7 @@ const Planner=(()=>{
     if(!design) ensureDesign();
     if(walking||!design) return;
     savedView={pos:camera.position.clone(),target:controls.target.clone(),fov:camera.fov,tone:renderer.toneMapping,exp:renderer.toneMappingExposure,bg:scene.background.clone()};
+    camTween=null;
     walking=true;
     controls.enabled=false;
     if(drag) drag=null;
@@ -1477,9 +1490,88 @@ const Planner=(()=>{
       scene.background=savedView.bg;
     }
     controls.enabled=true;
-    controls.maxPolarAngle=planOn?0.4:Math.PI*0.49;
+    controls.maxPolarAngle=planOn?0.4:Math.PI*0.56;
     controls.update();
     resize();
+  }
+  function applyOrbitFeel(){
+    if(!controls) return;
+    const coarse=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+    controls.rotateSpeed=coarse?0.65:1;
+    controls.zoomSpeed=1;
+    controls.panSpeed=coarse?0.6:1;
+    controls.dampingFactor=coarse?0.09:0.05;
+  }
+  function itemAim(type,fallback){
+    const items=design&&design.items||[];
+    const it=items.find(i=>i.type===type);
+    if(!it) return fallback;
+    const spec=ITEMS[type]||{};
+    return {x:it.x,y:Math.max(0.75,(spec.h||0.9)*0.55),z:it.z};
+  }
+  function viewPresets(){
+    const room=normRoom(design&&design.room);
+    const c=floorCentroid(room);
+    const eyeY=1.55,L=room.l,W=room.w;
+    const vanity=itemAim('vanity',{x:L/2-0.28,y:0.9,z:0});
+    const shower=itemAim('shower',{x:-L/2+0.45,y:1.15,z:-W/2+0.45});
+    const clamp=(x,z)=>[
+      Math.max(-L/2+0.32,Math.min(L/2-0.32,x)),
+      Math.max(-W/2+0.32,Math.min(W/2-0.32,z))
+    ];
+  const stand=(aim,dist)=>{
+    let dx=c.x-aim.x, dz=c.z-aim.z;
+    const len=Math.hypot(dx,dz)||1;
+    return clamp(aim.x+dx/len*dist, aim.z+dz/len*dist);
+  };
+  const vp=stand(vanity,0.85);
+  const sp=stand(shower,0.95);
+    return {
+      eye:{pos:[c.x-Math.min(0.35,L*0.12),eyeY,c.z+Math.min(0.7,W*0.28)],target:[0,0.9,0]},
+      vanity:{pos:[vp[0],eyeY,vp[1]],target:[vanity.x,vanity.y,vanity.z]},
+      shower:{pos:[sp[0],eyeY,sp[1]],target:[shower.x,Math.max(1.1,shower.y),shower.z]},
+      above:{pos:[c.x,room.h*1.35,c.z+W*0.85],target:[0,0.2,0]}
+    };
+  }
+  function markView(name){
+    activeView=name;
+    document.querySelectorAll('#pl-views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===name?'true':'false'));
+  }
+  function clearViewPressed(){
+    activeView='';
+    document.querySelectorAll('#pl-views button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  }
+  function easeCam(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+  function stepCam(){
+    if(!camTween) return;
+    const t=Math.min(1,(performance.now()-camTween.t0)/camTween.ms);
+    const e=easeCam(t);
+    camera.position.lerpVectors(camTween.fromP,camTween.toP,e);
+    controls.target.lerpVectors(camTween.fromT,camTween.toT,e);
+    if(t>=1) camTween=null;
+  }
+  function goCam(name,instant){
+    if(!camera||!controls||walking) return;
+    if(planOn){
+      planOn=false;
+      if($('pl-plan')) $('pl-plan').setAttribute('aria-pressed','false');
+      controls.maxPolarAngle=Math.PI*0.56;
+    }
+    const presets=viewPresets();
+    const v=presets[name]||presets.eye;
+    const key=presets[name]?name:'eye';
+    markView(key);
+    const toP=new THREE.Vector3(v.pos[0],v.pos[1],v.pos[2]);
+    const toT=new THREE.Vector3(v.target[0],v.target[1],v.target[2]);
+    const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(instant||reduced){
+      camTween=null;
+      camera.position.copy(toP);
+      controls.target.copy(toT);
+      controls.update();
+      return;
+    }
+    camTween={t0:performance.now(),ms:680,fromP:camera.position.clone(),fromT:controls.target.clone(),toP,toT};
   }
   function setPlan(on){
     if(!design) return;
@@ -1488,16 +1580,17 @@ const Planner=(()=>{
     if($('pl-plan')) $('pl-plan').setAttribute('aria-pressed',planOn?'true':'false');
     if(!controls) return;
     if(planOn){
+      camTween=null;
+      clearViewPressed();
       controls.maxPolarAngle=0.4;
       const span=Math.max(design.room.l,design.room.w,2);
       camera.position.set(0,span*1.5,0.01);
       controls.target.set(0,0,0);
+      controls.update();
     }else{
-      controls.maxPolarAngle=Math.PI*0.49;
-      camera.position.set(3.2,3.6,4.2);
-      controls.target.set(0,0.9,0);
+      controls.maxPolarAngle=Math.PI*0.56;
+      goCam(activeView||'eye',false);
     }
-    controls.update();
   }
   function lookHere(){
     if(!walking) return;
@@ -1792,7 +1885,7 @@ const Planner=(()=>{
     const on=document.body.classList.toggle('client');$('pl-client').textContent=on?'Client on':'Client';$('pl-client').setAttribute('aria-pressed',on?'true':'false');
     scene.background=new THREE.Color(on?0xf3efe8:0xdfe5ea);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=on?1.12:1.05;
     scene.getObjectByName('ceil').intensity=on?0.9:0.5;scene.traverse(o=>{if(o.material&&o.material.needsUpdate!==undefined)o.material.needsUpdate=true});refreshSel();
-    if(on){camera.position.set(design.room.l*0.9,design.room.h*1.25,design.room.w*1.6);controls.target.set(0,0.9,0)}
+    if(on){camTween=null;clearViewPressed();camera.position.set(design.room.l*0.9,design.room.h*1.25,design.room.w*1.6);controls.target.set(0,0.9,0)}
     setTimeout(resize,30);
   }
   function saveImage(){
@@ -1851,11 +1944,14 @@ const Planner=(()=>{
     buildRoom();buildItems();renderOpenings();
     const room=BQ.quote.room||{};
     if(!(+room.length>0&&+room.width>0)&&(room.mode==='lw'||room.mode==='l'||!room.mode)) syncToQuote();
+    if(!camFramed){camFramed=true;goCam('eye',true)}
     setTimeout(resize,0);
   }
   function loadFromQuote(q){design=null;selected=null;if(inited&&$('view-planner').classList.contains('active')) show()}
   function getDesign(){ensureDesign();return design}
   $('pl-plan').onclick=()=>setPlan(!planOn);
+  const viewBar=$('pl-views');
+  if(viewBar) viewBar.addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b) goCam(b.dataset.view,false)});
   $('pl-walk').onclick=enterWalk;
   $('pl-walk-exit').onclick=exitWalk;
   $('pl-walk-reset').onclick=lookHere;
