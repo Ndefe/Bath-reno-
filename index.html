@@ -414,7 +414,6 @@ header.app{position:sticky;top:0;z-index:20}
   header.app .share-status{position:fixed;top:56px;left:8px;right:8px;flex:none;z-index:30;background:var(--ink);padding:4px 0}
   .flow button{font-size:15px;padding:8px 4px;min-width:0}
   .flow button[aria-current="step"]{font-size:19px}
-  #view-planner:not([data-step="layout"]):not([data-step="fixtures"]) .pl-gesture,
   #view-planner .pl-move{display:none}
   .row3{grid-template-columns:1fr 1fr 1fr}
   main{padding:10px}
@@ -489,13 +488,25 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
   body.on-planner{height:100dvh;max-height:100dvh;overflow:hidden}
   body.on-planner header.app,body.on-planner #phone-bar,body.on-planner #m-total{display:none!important}
   body.on-planner main{max-width:none;height:100dvh;max-height:100dvh;padding:0;overflow:hidden}
-  body.on-planner #view-planner.active{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden}
-  body.on-planner .planner{display:flex;flex-direction:column;align-items:stretch;gap:0;height:100%;min-height:0;max-height:100dvh;overflow:auto}
+  body.on-planner #view-planner.active{display:flex;flex:1;min-height:0;height:100%;flex-direction:column;overflow:hidden}
+  body.on-planner .planner{display:flex;flex-direction:column;align-items:stretch;flex:1;gap:0;height:100%;min-height:0;max-height:100dvh;overflow:hidden}
   body.on-planner:not(.walking):not(.client) .pl-phone-bar{display:flex;align-items:center;flex:0 0 52px;width:100%;height:52px;min-height:52px;max-height:52px;gap:8px;padding:4px 8px;background:var(--bg)}
-  body.on-planner:not(.walking):not(.client) .pl-col{flex:0 0 auto;width:100%;min-width:0;display:flex;flex-direction:column;height:calc(100dvh - 52px);max-height:calc(100dvh - 52px);min-height:0;overflow:hidden}
-  body.on-planner:not(.walking):not(.client) .pl-stage{position:relative;flex:1 1 auto;height:auto;max-height:100%;min-height:0;border-radius:0;overflow:hidden}
+  body.on-planner:not(.walking):not(.client) .pl-col{flex:1 1 auto;width:100%;min-width:0;min-height:0;max-height:calc(100dvh - 52px);display:flex;flex-direction:column;overflow:hidden}
+  body.on-planner:not(.walking):not(.client) .pl-stage{position:relative;flex:1 1 auto;height:auto;min-height:0;max-height:100%;border-radius:0;overflow:hidden}
   body.on-planner #pl-canvas,body.on-planner #pl-canvas canvas{position:absolute;inset:0;width:100%;height:100%;max-height:100%}
   body.on-planner:not(.walking):not(.client) .pl-overlay > :not(#pl-undo){display:none!important}
+  body.on-planner .pl-side{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column;background:#fff;border-radius:16px 16px 0 0;box-shadow:0 -8px 24px rgba(43,38,34,.16);padding:0 12px 12px;overflow:hidden}
+  body.on-planner .pl-side.is-tall{overflow:auto}
+  body.on-planner .pl-sheet-handle{display:flex;align-items:center;justify-content:center;flex:none;min-height:44px;width:100%;border:0;background:transparent;touch-action:none;cursor:grab;padding:0}
+  body.on-planner .pl-sheet-handle::before{content:"";width:48px;height:4px;border-radius:99px;background:#C4B09A}
+  body.on-planner .pl-sheet-peek{flex:none}
+}
+.pl-sheet-handle{display:none}
+.pl-running{margin:0 0 8px;font-weight:700;font-size:16px;line-height:1.3}
+@media(min-width:861px){
+  #pl-side{display:flex;flex-direction:column;height:auto;position:static;overflow:visible}
+  .pl-sheet-body{order:1}
+  .pl-sheet-peek{order:2}
 }
 @media print{#m-total{display:none!important}.products{gap:3px}.product{break-inside:avoid}.product img{width:36px;height:36px}.qd-render{break-inside:avoid}.qd-render img{max-height:85mm;object-fit:contain}}
 </style>
@@ -697,7 +708,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
     <div class="planner">
       <div class="pl-phone-bar" id="pl-phone-bar">
         <button class="btn sec" type="button" id="pl-exit">Exit</button>
-        <p class="pl-phone-step" id="pl-phone-step">1 of 5 · Room</p>
+        <p class="pl-phone-step" id="pl-phone-step">1 of 4 · Size</p>
       </div>
       <div class="pl-col">
       <div class="pl-stage" id="pl-stage">
@@ -719,9 +730,14 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         </div>
         <p id="pl-measure" class="pl-measure" hidden></p>
       </div>
-      <p class="pl-gesture" id="pl-gesture">Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. A swipe on empty space scrolls the page. Two fingers pinch and pan.</p>
       </div>
-      <div class="pl-side">
+      <div class="pl-side" id="pl-side">
+      <button type="button" class="pl-sheet-handle" id="pl-sheet-handle" aria-label="Resize steps"></button>
+      <div class="pl-sheet-peek" id="pl-sheet-peek">
+        <p class="pl-running" id="pl-total"></p>
+        <button class="btn" type="button" id="flow-next">Next</button>
+      </div>
+      <div class="pl-sheet-body">
       <details class="pl-more" id="pl-tools-more">
         <summary>More</summary>
         <div class="pl-seg" role="group" aria-label="View">
@@ -755,14 +771,13 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
       </details>
       <div class="flow" id="flow" aria-label="Planner steps">
         <p id="flow-live" class="sr" aria-live="polite"></p>
-        <button type="button" data-flow-go="size" aria-current="step">Room</button>
+        <button type="button" data-flow-go="size" aria-current="step">Size</button>
         <button type="button" data-flow-go="layout">Layout</button>
-        <button type="button" data-flow-go="fixtures">Fixtures</button>
-        <button type="button" data-flow-go="style">Style</button>
-        <button type="button" data-flow-go="render">Render</button>
+        <button type="button" data-flow-go="finishes">Finishes</button>
+        <button type="button" data-flow-go="see">See it</button>
       </div>
-      <div id="flow-step" class="step-label"><span class="step-label-text">Step 1 of 5</span><div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Room, step 1 of 5" aria-label="Planner progress"><span></span></div></div>
-      <div class="card pl-render" id="pl-render" data-flow="render" hidden>
+      <div id="flow-step" class="step-label"><span class="step-label-text">Step 1 of 4</span><div class="flow-progress" id="flow-progress" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" aria-valuetext="Size, step 1 of 4" aria-label="Planner progress"><span></span></div></div>
+      <div class="card pl-render" id="pl-render" data-flow="see" hidden>
         <h2>AI render</h2>
         <p class="hint">Photo-style picture of this room. It is an AI illustration and may not match the exact layout. The prompt is sent to Pollinations, a free third-party AI service. Do not include a phone number, email or street address.</p>
         <div id="pl-render-view" hidden>
@@ -799,8 +814,8 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <p class="hint">Doors and windows. Plan view is on the picture.</p>
         <div id="pl-openings"></div>
         </div>
-        <div data-flow="fixtures" hidden>
-        <h2>Fixtures</h2>
+        <div data-flow="finishes" hidden>
+        <h2>Finishes</h2>
         <button class="btn sec pl-sheet-open" type="button" id="pl-sheet-open">Add item</button>
         <div class="pl-sheet" id="pl-sheet" hidden>
           <div class="pl-sheet-bar"><strong>Fixtures</strong><button class="btn sec" type="button" id="pl-sheet-close">Close</button></div>
@@ -815,7 +830,7 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
         <div class="actions"><button class="btn del sm" id="pl-del">Delete item</button><button class="btn del sm" id="pl-clear">Clear all</button></div>
         <div class="hint" style="margin-top:8px">Fixture sizes follow the package. Doors, windows and the room shape are saved with the project.</div>
         </div>
-        <div data-flow="style" hidden>
+        <div data-flow="finishes" hidden>
         <h2>Style</h2>
         <label for="pl-look">Style preset</label><select id="pl-look"></select>
         <div class="checkline"><input id="pl-stepfree" type="checkbox"><label for="pl-stepfree">Step-free shower</label></div>
@@ -826,9 +841,10 @@ body:not(.on-quote) #m-total,body.client #m-total{display:none!important}
           <p class="hint">The square matches the finish on the picture.</p>
         </details>
         </div>
-        <button class="btn" type="button" id="flow-next">Next</button>
       </div>
+      <p class="pl-gesture" id="pl-gesture">Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. Drag the handle to resize the steps. Two fingers pinch and pan.</p>
       <button class="btn sec" type="button" id="pl-back-quote">Back to quote</button>
+      </div>
       </div>
     </div>
   </section>
@@ -1592,7 +1608,11 @@ function paintQuoteTotal(t){
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const announce=sayQuote.on;
   const tail=text.endsWith(' plus items to confirm')?' plus items to confirm':'';
-  const write=s=>quoteTotalNodes().forEach(el=>{el.textContent=s});
+  const write=s=>{
+    quoteTotalNodes().forEach(el=>{el.textContent=s});
+    const running=$('pl-total');
+    if(running) running.textContent=s;
+  };
   if(from===to){
     const shown=paintQuoteTotal.shown;
     if(shown!=null&&shown!==to){
@@ -2514,7 +2534,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.view==='saved') renderSaved();
   if(b.dataset.view==='gallery'&&window.Gallery) Gallery.show();
   if(b.dataset.view==='pipeline') renderPipeline();
-  if(b.dataset.view==='planner') ensurePlanner().then(()=>Planner.show()).catch(()=>{});
+  if(b.dataset.view==='planner') ensurePlanner().then(()=>{Planner.show();if(window.resizePlannerSheet) window.resizePlannerSheet()}).catch(()=>{});
   if(b.dataset.view==='settings') renderSettings();
   if(b.dataset.view==='setup') fillSetup();
   const view=document.getElementById('view-'+b.dataset.view);
@@ -2537,7 +2557,7 @@ $('nav-owner').onclick=()=>toggleNav('nav-owner','nav-owner-links');
 $('nav-render').onclick=()=>{
   document.querySelector('nav button[data-view=planner]').click();
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.id==='nav-render'));
-  setFlow('render');
+  setFlow('see');
 };
 function realPhone(){
   const raw=String(settings&&settings.phone||'').trim();
@@ -2636,9 +2656,9 @@ if(!window.__quoteStepBound){
   window.addEventListener('scroll',syncQuoteStep,{passive:true});
   window.addEventListener('resize',syncQuoteStep);
 }
-const FLOW=['size','layout','fixtures','style','render'];
+const FLOW=['size','layout','finishes','see'];
 let flowStep='size';
-const FLOW_NAME={size:'Room',layout:'Layout',fixtures:'Fixtures',style:'Style',render:'Render'};
+const FLOW_NAME={size:'Size',layout:'Layout',finishes:'Finishes',see:'See it'};
 function setFlow(step){
   if(!FLOW.includes(step)) step='size';
   flowStep=step;
@@ -2663,7 +2683,7 @@ function setFlow(step){
   const view=$('view-planner');
   if(view) view.dataset.step=step;
   const renderBtn=$('pl-fab-render');
-  if(renderBtn) renderBtn.classList.toggle('sec', step!=='render');
+  if(renderBtn) renderBtn.classList.toggle('sec', step!=='see');
   const shapeMore=$('pl-shape-more');
   if(shapeMore&&$('pl-shape')&&$('pl-shape').value==='l') shapeMore.open=true;
   document.querySelectorAll('[data-flow]').forEach(el=>{el.hidden=el.dataset.flow!==step});
@@ -2672,16 +2692,17 @@ function setFlow(step){
     else btn.removeAttribute('aria-current');
   });
   const panel=document.querySelector('#view-planner .pl-panel');
-  if(panel) panel.hidden=step==='render';
+  if(panel) panel.hidden=step==='see';
   const next=$('flow-next');
-  if(next) next.hidden=step==='render';
-  if(step==='style') paintSwatches();
+  if(next){next.hidden=false;next.textContent=step==='see'?'Get my quote':'Next'}
+  if(step==='finishes') paintSwatches();
   document.querySelectorAll('.pl-more').forEach(syncMoreExpanded);
   const heading=document.querySelector('#view-planner [data-flow="'+step+'"] h2');
   const live=$('flow-live');
   const name=FLOW_NAME[step]+', step '+(FLOW.indexOf(step)+1)+' of '+FLOW.length;
   if(live) live.textContent=flowReady?name:'';
-  if(flowReady&&heading){
+  const phonePlanner=window.innerWidth<=860&&document.body.classList.contains('on-planner');
+  if(flowReady&&heading&&!phonePlanner){
     heading.setAttribute('tabindex','-1');
     heading.focus({preventScroll:true});
     const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2708,8 +2729,87 @@ document.querySelectorAll('.pl-more').forEach(details=>{
 });
 let flowReady=false;
 document.querySelectorAll('[data-flow-go]').forEach(b=>b.onclick=()=>setFlow(b.dataset.flowGo));
-$('flow-next').onclick=()=>{const i=FLOW.indexOf(flowStep);setFlow(FLOW[Math.min(FLOW.length-1,i+1)])};
-['pl-ai','pl-ai-card'].forEach(id=>{const el=$(id);if(el) el.addEventListener('click',()=>setFlow('render'))});
+$('flow-next').onclick=()=>{
+  const i=FLOW.indexOf(flowStep);
+  if(i>=FLOW.length-1){document.querySelector('nav button[data-view="quote"]').click();return}
+  setFlow(FLOW[i+1]);
+};
+['pl-ai','pl-ai-card'].forEach(id=>{const el=$(id);if(el) el.addEventListener('click',()=>setFlow('see'))});
+(function bindPlannerSheet(){
+  const sheet=$('pl-side');
+  const handle=$('pl-sheet-handle');
+  if(!sheet||!handle) return;
+  let stop=0;
+  let drag=null;
+  function stops(){
+    const peekEl=$('pl-sheet-peek');
+    const peek=Math.max(88,(handle.offsetHeight||0)+((peekEl&&peekEl.offsetHeight)||0)+16);
+    const h=window.innerHeight||800;
+    const mid=Math.max(peek+1,Math.round(h*0.4));
+    const full=Math.max(mid+1,Math.round(h*0.7));
+    return [peek,mid,full];
+  }
+  function apply(px,animate){
+    if(window.innerWidth>860){sheet.style.height='';sheet.style.transition='';sheet.classList.remove('is-tall');return}
+    const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    sheet.style.transition=(!animate||reduce)?'none':'height .2s ease';
+    sheet.style.height=px+'px';
+    const list=stops();
+    let near=0;
+    list.forEach((v,i)=>{if(Math.abs(v-px)<Math.abs(list[near]-px)) near=i});
+    sheet.classList.toggle('is-tall', near>0);
+  }
+  function setStop(i,animate){
+    const list=stops();
+    stop=Math.max(0,Math.min(list.length-1,i));
+    apply(list[stop],animate);
+  }
+  handle.addEventListener('pointerdown',e=>{
+    if(window.innerWidth>860) return;
+    drag={y:e.clientY,h:sheet.getBoundingClientRect().height,moved:false};
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    if(Math.abs(e.clientY-drag.y)>6) drag.moved=true;
+    const list=stops();
+    const next=Math.min(list[2],Math.max(list[0],drag.h-(e.clientY-drag.y)));
+    apply(next,false);
+  });
+  function endDrag(){
+    if(!drag) return;
+    const moved=drag.moved;
+    const h=sheet.getBoundingClientRect().height;
+    const list=stops();
+    let best=0;
+    list.forEach((v,i)=>{if(Math.abs(v-h)<Math.abs(list[best]-h)) best=i});
+    drag=null;
+    if(moved){handle.dataset.dragged='1';setStop(best,true)}
+  }
+  handle.addEventListener('pointerup',endDrag);
+  handle.addEventListener('pointercancel',endDrag);
+  handle.addEventListener('click',()=>{
+    if(handle.dataset.dragged==='1'){handle.dataset.dragged='';return}
+    if(window.innerWidth>860) return;
+    setStop((stop+1)%3,true);
+  });
+  handle.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowUp'&&e.key!=='ArrowDown') return;
+    e.preventDefault();
+    setStop(stop+(e.key==='ArrowUp'?1:-1),true);
+  });
+  function paintGesture(){
+    const el=$('pl-gesture');
+    if(!el) return;
+    el.textContent=window.innerWidth>860
+      ?'Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. Drag on empty space to look around the room. Two fingers pinch and pan.'
+      :'Tap a fixture, then drag it. It snaps to 5 cm and to a nearby wall. Drag the handle to resize the steps. Two fingers pinch and pan.';
+  }
+  window.addEventListener('resize',()=>{setStop(stop,false);paintGesture()});
+  window.resizePlannerSheet=()=>requestAnimationFrame(()=>setStop(stop,false));
+  paintGesture();
+  setStop(0,false);
+})();
 setFlow('size');
 flowReady=true;
 $('view-quote').addEventListener('input',e=>{
