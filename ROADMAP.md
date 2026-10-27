@@ -46,6 +46,7 @@ These rules sit above the feature list. They do not change the site.
 ### 2026-10-26
 
 - Self-hosted fonts. Figtree is a Latin variable file for weights 400 to 700, and Fraunces is Latin weight 700 with the optical-size axis kept. Both sit in assets/fonts with the SIL Open Font License. Only the heading file is preloaded. Fallback metrics keep the line boxes still while the faces swap in. The page does not call Google Fonts. Prices are unchanged.
+- Room templates. Size starts with four cards: Small ensuite 2.4×1.8, Family bathroom 3×2.4, Walk-in shower with no bath, and Start blank. The sized cards use the existing room sync. Nothing new is added to the price. Prices are unchanged.
 - Planner hint on a wide screen. The note says to drag on empty space to look around the room. It does not say a swipe on empty space scrolls the page. Prices are unchanged.
 - Planner picture. On a phone the room picture uses the full screen width and the visible height. Prices are unchanged.
 - Planner hint. On a phone the drag note says to drag the handle to resize the steps, because the page itself does not scroll. A wider screen says to drag on empty space to look around the room. Prices are unchanged.
