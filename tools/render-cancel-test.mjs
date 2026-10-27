@@ -158,14 +158,14 @@ try {
       runs.push(dist());
     }
     const pad = document.getElementById('pl-float').getBoundingClientRect();
-    const walk = document.getElementById('pl-walk').getBoundingClientRect();
-    const walkEl = document.elementFromPoint(walk.left + walk.width / 2, walk.top + walk.height / 2);
+    const undo = document.getElementById('pl-undo').getBoundingClientRect();
+    const undoEl = document.elementFromPoint(undo.left + undo.width / 2, undo.top + undo.height / 2);
     const overlaps = (x, y) => x >= pad.left && x <= pad.right && y >= pad.top && y <= pad.bottom;
     return {
       before, end, runs,
       left: hit(cx - 100, cy), right: hit(cx + 100, cy),
       padCoversCentre: overlaps(cx - 100, cy) || overlaps(cx + 100, cy),
-      walk: walkEl && walkEl.id,
+      undo: undoEl && undoEl.id,
       padH: Math.round(pad.height),
       timeoutMs: window.RenderService.timeoutMs,
       hasCancel: typeof window.RenderService.cancel
@@ -173,7 +173,7 @@ try {
   });
   report(pinch.runs.every(d => Math.abs(d - 6.04) < 0.05), 'pinch-close x3 ends at 6.04 ' + JSON.stringify(pinch.runs));
   report(!pinch.padCoversCentre && pinch.left === 'CANVAS' && pinch.right === 'CANVAS', 'centre +/-100 hits the canvas ' + JSON.stringify(pinch));
-  report(pinch.walk === 'pl-walk', 'walk stays tappable');
+  report(pinch.undo === 'pl-undo', 'undo is the control over the room');
   const widths = [[360, 667], [375, 667], [390, 844], [412, 915], [1280, 800]];
   for (const [width, height] of widths) {
     await page.setViewport({width, height, hasTouch:true, isMobile:true, deviceScaleFactor:1});
@@ -205,7 +205,8 @@ try {
         const el = document.getElementById(b.id) || [...padEl.querySelectorAll('button')].find(n => (n.id || n.getAttribute('aria-label')) === b.id);
         return Math.round(el.getBoundingClientRect().top);
       }));
-      const tools = ['pl-plan', 'pl-walk', 'pl-client'].map(id => {
+      const phone = view.w <= 860;
+      const tools = phone ? [] : ['pl-plan', 'pl-walk', 'pl-client'].map(id => {
         const el = document.getElementById(id);
         const r = el.getBoundingClientRect();
         const x = r.left + r.width / 2;
@@ -213,20 +214,26 @@ try {
         const hit = document.elementFromPoint(x, y);
         return {id, hit: hit && hit.id, covered: x >= padRect.left && x <= padRect.right && y >= padRect.top && y <= padRect.bottom};
       });
+      const undo = document.getElementById('pl-undo').getBoundingClientRect();
+      const undoHit = document.elementFromPoint(undo.left + undo.width / 2, undo.top + undo.height / 2);
       return {
         buttons,
         rows: tops.size,
         scrolls: padEl.scrollWidth > padEl.clientWidth + 1,
         centreCovered: [ccx - 100, ccx + 100].some(x => x >= padRect.left && x <= padRect.right && ccy >= padRect.top && ccy <= padRect.bottom),
         panel: document.getElementById('pl-del').textContent + '|' + document.getElementById('pl-clear').textContent,
-        tools
+        tools,
+        phone,
+        undoHit: undoHit && undoHit.id,
+        undoTall: undo.height >= 43.5,
+        undoInView: undo.top >= -1 && undo.bottom <= view.h + 1 && undo.left >= -1 && undo.right <= view.w + 1
       };
     });
     const wanted = ['Nudge up', 'Nudge left', 'pl-rot-fab', 'Nudge right', 'Nudge down', 'pl-flip', 'pl-dup', 'pl-fab-del', 'pl-fab-clear'];
     const byId = Object.fromEntries(pad.buttons.map(b => [b.id, b]));
     const missing = wanted.filter(id => !byId[id]);
     const bad = pad.buttons.filter(b => !b.inView || !b.tall || !b.hit);
-    const toolsOk = pad.tools.every(t => t.hit === t.id && !t.covered);
+    const toolsOk = pad.phone ? (pad.undoHit === 'pl-undo' && pad.undoTall && pad.undoInView) : pad.tools.every(t => t.hit === t.id && !t.covered);
     report(missing.length === 0 && bad.length === 0 && pad.rows === 2 && !pad.scrolls && !pad.centreCovered && toolsOk && pad.panel === 'Delete item|Clear all',
       'pad buttons reachable at ' + width + ' ' + JSON.stringify({rows: pad.rows, scrolls: pad.scrolls, centreCovered: pad.centreCovered, panel: pad.panel, tools: pad.tools, bad, missing}));
   }
