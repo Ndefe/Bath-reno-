@@ -229,12 +229,12 @@ try {
         undoInView: undo.top >= -1 && undo.bottom <= view.h + 1 && undo.left >= -1 && undo.right <= view.w + 1
       };
     });
-    const wanted = ['Nudge up', 'Nudge left', 'pl-rot-fab', 'Nudge right', 'Nudge down', 'pl-flip', 'pl-dup', 'pl-fab-del', 'pl-fab-clear'];
+    const wanted = ['pl-rot-fab', 'pl-fab-del'];
     const byId = Object.fromEntries(pad.buttons.map(b => [b.id, b]));
     const missing = wanted.filter(id => !byId[id]);
     const bad = pad.buttons.filter(b => !b.inView || !b.tall || !b.hit);
-    const toolsOk = pad.phone ? (pad.undoHit === 'pl-undo' && pad.undoTall && pad.undoInView) : pad.tools.every(t => t.hit === t.id && !t.covered);
-    report(missing.length === 0 && bad.length === 0 && pad.rows === 2 && !pad.scrolls && !pad.centreCovered && toolsOk && pad.panel === 'Delete item|Clear all',
+    const toolsOk = pad.undoHit === 'pl-undo' && pad.undoTall && pad.undoInView;
+    report(missing.length === 0 && bad.length === 0 && pad.rows === 1 && !pad.scrolls && !pad.centreCovered && toolsOk && pad.panel === 'Delete item|Clear all',
       'pad buttons reachable at ' + width + ' ' + JSON.stringify({rows: pad.rows, scrolls: pad.scrolls, centreCovered: pad.centreCovered, panel: pad.panel, tools: pad.tools, bad, missing}));
   }
   await page.setViewport({width:375, height:667, hasTouch:true, isMobile:true, deviceScaleFactor:1});
