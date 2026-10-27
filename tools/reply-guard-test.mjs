@@ -173,7 +173,7 @@ try {
     const refused = added.includes(refusal);
     report(!leak && !refused, 'shown safely: ' + text);
     if (benign.includes(text)) {
-      const ok = added.includes(text) || /How big is the bathroom\?/.test(added);
+      const ok = added.includes(text) || /How big is the room\?/.test(added);
       report(ok, 'benign shown or next question: ' + text);
     }
   }
