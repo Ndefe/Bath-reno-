@@ -1,0 +1,7 @@
+Figtree and Fraunces, Latin subset.
+Figtree is the variable weight axis from 400 to 700.
+Fraunces is weight 700 only, with the optical-size axis kept.
+Designed by Erik Kennedy (Figtree) and The Undercase (Fraunces).
+Licensed under the SIL Open Font License, Version 1.1. See OFL.txt.
+https://github.com/erikdkennedy/figtree
+https://github.com/undercasetype/Fraunces
