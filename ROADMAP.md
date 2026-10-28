@@ -45,6 +45,7 @@ These rules sit above the feature list. They do not change the site.
 
 ### 2026-10-26
 
+- Phone LCP. The hero AVIF stays preloaded at 800 and 1600 with fetchpriority high, sizes 100vw, and width and height set. Figtree and Fraunces swap in after the hero paints, on top of the same size-adjusted fallbacks, so they do not sit on the critical path. The catalogue request starts after that paint. The Assistant heading scroll margin stays 160px. Prices are unchanged.
 - Self-hosted fonts. Figtree is a Latin variable file for weights 400 to 700, and Fraunces is Latin weight 700 with the optical-size axis kept. Both sit in assets/fonts with the SIL Open Font License. Only the heading file is preloaded. Fallback metrics keep the line boxes still while the faces swap in. The page does not call Google Fonts. Prices are unchanged.
 - Hero load. The opening photo is preloaded, with a smaller AVIF and a WebP fallback at the same crop. The Assistant heading scroll margin stays 160px. Prices are unchanged.
 - Hero eyebrow. The scrim behind the opening line is a little darker, and that line is bold, so it clears 4.5:1 on the photo. The Assistant heading's scroll margin clears the sticky header. Prices are unchanged.
