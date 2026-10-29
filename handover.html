@@ -55,6 +55,7 @@ header a:focus-visible{outline-color:#F3E6D8}
 }
 @media print{
   header,.editor{display:none!important}
+  h2{break-after:avoid}
   body{background:#fff}
   main{max-width:none;padding:0}
   .sheet{border-radius:0;padding:0}
@@ -69,12 +70,14 @@ header a:focus-visible{outline-color:#F3E6D8}
   <article class="sheet" id="sheet">
     <h1>Your bathroom</h1>
     <p class="lede" id="lede">A short note to keep with the bathroom.</p>
-    <h2>This job</h2>
-    <dl>
-      <div class="row"><dt>Package</dt><dd id="job-pkg" class="missing">Not entered yet</dd></div>
-      <div class="row"><dt>Size</dt><dd id="job-size" class="missing">Not entered yet</dd></div>
-      <div class="row"><dt>Finished</dt><dd id="job-done" class="missing">Not entered yet</dd></div>
-    </dl>
+    <section id="job-block" hidden>
+      <h2>This job</h2>
+      <dl>
+        <div class="row" id="row-pkg" hidden><dt>Package</dt><dd id="job-pkg"></dd></div>
+        <div class="row" id="row-size" hidden><dt>Size</dt><dd id="job-size"></dd></div>
+        <div class="row" id="row-done" hidden><dt>Finished</dt><dd id="job-done"></dd></div>
+      </dl>
+    </section>
     <h2>Looking after it</h2>
     <h3>Tiles</h3>
     <p>Wipe them with a soft cloth and warm water. A drop of mild dish soap is enough when they need it. Skip scourers, cream cleanser and acid on the glaze.</p>
@@ -84,18 +87,22 @@ header a:focus-visible{outline-color:#F3E6D8}
     <p>The bead around the bath, shower and basin is what keeps water out of the wall. Don't pick at it, and don't seal over a split. If it cracks, peels, or stays black after a clean, it needs a new bead.</p>
     <h3>Tapware</h3>
     <p>Wipe the tap dry after use, especially where the water is hard. A soft cloth is enough. Skip cream cleanser and steel wool on the finish.</p>
-    <h2>Warranty</h2>
-    <p id="warranty"></p>
-    <h2>Contact</h2>
-    <p id="contact-empty" class="missing" hidden>No phone or email is saved in Setup yet.</p>
-    <p id="contact-lines"></p>
-    <p class="legal" id="legal" hidden></p>
-    <p id="review-wrap"><a class="btn" id="review" hidden>Leave us a review</a></p>
-    <p class="hint" id="review-url" hidden></p>
+    <section id="warranty-block" hidden>
+      <h2>Warranty</h2>
+      <p id="warranty"></p>
+    </section>
+    <section id="contact-block" hidden>
+      <h2>Contact</h2>
+      <p id="contact-lines"></p>
+      <p class="legal" id="legal" hidden></p>
+      <p id="review-wrap"><a class="btn" id="review" hidden>Leave us a review</a></p>
+      <p class="hint" id="review-url" hidden></p>
+    </section>
   </article>
   <section class="editor" aria-label="Job details for this note">
     <h2>Fill in this job</h2>
     <p class="hint">Saved on this phone from Setup: the business name, phone, email, ABN, QBCC number, warranty wording, and Google review link. Empty ones stay off the note. Nothing here is sent.</p>
+    <p class="hint" id="contact-empty" hidden>No phone or email is saved in Setup yet.</p>
     <form id="job">
       <label for="pkg">Package</label>
       <input id="pkg" name="pkg" autocomplete="off" maxlength="80" placeholder="Budget Compact">
@@ -114,7 +121,6 @@ header a:focus-visible{outline-color:#F3E6D8}
   </section>
 </main>
 <script>
-const DEFAULT_WARRANTY='Workmanship is covered by the Queensland statutory warranty where it applies (6 years for structural work, 1 year for other work). Manufacturer warranties apply to the products. QBCC home warranty insurance is arranged when the contract requires it. Confirm the warranty that applies to this job with QBCC.';
 function savedSettings(){
   try{
     const raw=localStorage.getItem('bq.settings.v2');
@@ -125,12 +131,12 @@ function savedSettings(){
 function clean(value, max){
   return String(value==null?'':value).replace(/[\u0000-\u001f]/g,'').trim().slice(0, max);
 }
-function httpUrl(value){
+function httpsUrl(value){
   const s=clean(value, 500);
   if(!s) return '';
   try{
     const url=new URL(s);
-    if(url.protocol!=='https:'&&url.protocol!=='http:') return '';
+    if(url.protocol!=='https:') return '';
     return url.href;
   }catch{return ''}
 }
@@ -154,15 +160,16 @@ function noteData(){
     email:field(qs,'email',fromSetup?saved.email:'',80),
     abn:field(qs,'abn',fromSetup?saved.abn:'',20),
     qbcc:field(qs,'qbcc',fromSetup?saved.qbcc:'',40),
-    warranty:field(qs,'warranty',fromSetup?(saved.warranty||DEFAULT_WARRANTY):'',2000)|| (qs.has('warranty')?'':DEFAULT_WARRANTY),
-    review:httpUrl(field(qs,'review',fromSetup?saved.googleReviewUrl:'',500))
+    warranty:field(qs,'warranty',fromSetup?saved.warranty:'',2000),
+    review:httpsUrl(field(qs,'review',fromSetup?saved.googleReviewUrl:'',500))
   };
 }
 function $(id){return document.getElementById(id)}
-function setText(id, text, missing){
-  const el=$(id);
-  el.textContent=text;
-  el.classList.toggle('missing', !!missing);
+function setRow(rowId, textId, text){
+  const row=$(rowId);
+  const el=$(textId);
+  el.textContent=text||'';
+  row.hidden=!text;
 }
 function formatDone(value){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
@@ -174,11 +181,12 @@ function paint(data){
   $('brand').textContent=data.biz;
   document.title=data.biz+' handover note';
   $('lede').textContent='A short note from '+data.biz+' to keep with the bathroom.';
-  setText('job-pkg', data.pkg||'Not entered yet', !data.pkg);
-  setText('job-size', data.size||'Not entered yet', !data.size);
-  const done=formatDone(data.done);
-  setText('job-done', done||'Not entered yet', !done);
-  $('warranty').textContent=data.warranty;
+  setRow('row-pkg','job-pkg', data.pkg);
+  setRow('row-size','job-size', data.size);
+  setRow('row-done','job-done', formatDone(data.done));
+  $('job-block').hidden=!(data.pkg||data.size||formatDone(data.done));
+  $('warranty').textContent=data.warranty||'';
+  $('warranty-block').hidden=!data.warranty;
   const lines=$('contact-lines');
   lines.textContent='';
   if(data.phone){
@@ -192,7 +200,9 @@ function paint(data){
     if(lines.childNodes.length) lines.append(document.createTextNode(' · '));
     lines.append(document.createTextNode(data.email));
   }
-  $('contact-empty').hidden=!!(data.phone||data.email);
+  const hint=$('contact-empty');
+  if(hint) hint.hidden=!!(data.phone||data.email);
+  $('contact-block').hidden=!(data.phone||data.email||data.abn||data.qbcc||data.review);
   const legal=[];
   if(data.abn) legal.push('ABN '+data.abn);
   if(data.qbcc) legal.push('QBCC licence '+data.qbcc);
@@ -238,8 +248,7 @@ function applyForm(push){
   const job=readForm();
   const current=noteData();
   const next=Object.assign({}, current, job);
-  if(!next.warranty) next.warranty=DEFAULT_WARRANTY;
-  next.review=httpUrl(next.review);
+  next.review=httpsUrl(next.review);
   paint(next);
   const qs=shareParams(next);
   const path=location.pathname+(qs.toString()?'?'+qs.toString():'');
