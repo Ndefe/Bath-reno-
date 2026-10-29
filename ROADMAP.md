@@ -43,6 +43,10 @@ These rules sit above the feature list. They do not change the site.
 
 ## CHANGELOG
 
+### 2026-10-29
+
+- Handover note. After a job, Nico can fill in the package, size and finish date, then print or copy a link. Care notes cover tiles, grout, silicone and tapware. Warranty, phone, email, ABN and QBCC come only from Setup, and stay off the page when blank. The review button uses the Google review link from Setup and stays hidden when that link is empty. Nothing is sent. Prices are unchanged.
+
 ### 2026-10-26
 
 - Phone LCP. The hero AVIF stays preloaded at 800 and 1600 with fetchpriority high, sizes 100vw, and width and height set. Figtree and Fraunces swap in after the hero paints, on top of the same size-adjusted fallbacks, so they do not sit on the critical path. The catalogue request starts after that paint. The Assistant heading scroll margin stays 160px. Prices are unchanged.
